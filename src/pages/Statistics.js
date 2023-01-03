@@ -5,7 +5,7 @@ export default function Statistics() {
   const [graphs, setGraphs] = useState([
     {
       id: 1,
-      name: "John Smith",
+      name: "Weekly",
       img: "https://cdn.discordapp.com/attachments/879121725500059668/1059875195734736957/image.png",
     },
   ]);
@@ -20,3 +20,8 @@ export default function Statistics() {
     </>
   );
 }
+
+/*
+goals: include checkboxes to show which items to show or not (or use array passed through from settings page)
+- graph component can be used in many places, including profile, statistics, etc (maybe even used in the preview)
+*/
