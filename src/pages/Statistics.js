@@ -1,27 +1,39 @@
-import Graph from "../components/Graph";
 import { useState } from "react";
-import { useResolvedPath } from "react-router-dom";
-export default function Statistics() {
-  const [graphs, setGraphs] = useState([
-    {
-      id: 1,
-      name: "Weekly",
-      img: "https://cdn.discordapp.com/attachments/879121725500059668/1059875195734736957/image.png",
-    },
-  ]);
+import Users from "../components/Users";
+import LineChart from "../components/LineChart";
 
+function Statistics() {
+  const cur = {
+    id: 1,
+    name: "Alex",
+    time: "Weekly",
+  };
+  const [chartData, setChartData] = useState({
+    name: cur.name,
+    labels: Users()[0].data.map((e) => e.date),
+    datasets: [
+      {
+        label: cur.time + " happiness for " + cur.name,
+        data: Users()[0].data.map((e) => e.level),
+        tension: 0.3,
+      },
+    ],
+  });
   return (
     <>
-      <div className="flex flex-wrap justify-center items-center">
-        {graphs.map((graph) => {
-          return <Graph id={graph.id} name={graph.name} img={graph.img} />;
-        })}
+      <div>
+        <LineChart chartData={chartData} />
       </div>
     </>
+
+    // <div>
+    //   <img className="h-[400px] w-[800px]" src={props.img} />
+    //   <div className="space-y-0.5">
+    //     <p className="text-lg text-black text-center font semi-bold">
+    //       {props.name} Graph for "name"
+    //     </p>
+    //   </div>
+    // </div>
   );
 }
-
-/*
-goals: include checkboxes to show which items to show or not (or use array passed through from settings page)
-- graph component can be used in many places, including profile, statistics, etc (maybe even used in the preview)
-*/
+export default Statistics;
