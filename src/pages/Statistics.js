@@ -5,7 +5,8 @@ function Statistics() {
   const index = 0;
   return (
     <>
-      <div className="flex flex-wrap justify-center items-center">
+      {/* <div> */}
+      <div>
         <Graph name="Alex" time="Weekly" />
       </div>
     </>

@@ -19,7 +19,8 @@ function Graph(props) {
 
   return (
     <>
-      <div className=" min-w-[500px] max-w-[500px] m-2 py-8 px-8 max-w-sm bg-white rounded-xl shadow-lg space-y-2 sm:py-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-6">
+      <div>
+        {/* <div className="min-w-[500px] max-w-[500px] m-2 py-8 px-8 bg-white rounded-xl shadow-lg space-y-2 sm:py-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-6"> */}
         <LineChart chartData={chartData} />
       </div>
     </>
