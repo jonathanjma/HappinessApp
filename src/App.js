@@ -7,10 +7,12 @@ import { useState } from "react";
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/statistics" element={<Statistics />} />
-        <Route path="/profile" element={<Profile />} />
-      </Routes>
+      <div className="max-w-7xl mx-auto min-h-screen px-3 py-2">
+        <Routes>
+          <Route path="/statistics" element={<Statistics />} />
+          <Route path="/profile" element={<Profile />} />
+        </Routes>
+      </div>
     </BrowserRouter>
   );
 }

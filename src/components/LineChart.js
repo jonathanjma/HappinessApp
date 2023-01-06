@@ -9,6 +9,12 @@ function LineChart({ chartData }) {
       <Line
         data={chartData}
         options={{
+          scales: {
+            y: {
+              max: 10,
+              min: 0,
+            },
+          },
           plugins: {
             title: {
               display: true,

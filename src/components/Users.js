@@ -179,7 +179,7 @@ function Users() {
       img: "https://images-ext-1.discordapp.net/external/-EIjsJAZFDJw3y57OkMdXG2u199aL0rtccT2dcp22dk/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/285542608024109057/9e3499987c94208af7ddb20e65907d1a.png",
       friends: [2, 3],
       group: 1000,
-      settings: [0, 0],
+      settings: [[true, false], 0],
       data: [
         {
           date: "1/5",
@@ -189,7 +189,7 @@ function Users() {
         },
         {
           date: "1/6",
-          level: 1,
+          level: 4,
           pubComment: "horrible",
           privComment: "very bad day",
         },
@@ -209,7 +209,7 @@ function Users() {
         },
         {
           date: "1/10",
-          level: 0.5,
+          level: 7,
         },
         {
           date: "1/11",
@@ -381,7 +381,7 @@ export default Users;
         - monthly (checkboxes that allows you to choose between one, other, or both) (one must be checked)
         - yearly (for later)
         - all time (for later)
-        - for now: 0 = weekly, 1 = monthly, 2 = both
+        - for now: true/false for weekly then monthly
     - statistics
         - mean (average)/median default (0)
         - options: standard deviation, mode, range, maximum/minimum, 1st and 3rd quartile
