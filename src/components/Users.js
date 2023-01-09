@@ -52,12 +52,13 @@ function Users() {
       measures: {
         mean: 7.3125,
         median: 8,
-        stdev: 2.8052,
         mode: 10,
+        range: 7,
+        stdev: 2.8052,
         min: 3,
         q1: 5.25,
-        max: 10,
         q3: 9.5,
+        max: 10,
       },
     },
     {
