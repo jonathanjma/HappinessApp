@@ -4,17 +4,10 @@ import { Line } from "react-chartjs-2";
 
 function LineChart({ chartData }) {
   return (
-    <div className="chart-container">
-      <h2 style={{ textAlign: "center" }}>Weekly happiness for Alex</h2>
+    <div className="container">
       <Line
         data={chartData}
         options={{
-          scales: {
-            y: {
-              max: 10,
-              min: 0,
-            },
-          },
           plugins: {
             title: {
               display: true,
@@ -23,6 +16,15 @@ function LineChart({ chartData }) {
             legend: {
               display: false,
             },
+          },
+          scales: {
+            y: {
+              max: 10,
+              min: 0,
+            },
+          },
+          layout: {
+            padding: {},
           },
         }}
       />
