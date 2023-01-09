@@ -8,7 +8,7 @@ function Profile(props) {
       <p className="text-center text-4xl font-medium m-4">Profile</p>
       <div className="flex flex-wrap justify-center items-center m-4">
         <img
-          className="justify-center rounded-full min-h-[300px] min-w-[300px] block mx-auto h-24 rounded-full sm:mx-0 sm:shrink-0"
+          className="justify-center rounded-full min-h-[300px] min-w-[300px] max-w-[300px] block mx-auto h-24 rounded-full sm:mx-0 sm:shrink-0"
           src={Users()[props.id].img}
         />
       </div>
