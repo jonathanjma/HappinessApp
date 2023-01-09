@@ -60,6 +60,8 @@ function Users() {
         q3: 9.5,
         max: 10,
       },
+      // currently these stats are hardcoded in, but either they can be stored on database or calculated in the program
+      // we can decide later
     },
     {
       id: 2,
