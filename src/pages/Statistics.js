@@ -28,7 +28,7 @@ function Statistics() {
   ];
   return (
     <>
-      <p className="text-center text-4xl font-medium">Statistics</p>
+      <p className="text-center text-4xl font-medium m-4">Statistics</p>
       <div className="flex flex-wrap justify-center items-center">
         <Graph index={[0, 1, 2]} time="Weekly" />
         <Graph index={[0, 1, 2, 3, 4, 5]} time="Monthly" />
