@@ -7,8 +7,8 @@ function Statistics() {
     <>
       {/* <div> */}
       <div className="flex flex-wrap justify-center items-center">
-        <Graph name="Alex" time="Weekly" />
-        <Graph name="Alex" time="Monthly" />
+        <Graph index={[0, 1, 2]} time="Weekly" />
+        <Graph index={[0, 1, 2, 3, 4, 5]} time="Monthly" />
       </div>
     </>
   );

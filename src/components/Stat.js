@@ -1,0 +1,3 @@
+function Stat(props) {
+  return;
+}

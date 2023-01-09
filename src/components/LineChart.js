@@ -10,11 +10,11 @@ function LineChart({ chartData }) {
         options={{
           plugins: {
             title: {
-              display: true,
-              text: "Week of 1/5/23",
+              display: false,
+              text: "",
             },
             legend: {
-              display: false,
+              display: true,
             },
           },
           scales: {
