@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Stat from "../components/Stat";
 import Users from "../components/Users";
 
@@ -10,6 +9,7 @@ function Profile(props) {
         <img
           className="justify-center rounded-full min-h-[300px] min-w-[300px] max-w-[300px] block mx-auto h-24 rounded-full sm:mx-0 sm:shrink-0"
           src={Users()[props.id].img}
+          alt="profile"
         />
       </div>
       <p className="text-center text-2xl font-medium m-2">

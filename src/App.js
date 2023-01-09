@@ -2,7 +2,6 @@ import "./index.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Statistics from "./pages/Statistics";
 import Profile from "./pages/Profile";
-import { useState } from "react";
 
 // change id number to index of user in Users.js (temporary until backend + login set up)
 function App() {

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Graph from "../components/Graph";
 import Stat from "../components/Stat";
 
