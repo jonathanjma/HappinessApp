@@ -4,10 +4,11 @@ import { Line } from "react-chartjs-2";
 
 function LineChart({ chartData }) {
   return (
-    <div className="container">
+    <div className="container flex w-full">
       <Line
         data={chartData}
         options={{
+          maintainAspectRatio: false,
           plugins: {
             title: {
               display: false,

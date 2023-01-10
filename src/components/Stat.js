@@ -18,10 +18,10 @@ function Stat(props) {
   return (
     <div className="min-w-[178px] max-w-[178px] min-h-[178px] flex items-center justify-center m-2 p-2 max-w-sm bg-white rounded-xl shadow-lg">
       <div className="space-y-2">
-        <p className="text-xl text-black font-semibold text-center">
+        <p className="text-xl text-raisin-600 font-semibold text-center">
           {trans[val]}
         </p>
-        <p className="text-3xl text-slate-500 font-medium text-center">
+        <p className="text-3xl text-rhythm-500 font-medium text-center">
           {Users()[0].measures[val]}
         </p>
       </div>

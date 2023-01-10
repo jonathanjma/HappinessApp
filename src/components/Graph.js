@@ -20,7 +20,7 @@ function IndexData(indices) {
     selectedData.push({
       label: Users()[i].name,
       data: Users()[i].data.map((e) => e.level),
-      tension: 0.3,
+      tension: 0.4,
       borderColor: colors[0],
     });
     // removes first element of color array
@@ -40,9 +40,11 @@ function Graph(props) {
 
   return (
     <>
-      <div className="min-w-[350px] max-w-[350px] m-4 py-8 px-8 max-w-sm bg-white rounded-xl shadow-lg space-y-2">
-        <div>
-          <p className="text-center font-medium">{chartData.time} Happiness</p>
+      <div className="w-full justify-center min-w-[350px] max-w-[560px] min-h-[325px] m-4 py-8 px-8 max-w-sm bg-white rounded-xl shadow-lg space-y-2">
+        <p className="flex w-full justify-center font-medium text-xl text-raisin-600">
+          {chartData.time} Happiness
+        </p>
+        <div className="flex w-full justify-center min-h-[280px] max-h-[280px]">
           <LineChart chartData={chartData} />
         </div>
       </div>
