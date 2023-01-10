@@ -13,7 +13,7 @@ function Stat(props) {
     q3: "3rd Quartile",
     max: "Maximum Value",
   };
-  console.log(props.val);
+  // console.log(props.val);
   let val = Object.keys(trans)[props.val];
   return (
     <div className="min-w-[178px] max-w-[178px] min-h-[178px] flex items-center justify-center m-2 p-2 max-w-sm bg-white rounded-xl shadow-lg">
@@ -22,7 +22,7 @@ function Stat(props) {
           {trans[val]}
         </p>
         <p className="text-3xl text-rhythm-500 font-medium text-center">
-          {Users()[0].measures[val]}
+          {Users(props.id).measures[val]}
         </p>
       </div>
     </div>

@@ -11,7 +11,7 @@ function Profile(props) {
       <div className="flex flex-wrap justify-center m-4">
         <div className="py-2 px-4">
           <p className="text-center text-2xl font-medium m-2 text-raisin-600">
-            {Users()[props.id].name}
+            {Users(props.id).name}
           </p>
           <p> Member since 1/5/22</p>
           <div>
@@ -23,27 +23,29 @@ function Profile(props) {
         <div className="py-2 px-4">
           <img
             className="justify-center rounded-full min-h-[200px] min-w-[200px] max-w-[200px] block mx-auto h-24 rounded-full sm:mx-0 sm:shrink-0"
-            src={Users()[props.id].img}
+            src={Users(props.id).img}
             alt="profile"
           />
         </div>
-      </div>
-      <div className="flex justify-center">
-        <div className=" flex min-w-[375px] max-w-[375px] min-h-[178px] justify-center items-center m-2 p-2 max-w-sm bg-white rounded-xl shadow-lg">
-          <div className="space-y-2">
-            <p className="text-xl text-raisin-600 font-semibold text-center">
-              Today's Happiness
-            </p>
-            <p className="text-3xl text-rhythm-500 font-medium text-center">
-              {7.5}
-            </p>
+        <div className="py-2 px-4">
+          <div className="flex min-w-[200px] max-w-[200px] min-h-[200px] justify-center items-center m-2 p-2 max-w-sm bg-white rounded-xl shadow-lg">
+            <div className="space-y-2">
+              <p className="text-xl text-raisin-600 font-semibold text-center">
+                Today's Happiness
+              </p>
+              <p className="text-3xl text-rhythm-500 font-medium text-center">
+                {7.5}
+              </p>
+            </div>
           </div>
         </div>
       </div>
       <div className="flex flex-wrap justify-center items-center">
-        <Graph index={[props.id]} time="Weekly" />
-        <Stat val={0} />
-        <Stat val={1} />
+        <Graph index={[props.id]} time="My Weekly" id={props.id} />
+      </div>
+      <div className="flex flex-wrap justify-center items-center">
+        <Stat val={0} id={props.id} />
+        <Stat val={1} id={props.id} />
       </div>
     </>
   );

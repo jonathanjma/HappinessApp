@@ -13,13 +13,14 @@ function IndexData(indices) {
     "brown",
     "pink",
     "black",
+    "yellow",
+    "gray",
   ];
   var selectedData = [];
   indices.map((i) => {
-    console.log(Users()[i].data);
     selectedData.push({
-      label: Users()[i].name,
-      data: Users()[i].data.map((e) => e.level),
+      label: Users(i).name,
+      data: Users(i).data.map((e) => e.level),
       tension: 0.4,
       borderColor: colors[0],
     });
@@ -34,13 +35,15 @@ function Graph(props) {
   const [chartData, setChartData] = useState({
     name: props.name,
     time: props.time,
-    labels: Users()[0].data.map((e) => e.date),
+    labels: Users(props.id).data.map((e) => e.date),
     datasets: IndexData(props.index),
   });
+  console.log("Labels: " + chartData.labels);
+  console.log(chartData.datasets);
 
   return (
     <>
-      <div className="w-full justify-center min-w-[350px] max-w-[560px] min-h-[325px] m-4 py-8 px-8 max-w-sm bg-white rounded-xl shadow-lg space-y-2">
+      <div className="w-full justify-center min-w-[330px] max-w-[560px] min-h-[325px] m-4 py-8 px-8 bg-white rounded-xl shadow-lg space-y-2">
         <p className="flex w-full justify-center font-medium text-xl text-raisin-600">
           {chartData.time} Happiness
         </p>

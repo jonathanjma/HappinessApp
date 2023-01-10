@@ -1,7 +1,8 @@
 import Graph from "../components/Graph";
 import Stat from "../components/Stat";
+import Users from "../components/Users";
 
-function Statistics() {
+function Statistics(props) {
   /*
   0 = mean
   1 = median
@@ -14,6 +15,7 @@ function Statistics() {
   8 = maximum 
   */
   // future conversion to boolean array
+  console.log(Users(props.id).friends.concat([props.id]));
   const datavals = [
     { value: true, key: 0 },
     { value: true, key: 1 },
@@ -31,13 +33,21 @@ function Statistics() {
         Statistics
       </p>
       <div className="flex flex-wrap justify-center items-center">
-        <Graph index={[0, 1, 2, 4]} time="Weekly" />
-        <Graph index={[0, 1, 2, 3, 4, 5]} time="Monthly" />
+        <Graph
+          index={Users(props.id).friends.concat([props.id])}
+          time="Weekly"
+          id={props.id}
+        />
+        <Graph
+          index={Users(props.id).friends.concat([props.id])}
+          time="Monthly"
+          id={props.id}
+        />
       </div>
       <div className="flex flex-wrap justify-center items-center">
         {datavals.map((e) => {
           if (e.value) {
-            return <Stat key={e.key} val={e.key} />;
+            return <Stat id={props.id} key={e.key} val={e.key} />;
           }
           return null;
         })}

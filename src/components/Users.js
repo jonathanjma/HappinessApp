@@ -1,12 +1,12 @@
 import { useState } from "react";
-function Users() {
+function Users(num) {
   const [users, setUsers] = useState([
     {
       id: 1,
       name: "Alex",
       email: "ayw29@cornell.edu",
       img: "https://images-ext-1.discordapp.net/external/-EIjsJAZFDJw3y57OkMdXG2u199aL0rtccT2dcp22dk/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/285542608024109057/9e3499987c94208af7ddb20e65907d1a.png",
-      friends: [2, 3],
+      friends: [20, 3, 4],
       group: 1000,
       settings: [[true, false], 0],
       data: [
@@ -64,7 +64,7 @@ function Users() {
       // we can decide later
     },
     {
-      id: 2,
+      id: 20,
       name: "Zach",
       email: "zes4@cornell.edu",
       img: "https://play-lh.googleusercontent.com/o7hHBVIagQ_rylkmNuIx_sOEzaoAgRSHQhsfBM_C5MV3nJThWC_kkTYaBJJwTnfVc7I",
@@ -111,6 +111,17 @@ function Users() {
           level: 6,
         },
       ],
+      measures: {
+        mean: 7.3125,
+        median: 8,
+        mode: 10,
+        range: 7,
+        stdev: 2.8052,
+        min: 3,
+        q1: 5.25,
+        q3: 9.5,
+        max: 10,
+      },
     },
     {
       id: 3,
@@ -160,6 +171,17 @@ function Users() {
           level: null,
         },
       ],
+      measures: {
+        mean: 7.3125,
+        median: 8,
+        mode: 10,
+        range: 7,
+        stdev: 2.8052,
+        min: 3,
+        q1: 5.25,
+        q3: 9.5,
+        max: 10,
+      },
     },
     {
       id: 4,
@@ -190,25 +212,36 @@ function Users() {
         },
         {
           date: "1/8",
-          level: null,
+          level: 3,
         },
         {
           date: "1/9",
-          level: null,
+          level: 2,
         },
         {
           date: "1/10",
-          level: null,
+          level: 1,
         },
         {
           date: "1/11",
-          level: null,
+          level: 4,
         },
         {
           date: "1/12",
-          level: null,
+          level: 5,
         },
       ],
+      measures: {
+        mean: 7.3125,
+        median: 8,
+        mode: 10,
+        range: 7,
+        stdev: 2.8052,
+        min: 3,
+        q1: 5.25,
+        q3: 9.5,
+        max: 10,
+      },
     },
     {
       id: 5,
@@ -258,6 +291,17 @@ function Users() {
           level: null,
         },
       ],
+      measures: {
+        mean: 7.3125,
+        median: 8,
+        mode: 10,
+        range: 7,
+        stdev: 2.8052,
+        min: 3,
+        q1: 5.25,
+        q3: 9.5,
+        max: 10,
+      },
     },
     {
       id: 6,
@@ -276,13 +320,13 @@ function Users() {
         },
         {
           date: "1/6",
-          level: 8,
+          level: 2,
           pubComment: "exciting",
           privComment: "fantastic! Loved it :).",
         },
         {
           date: "1/7",
-          level: 3,
+          level: 7.5,
           pubComment: "not as good",
           privComment: "worst day ever :(",
         },
@@ -292,11 +336,11 @@ function Users() {
         },
         {
           date: "1/9",
-          level: null,
+          level: 4.0,
         },
         {
           date: "1/10",
-          level: null,
+          level: 7.5,
         },
         {
           date: "1/11",
@@ -307,9 +351,20 @@ function Users() {
           level: null,
         },
       ],
+      measures: {
+        mean: 7.3125,
+        median: 8,
+        mode: 10,
+        range: 7,
+        stdev: 2.8052,
+        min: 3,
+        q1: 5.25,
+        q3: 9.5,
+        max: 10,
+      },
     },
   ]);
-  return users;
+  return users.find((item) => item.id === num);
 }
 export default Users;
 

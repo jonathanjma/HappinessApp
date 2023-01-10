@@ -3,6 +3,7 @@ import { Chart } from "chart.js/auto";
 import { Line } from "react-chartjs-2";
 
 function LineChart({ chartData }) {
+  const leg = chartData.datasets.length > 1 ? true : false;
   return (
     <div className="container flex w-full">
       <Line
@@ -10,12 +11,11 @@ function LineChart({ chartData }) {
         options={{
           maintainAspectRatio: false,
           plugins: {
-            title: {
-              display: false,
-              text: "",
-            },
             legend: {
-              display: true,
+              display: leg,
+              labels: {
+                boxWidth: 15,
+              },
             },
           },
           scales: {
