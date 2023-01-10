@@ -17,19 +17,21 @@ function Statistics() {
   const datavals = [
     { value: true, key: 0 },
     { value: true, key: 1 },
-    { value: true, key: 2 },
+    { value: false, key: 2 },
     { value: false, key: 3 },
-    { value: true, key: 4 },
-    { value: true, key: 5 },
-    { value: true, key: 6 },
+    { value: false, key: 4 },
+    { value: false, key: 5 },
+    { value: false, key: 6 },
     { value: true, key: 7 },
     { value: true, key: 8 },
   ];
   return (
     <>
-      <p className="text-center text-4xl font-medium m-4">Statistics</p>
+      <p className="text-center text-5xl font-medium m-4 text-raisin-600">
+        Statistics
+      </p>
       <div className="flex flex-wrap justify-center items-center">
-        <Graph index={[0, 1, 2]} time="Weekly" />
+        <Graph index={[0, 1, 2, 4]} time="Weekly" />
         <Graph index={[0, 1, 2, 3, 4, 5]} time="Monthly" />
       </div>
       <div className="flex flex-wrap justify-center items-center">
