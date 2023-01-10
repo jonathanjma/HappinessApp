@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-
+import LSUModel from "./LSUModal";
 export default function SubmitHappiness(props) {
   console.log(props.happiness);
   let happinessColor = (happiness) => {
@@ -80,14 +79,7 @@ export default function SubmitHappiness(props) {
         </svg>
 
         {/* Submit button: */}
-        <Link to="/login-sign-up">
-          <button
-            type="button"
-            className="flex-1 scale-150 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-roboto font-semibold rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 mt-9"
-          >
-            Submit
-          </button>
-        </Link>
+        <LSUModel />
       </div>
     </div>
   );
