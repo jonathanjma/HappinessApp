@@ -15,7 +15,6 @@ function Statistics(props) {
   8 = maximum 
   */
   // future conversion to boolean array
-  console.log(Users(props.id).friends.concat([props.id]));
   const datavals = [
     { value: true, key: 0 },
     { value: true, key: 1 },
@@ -34,12 +33,12 @@ function Statistics(props) {
       </p>
       <div className="flex flex-wrap justify-center items-center">
         <Graph
-          index={Users(props.id).friends.concat([props.id])}
+          index={[props.id].concat(Users(props.id).friends)}
           time="Weekly"
           id={props.id}
         />
         <Graph
-          index={Users(props.id).friends.concat([props.id])}
+          index={[props.id].concat(Users(props.id).friends)}
           time="Monthly"
           id={props.id}
         />

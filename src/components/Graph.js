@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Users from "../components/Users";
 import LineChart from "../components/LineChart";
+import Preview from "./Preview";
 
 function IndexData(indices) {
   // constructs array of data values based on given indices for the LineChart
@@ -38,8 +39,6 @@ function Graph(props) {
     labels: Users(props.id).data.map((e) => e.date),
     datasets: IndexData(props.index),
   });
-  console.log("Labels: " + chartData.labels);
-  console.log(chartData.datasets);
 
   return (
     <>
@@ -48,7 +47,7 @@ function Graph(props) {
           {chartData.time} Happiness
         </p>
         <div className="flex w-full justify-center min-h-[280px] max-h-[280px]">
-          <LineChart chartData={chartData} />
+          <Preview chartData={chartData} />
         </div>
       </div>
     </>
