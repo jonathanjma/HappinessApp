@@ -1,6 +1,9 @@
 import LSUModel from "../components/LSUModal";
+import {useState} from "react";
 
-export default function SubmitHappiness(props) {
+export default function SubmitHappiness() {
+  const [happiness, setHappiness] = useState(50);
+
   let happinessColor = (happiness) => {
     if (happiness < 10) {
       return "bg-red-700";
@@ -36,7 +39,7 @@ export default function SubmitHappiness(props) {
   return (
     <div
       className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
-        props.happiness
+        happiness
       )}`}
     >
       <div className="flex flex-col justify-center items-center ">
@@ -49,13 +52,13 @@ export default function SubmitHappiness(props) {
           id="default-range"
           type="range"
           onChange={(e) => {
-            props.setHappiness(e.target.value);
+            setHappiness(e.target.value);
           }}
           className="w-1/2 h-2 rounded-lg appearance-none cursor-pointer dark:bg-white-300 scale-150 flex-col justify-center mt-20"
         />
         {/* Happiness number */}
         <p className="flex-1 text-8xl text-white text-stroke-4 mt-5">
-          <b>{Math.floor(props.happiness / 10)}</b>
+          <b>{Math.floor(happiness / 10)}</b>
         </p>
         {/* Smiley Face */}
         <svg
@@ -70,10 +73,10 @@ export default function SubmitHappiness(props) {
           <path
             className="smile-mouth"
             d={`M80,${happinessNumberEdges(
-              props.happiness
+              happiness
             )}, Q128,${happinessNumberMiddle(
-              props.happiness
-            )} 176,${happinessNumberEdges(props.happiness)}`}
+              happiness
+            )} 176,${happinessNumberEdges(happiness)}`}
           />
         </svg>
 
