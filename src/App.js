@@ -1,4 +1,4 @@
-import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Statistics from "./pages/Statistics";
 import Profile from "./pages/Profile";
 import Header from "./components/Header";
@@ -6,7 +6,7 @@ import Container from "react-bootstrap/Container";
 import Welcome from "./pages/Welcome";
 import SubmitHappiness from "./pages/SubmitHappiness";
 
-// change id number to index of user in Users.js (temporary until backend + login set up)
+// change id number to id of user in Users.js (temporary until backend + login set up)
 export default function App() {
   const id = 20;
 

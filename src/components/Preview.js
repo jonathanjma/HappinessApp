@@ -50,7 +50,7 @@ export default function Preview({ chartData }) {
                           as="h3"
                           className="flex w-full justify-center font-medium text-xl leading-6 text-raisin-600"
                         >
-                          Preview
+                          Graph
                         </Dialog.Title>
                         <div className="flex w-full justify-center min-h-[550px] mt-2">
                           <LineChart chartData={chartData} />
@@ -65,7 +65,7 @@ export default function Preview({ chartData }) {
                       onClick={() => setOpen(false)}
                       ref={cancelButtonRef}
                     >
-                      Cancel
+                      Close
                     </button>
                   </div>
                 </Dialog.Panel>

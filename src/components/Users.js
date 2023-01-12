@@ -389,4 +389,11 @@ export default function Users(num) {
         - mean (average)/median default (0)
         - options: standard deviation, mode, range, maximum/minimum, 1st and 3rd quartile
     - clear data/delete account
+
+
+
+- settings:
+  - what statistics
+  - delete account
+  - log out
 */

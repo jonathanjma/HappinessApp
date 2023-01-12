@@ -5,10 +5,10 @@ import Graph from "../components/Graph";
 export default function Profile(props) {
   return (
     <>
-      <p className="text-center text-4xl font-medium m-4 text-raisin-600">
+      <p className="text-center text-4xl font-medium m-3 text-raisin-600">
         Profile
       </p>
-      <div className="flex flex-wrap justify-center m-4">
+      <div className="flex flex-wrap justify-center items-center">
         <div className="flex flex-wrap w-full justify-center min-w-[330px] max-w-[600px] min-h-[200px] m-4 py-8 px-8 bg-cultured-50 rounded-xl shadow-lg space-y-2">
           <div className="py-2 px-4">
             <img
@@ -31,7 +31,7 @@ export default function Profile(props) {
           </div>
           <div className="flex">
             <div className="space-y-2 px-4">
-              <p className="text-xl text-raisin-600 font-semibold text-center">
+              <p className="text-lg text-raisin-600 font-semibold text-center">
                 Today's Happiness
               </p>
               <p className="text-3xl text-rhythm-500 font-medium text-center">
@@ -39,7 +39,7 @@ export default function Profile(props) {
               </p>
             </div>
             <div className="space-y-2 px-4">
-              <p className="text-xl text-raisin-600 font-semibold text-center">
+              <p className="text-lg text-raisin-600 font-semibold text-center">
                 Weekly Average
               </p>
               <p className="text-3xl text-rhythm-500 font-medium text-center">
@@ -47,21 +47,21 @@ export default function Profile(props) {
               </p>
             </div>
             <div className="space-y-2 px-4">
-              <p className="text-xl text-raisin-600 font-semibold text-center">
+              <p className="text-lg text-raisin-600 font-semibold text-center">
                 Days Tracked
               </p>
               <p className="text-3xl text-rhythm-500 font-medium text-center">
-                {8}
+                {Users(props.id).data.length}
               </p>
             </div>
           </div>
         </div>
       </div>
       <div className="flex flex-wrap justify-center items-center">
-        <div className="flex flex-wrap justify-center items-center max-w-[400px]">
+        <div className="flex flex-wrap justify-center items-center max-w-[500px] -mx-2">
           <Graph index={[props.id]} time="My Weekly" id={props.id} />
         </div>
-        <div className="flex flex-wrap justify-center items-center md:max-w-[250px] sm:max-w-[400px] -mx-2">
+        <div className="flex flex-wrap justify-center items-center md:max-w-[205px] sm:max-w-[400px] mr-2">
           <Stat val={0} id={props.id} />
           <Stat val={1} id={props.id} />
         </div>
