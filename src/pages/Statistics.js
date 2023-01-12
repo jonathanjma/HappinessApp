@@ -1,6 +1,4 @@
-import Graph from "../components/Graph";
 import Stat from "../components/Stat";
-import Users from "../components/Users";
 
 export default function Statistics(props) {
   /*
@@ -32,16 +30,16 @@ export default function Statistics(props) {
         Statistics
       </p>
       <div className="flex flex-wrap justify-center items-center">
-        <Graph
-          index={[props.id].concat(Users(props.id).friends)}
-          time="Weekly"
-          id={props.id}
-        />
-        <Graph
-          index={[props.id].concat(Users(props.id).friends)}
-          time="Monthly"
-          id={props.id}
-        />
+        {/*<Graph*/}
+        {/*  index={[props.id].concat(Users(props.id).friends)}*/}
+        {/*  time="Weekly"*/}
+        {/*  id={props.id}*/}
+        {/*/>*/}
+        {/*<Graph*/}
+        {/*  index={[props.id].concat(Users(props.id).friends)}*/}
+        {/*  time="Monthly"*/}
+        {/*  id={props.id}*/}
+        {/*/>*/}
       </div>
       <div className="flex flex-wrap justify-center items-center">
         {datavals.map((e) => {

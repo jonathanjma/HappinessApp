@@ -1,6 +1,5 @@
 import Stat from "../components/Stat";
 import Users from "../components/Users";
-import Graph from "../components/Graph";
 
 export default function Profile(props) {
   return (
@@ -59,7 +58,7 @@ export default function Profile(props) {
       </div>
       <div className="flex flex-wrap justify-center items-center">
         <div className="flex flex-wrap justify-center items-center max-w-[400px]">
-          <Graph index={[props.id]} time="My Weekly" id={props.id} />
+          {/*<Graph index={[props.id]} time="My Weekly" id={props.id} />*/}
         </div>
         <div className="flex flex-wrap justify-center items-center md:max-w-[250px] sm:max-w-[400px] -mx-2">
           <Stat val={0} id={props.id} />
