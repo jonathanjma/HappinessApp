@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Users from "../components/Users";
 import Preview from "./Preview";
+import LineChart from "./LineChart";
 
 function IndexData(indices) {
   // constructs array of data values based on given indices for the LineChart

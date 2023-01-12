@@ -1,37 +1,4 @@
 import LineChart from "./LineChart";
-// export default function Preview({ chartData }) {
-//   console.log(chartData);
-//   return (
-//     <>
-//       <div
-//         className="relative z-10"
-//         aria-labelledby="modal-title"
-//         role="dialog"
-//         aria-modal="true"
-//       >
-//         <div className="fixed inset-0 z-10 overflow-y-auto">
-//           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-//             <div className="flex relative transform overflow-hidden justify-center rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl">
-//               <div className="flex bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-w-fit">
-//                 <div className="flex sm:flex sm:items-start">
-//                   <div className="justify-center mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left max-w">
-//                     <p className="flex w-full justify-center font-medium text-xl leading-6 text-raisin-600">
-//                       Preview
-//                     </p>
-//                     <div className="flex w-full justfy-center min-h-[500px] min-w-[800px] mt-2">
-//                       <LineChart chartData={chartData} />
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//       ;
-//     </>
-//   );
-// }
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 
