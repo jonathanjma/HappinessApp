@@ -1,7 +1,5 @@
-import { Link } from "react-router-dom";
-import LSUModel from "./LSUModal";
+import LSUModel from "../components/LSUModal";
 export default function SubmitHappiness(props) {
-  console.log(props.happiness);
   let happinessColor = (happiness) => {
     if (happiness < 10) {
       return "bg-red-700";
@@ -42,9 +40,9 @@ export default function SubmitHappiness(props) {
     >
       <div className="flex flex-col justify-center items-center ">
         {/* Prompt */}
-        <p className="text-7xl text-white text-stroke-3 text-center mt-5 font-roboto">
+        <h1 className="text-7xl text-white text-stroke-3 text-center mt-5 font-rubik">
           <b>How are you feeling today?</b>
-        </p>
+        </h1>
         {/* Happiness slider */}
         <input
           id="default-range"

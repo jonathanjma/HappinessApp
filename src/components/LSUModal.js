@@ -10,23 +10,21 @@ export default function LSUModel() {
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  const goToHomePage = () => {};
+  const goToHomePage = () => {}; //TODO implement function
   const updateLogin = () => {
     setIsLoggingIn(!isLoggingIn);
   };
 
   return (
     <>
-      <Button
-        variant="primary"
+      <button
         onClick={isLoggedIn ? goToHomePage : handleShow}
-        className="flex-1 scale-150 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700
-        hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg
-        shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-roboto font-semibold rounded-lg text-sm px-5
+        className="flex-1 scale-150 text-white bg-gradient-to-r from-raisin-500 via-raisin-600 to-raisin-700 shadow-lg
+        font-roboto font-semibold rounded-lg text-sm px-5 outline-none
         py-2.5 text-center mr-2 mb-2 mt-9"
       >
         Submit
-      </Button>
+      </button>
 
       <Modal
         show={show}
@@ -35,7 +33,7 @@ export default function LSUModel() {
         keyboard={false}
       >
         <Modal.Header>
-          <p className="font-semibold font-roboto font-sans text-2xl">
+          <p className="font-semibold font-sans text-2xl">
             {isLoggingIn ? "Login" : "Sign Up"}
           </p>
           <a
@@ -52,7 +50,7 @@ export default function LSUModel() {
         </Modal.Body>
         <Modal.Footer>
           <button
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded duration-500"
+            className="bg-raisin-500 hover:bg-raisin-400 text-white font-semibold py-2 px-4 rounded duration-500"
             onClick={handleClose}
           >
             Close

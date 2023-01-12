@@ -20,6 +20,30 @@
   }
 }
 
+@layer components {
+  .welcome-text {
+    @apply text-tangerine-50 text-2xl block text-center mt-10;
+  }
+  .welcome-images {
+    @apply w-52 h-1/2 block m-auto;
+  }
+
+  .carousel {
+    @apply mx-auto mb-auto w-screen h-52;
+  }
+}
+
+@layer utilities {
+  .anime-gradient {
+    animation: background-pan 3s linear infinite;
+    background: linear-gradient(to right, #272838, #414162, #767793, #272838);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+    background-size: 200%;
+  }
+}
+
 .text-stroke-4 {
   -webkit-text-stroke: 4px black;
 }
@@ -44,4 +68,22 @@
   stroke: black;
   stroke-width: 7px;
   stroke-linecap: round;
+}
+
+@keyframes background-pan {
+  from {
+    background-position: 0 center;
+  }
+  to {
+    background-position: 200% center;
+  }
+}
+
+.anime-gradient {
+  animation: background-pan 3s linear infinite;
+  background: linear-gradient(to right, yellow, red, yellow, green, yellow);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+  background-size: 200%;
 }
