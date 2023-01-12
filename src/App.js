@@ -6,7 +6,7 @@ import Home from "./pages/Home";
 import Header from "./components/Header";
 import Container from "react-bootstrap/Container";
 
-// change id number to index of user in Users.js (temporary until backend + login set up)
+// change id number to id of user in Users.js (temporary until backend + login set up)
 function App() {
   const id = 20;
   return (
