@@ -42,7 +42,7 @@ function Graph(props) {
 
   return (
     <>
-      <div className="w-full justify-center min-w-[330px] max-w-[560px] min-h-[325px] m-4 py-8 px-8 bg-white rounded-xl shadow-lg space-y-2">
+      <div className="w-full justify-center min-w-[330px] max-w-[560px] min-h-[325px] m-4 py-8 px-8 bg-cultured-50 rounded-xl shadow-lg space-y-2">
         <p className="flex w-full justify-center font-medium text-xl text-raisin-600">
           {chartData.time} Happiness
         </p>

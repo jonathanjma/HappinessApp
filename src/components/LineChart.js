@@ -13,6 +13,7 @@ function LineChart({ chartData }) {
           plugins: {
             legend: {
               display: leg,
+              onClick: (e) => e.stopPropagation(),
               labels: {
                 boxWidth: 15,
               },

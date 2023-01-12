@@ -16,7 +16,7 @@ function Stat(props) {
   // console.log(props.val);
   let val = Object.keys(trans)[props.val];
   return (
-    <div className="min-w-[178px] max-w-[178px] min-h-[178px] flex items-center justify-center m-2 p-2 max-w-sm bg-white rounded-xl shadow-lg">
+    <div className="min-w-[178px] max-w-[178px] min-h-[178px] flex items-center justify-center m-2 p-2 max-w-sm bg-cultured-50 rounded-xl shadow-lg">
       <div className="space-y-2">
         <p className="text-xl text-raisin-600 font-semibold text-center">
           {trans[val]}

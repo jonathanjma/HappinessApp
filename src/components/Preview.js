@@ -76,7 +76,7 @@ export default function Preview({ chartData }) {
                 leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
               >
                 <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left m-4 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-6xl">
-                  <div className="flex w-full justify-center bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <div className="flex w-full justify-center bg-cultured-50 px-4 pt-3 pb-2 sm:p-6 sm:pb-4">
                     <div className="flex w-full sm:items-start justify-center">
                       <div className="w-full mt-3 sm:mt-0 sm:ml-4 sm:text-left">
                         <Dialog.Title
@@ -94,7 +94,7 @@ export default function Preview({ chartData }) {
                   <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                     <button
                       type="button"
-                      className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                      className="mt-3 inline-flex w-full justify-center text-raisin-600 rounded-md border border-gray-300 bg-cultured-50 px-4 py-2 text-base font-medium shadow-sm hover:bg-tangerine-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                       onClick={() => setOpen(false)}
                       ref={cancelButtonRef}
                     >

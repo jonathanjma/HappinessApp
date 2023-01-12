@@ -10,7 +10,7 @@ function Profile(props) {
         Profile
       </p>
       <div className="flex flex-wrap justify-center m-4">
-        <div className="flex flex-wrap w-full justify-center min-w-[330px] max-w-[600px] min-h-[200px] m-4 py-8 px-8 bg-white rounded-xl shadow-lg space-y-2">
+        <div className="flex flex-wrap w-full justify-center min-w-[330px] max-w-[600px] min-h-[200px] m-4 py-8 px-8 bg-cultured-50 rounded-xl shadow-lg space-y-2">
           <div className="py-2 px-4">
             <img
               className="justify-center rounded-full min-h-[150px] min-w-[150px] max-w-[150px] block mx-auto h-24 rounded-full sm:mx-0 sm:shrink-0"
