@@ -22,9 +22,9 @@ function Statistics(props) {
     { value: false, key: 2 },
     { value: false, key: 3 },
     { value: false, key: 4 },
-    { value: false, key: 5 },
+    { value: true, key: 5 },
     { value: false, key: 6 },
-    { value: true, key: 7 },
+    { value: false, key: 7 },
     { value: true, key: 8 },
   ];
   return (
