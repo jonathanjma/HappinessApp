@@ -1,4 +1,3 @@
-import "./index.css";
 import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
 import Statistics from "./pages/Statistics";
 import Profile from "./pages/Profile";
@@ -25,3 +24,14 @@ export default function App() {
     </Container>
   );
 }
+
+// function App() {
+//   const [happiness, setHappiness] = useState(50);
+//
+//   return (
+//       <>
+//         <Welcome />
+//         {/* <SubmitHappiness setHappiness={setHappiness} happiness={happiness} /> */}
+//       </>
+//   );
+// }
