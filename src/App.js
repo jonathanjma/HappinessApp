@@ -1,25 +1,27 @@
-import logo from './logo.svg';
-import './App.css';
+import "./index.css";
+import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
+import Statistics from "./pages/Statistics";
+import Profile from "./pages/Profile";
+import Home from "./pages/Home";
+import Header from "./components/Header";
+import Container from "react-bootstrap/Container";
 
-function App() {
+// change id number to index of user in Users.js (temporary until backend + login set up)
+export default function App() {
+  const id = 20;
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Container fluid className="App bg-rhythm-200">
+      <BrowserRouter>
+        <Header user_id={id} />
+        <div className="max-w-7xl mx-auto min-h-screen px-3 py-2">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/statistics" element={<Statistics id={id} />} />
+            <Route path="/profile" element={<Profile id={id} />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </Container>
   );
 }
-
-export default App;
