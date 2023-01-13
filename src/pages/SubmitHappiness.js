@@ -1,9 +1,9 @@
 import LSUModel from "../components/LSUModal";
-import {useState} from "react";
+import { useState } from "react";
+import "../App.css";
 
 export default function SubmitHappiness() {
   const [happiness, setHappiness] = useState(50);
-
   let happinessColor = (happiness) => {
     if (happiness < 10) {
       return "bg-red-700";
