@@ -3,11 +3,11 @@ import Users from "../components/Users";
 import Preview from "./Preview";
 import LineChart from "./LineChart";
 
-function IndexData(indices) {
+function IndexData(ids) {
   // constructs array of data values based on given indices for the LineChart
   let colors = [
-    "red",
     "blue",
+    "red",
     "green",
     "purple",
     "orange",
@@ -18,7 +18,7 @@ function IndexData(indices) {
     "gray",
   ];
   var selectedData = [];
-  indices.map((i) => {
+  ids.map((i) => {
     selectedData.push({
       label: Users(i).name,
       data: Users(i).data.map((e) => e.level),

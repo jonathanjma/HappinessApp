@@ -1,5 +1,5 @@
 import WelcomeCarousel from "../components/WelcomeCarousel";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function Welcome() {
   const navigate = useNavigate();

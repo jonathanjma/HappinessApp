@@ -8,10 +8,10 @@ import SubmitHappiness from "./pages/SubmitHappiness";
 
 // change id number to id of user in Users.js (temporary until backend + login set up)
 export default function App() {
-  const id = 20;
+  const id = 1;
 
   return (
-    <Container fluid className="App bg-rhythm-200">
+    <Container fluid className="App bg-buff-50">
       <BrowserRouter>
         <Header user_id={id} />
         <div className="max-w-7xl mx-auto min-h-screen px-3 py-2">

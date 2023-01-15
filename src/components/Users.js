@@ -40,14 +40,19 @@ export default function Users(num) {
         {
           date: "1/10",
           level: 7,
+          pubComment:
+            "nice daynice daynice daynice daynice daynice daynice daynice daynice daynice daynice daynice day",
         },
         {
           date: "1/11",
           level: 9,
+          pubComment: "nice day",
         },
         {
           date: "1/12",
           level: 9,
+          pubComment:
+            "hi! best day ever and i really enjoyed the day :). I love exploring and biking and going to different places around the world and city!",
         },
       ],
       measures: {
@@ -82,7 +87,8 @@ export default function Users(num) {
         {
           date: "1/6",
           level: 8,
-          pubComment: "dominion",
+          pubComment:
+            "dominion! Best game ever. Did a lot of good things today :)",
           privComment: "used the best dominion strategy.",
         },
         {
