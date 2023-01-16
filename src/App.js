@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import Container from "react-bootstrap/Container";
 import Welcome from "./pages/Welcome";
 import SubmitHappiness from "./pages/SubmitHappiness";
+import History from "./pages/History";
 
 // change id number to id of user in Users.js (temporary until backend + login set up)
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
             <Route path="/happiness" element={<SubmitHappiness />} />
             <Route path="/statistics" element={<Statistics id={id} />} />
             <Route path="/profile" element={<Profile id={id} />} />
+            <Route path="/history" element={<History id={id} />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>

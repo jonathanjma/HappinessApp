@@ -9,7 +9,7 @@ export default function Profile(props) {
       <div className="flex flex-wrap justify-center">
         <div className="lg:w-3/4 sm:w-full">
           <div>
-            <p className="text-center text-4xl font-medium m-3 text-raisin-600">
+            <p className="text-center text-5xl font-medium m-3 text-raisin-600">
               Profile
             </p>
           </div>
@@ -30,9 +30,9 @@ export default function Profile(props) {
                   <p className="text-center text-raisin-600">
                     Member since 1/5/22
                   </p>
-                  <div className="flex flex-wrap justify-center items-center">
-                    <div className="w-1/3">
-                      <p className="text-center text-raisin-600 text-md font-medium m-2">
+                  <div className="flex flex-wrap justify-center items-center @container">
+                    <div className="justify-center">
+                      <p className="text-center text-raisin-600 text-md font-medium m-2 sm:w-1/3">
                         Friends
                       </p>
                       <p className="text-lg text-center text-raisin-600 m-2">
@@ -88,7 +88,7 @@ export default function Profile(props) {
         </div>
         <div className="justify-center lg:w-1/4 sm:w-full">
           <div>
-            <p className="text-center text-4xl font-medium m-3 text-raisin-600">
+            <p className="text-center text-5xl font-medium m-3 text-raisin-600">
               History
             </p>
           </div>

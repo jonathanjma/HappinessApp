@@ -77,5 +77,5 @@ module.exports = {
       black: colors.black,
     },
   },
-  plugins: [],
+  plugins: [require("@tailwindcss/container-queries")],
 };

@@ -32,6 +32,7 @@ export default function Users(num) {
         {
           date: "1/8",
           level: 3,
+          pubComment: "VERY interesting :((((. A lot of computer issues.",
         },
         {
           date: "1/9",
