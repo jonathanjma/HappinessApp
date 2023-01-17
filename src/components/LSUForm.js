@@ -59,7 +59,7 @@ export default function LSUForm(props) {
     if (hasError) {
       console.log("has error");
       toast(`You cannot login. ${errorMessage}`); //FIXME toast message not showing
-    } else console.log("You're signing in.");
+    } else console.log("You're signing in."); //TODO implement with backend
   };
 
   return (

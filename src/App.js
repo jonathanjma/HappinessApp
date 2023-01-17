@@ -4,14 +4,15 @@ import Profile from "./pages/Profile";
 import Header from "./components/Header";
 import Welcome from "./pages/Welcome";
 import Container from "react-bootstrap/Container";
+import Settings from "./pages/Settings";
 import Home from "./pages/Home";
 import { useState } from "react";
 
 // change id number to id of user in Users.js (temporary until backend + login set up)
 export default function App() {
   const id = 20;
-  //TODO this is a placeholder with basic functionality, we will have to rewrite after backend implementation.
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  //FIXME this is a placeholder with basic functionality, we will have to rewrite after backend implementation.
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   return (
     <>
@@ -26,6 +27,7 @@ export default function App() {
                 <Route path="/" element={<Home logged_in={isLoggedIn} />} />
                 <Route path="/statistics" element={<Statistics id={id} />} />
                 <Route path="/profile" element={<Profile id={id} />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </div>
