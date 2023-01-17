@@ -2,16 +2,12 @@ import LineChart from "./LineChart";
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 
-export default function Preview({ chartData }) {
-  const [open, setOpen] = useState(false);
+export default function ChartPreview({ chartData, open, setOpen }) {
   const cancelButtonRef = useRef(null);
   const handleShow = () => setOpen(true);
 
   return (
     <>
-      <div className="flex w-full justify-center" onClick={handleShow}>
-        <LineChart chartData={chartData} />
-      </div>
       <Transition.Root show={open} as={Fragment}>
         <Dialog
           as="div"
@@ -28,7 +24,7 @@ export default function Preview({ chartData }) {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-rhythm-400 bg-opacity-75 transition-opacity" />
+            <div className="fixed inset-0 bg-buff-100 bg-opacity-75 transition-opacity" />
           </Transition.Child>
 
           <div className="fixed inset-0 z-10 overflow-y-auto">
@@ -42,7 +38,7 @@ export default function Preview({ chartData }) {
                 leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                 leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
               >
-                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left m-4 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-6xl">
+                <Dialog.Panel className="relative transform overflow-hidden rounded-xl bg-cultured-50 text-left m-4 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-6xl">
                   <div className="flex w-full justify-center bg-cultured-50 px-4 pt-3 pb-2 sm:p-6 sm:pb-4">
                     <div className="flex w-full sm:items-start justify-center">
                       <div className="w-full mt-3 sm:mt-0 sm:ml-4 sm:text-left">
