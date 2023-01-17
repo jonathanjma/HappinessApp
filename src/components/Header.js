@@ -2,7 +2,7 @@ import Navbar from "react-bootstrap/Navbar";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import NavDropdown from "react-bootstrap/NavDropdown";
-import { NavLink } from "react-router-dom";
+import {NavLink} from "react-router-dom";
 import Image from "react-bootstrap/Image";
 import Users from "./Users";
 
@@ -31,6 +31,9 @@ export default function Header({ user_id }) {
           >
             <NavDropdown.Item as={NavLink} to="/profile">
               Profile
+            </NavDropdown.Item>
+            <NavDropdown.Item as={NavLink} to="/groups">
+              Groups
             </NavDropdown.Item>
             <NavDropdown.Divider />
             <NavDropdown.Item as={NavLink} to="/">
