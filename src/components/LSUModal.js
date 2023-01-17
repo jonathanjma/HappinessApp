@@ -2,27 +2,22 @@ import React, {useState} from "react";
 import Modal from "react-bootstrap/Modal";
 import LSUForm from "./LSUForm";
 
-export default function LSUModel() {
+export default function LSUModal() {
   const [show, setShow] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(true); //TODO use this
-  const isLoggedIn = false;
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  const goToHomePage = () => {}; //TODO implement function
-  const updateLogin = () => {
-    setIsLoggingIn(!isLoggingIn);
-  };
 
   return (
     <>
       <button
-        onClick={isLoggedIn ? goToHomePage : handleShow}
-        className="flex-1 scale-150 text-white bg-gradient-to-r from-raisin-500 via-raisin-600 to-raisin-700 shadow-lg
-        font-roboto font-semibold rounded-lg text-sm px-5 outline-none
-        py-2.5 text-center mr-2 mb-2 mt-9"
+          className=" bg-gradient-to-br from-tangerine-50 to-raisin-50 hover:scale-110 hover:drop-shadow-xl hover:bg-raisin-400 drop-shadow-md duration-200 rounded-md mb-15"
+          onClick={handleShow}
       >
-        Submit
+        <div className="m-2 text-3xl hover:anime-gradient hover:font-bold font-semibold">
+          Show Me More
+        </div>
       </button>
 
       <Modal
@@ -38,7 +33,7 @@ export default function LSUModel() {
           <a
             href="#"
             className="underline hover:text-gray-700"
-            onClick={updateLogin}
+            onClick={() => {setIsLoggingIn(!isLoggingIn)}}
           >
             {isLoggingIn ? "or sign up" : "or login"}
           </a>

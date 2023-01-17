@@ -1,8 +1,8 @@
 import React, {useState} from "react";
 import Carousel from "react-bootstrap/Carousel";
-import FriendGroup from "../media/friend-group.svg";
-import Journal from "../media/journal.svg";
-import Statistics from "../media/statistics.svg";
+import FriendGroup from "../media/friend-group-icon.svg";
+import Journal from "../media/journal-icon.svg";
+import Statistics from "../media/statistics-icon.svg";
 
 export default function WelcomeCarousel() {
   const [index, setIndex] = useState(0);

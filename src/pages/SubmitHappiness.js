@@ -1,9 +1,12 @@
-import LSUModel from "../components/LSUModal";
-import {useState} from "react";
+import LSUModal from "../components/LSUModal";
+import { useState } from "react";
+import "../App.css";
+import Journal from "../media/journal-icon.svg"
+import HappinessCommentModal from "../components/HappinessCommentModal";
 
 export default function SubmitHappiness() {
   const [happiness, setHappiness] = useState(50);
-
+  const [comment, setComment] = useState("");
   let happinessColor = (happiness) => {
     if (happiness < 10) {
       return "bg-red-700";
@@ -25,6 +28,10 @@ export default function SubmitHappiness() {
       return "bg-green-600";
     }
   };
+
+  const submitHappiness = () => {
+    //TODO submit happiness with backend.
+  }
   let happinessNumberEdges = (happiness) => {
     //Saddest point: 200
     //Happiest point: 160
@@ -79,9 +86,18 @@ export default function SubmitHappiness() {
             )} 176,${happinessNumberEdges(happiness)}`}
           />
         </svg>
+        {/* Add journal button: */}
+        <HappinessCommentModal comment={comment} setComment={setComment}/>
 
         {/* Submit button: */}
-        <LSUModel />
+        <button
+            onClick={submitHappiness}
+            className="flex-1 scale-150 text-white bg-gradient-to-r from-raisin-500 via-raisin-600 to-raisin-700 shadow-lg
+        font-roboto font-semibold rounded-lg text-sm px-5 outline-none
+        py-2.5 text-center mr-2 mb-2 mt-9"
+        >
+          Submit
+        </button>
       </div>
     </div>
   );

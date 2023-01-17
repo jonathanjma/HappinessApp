@@ -33,6 +33,10 @@ export default function Header({ user_id }) {
               Profile
             </NavDropdown.Item>
             <NavDropdown.Divider />
+            <NavDropdown.Item as={NavLink} to="/settings">
+              Settings
+            </NavDropdown.Item>
+            <NavDropdown.Divider />
             <NavDropdown.Item as={NavLink} to="/">
               Logout
             </NavDropdown.Item>
