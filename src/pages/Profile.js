@@ -86,7 +86,7 @@ export default function Profile(props) {
             </div>
           </div>
         </div>
-        <div className="justify-center lg:w-1/4 sm:w-full">
+        <div className="justify-center lg:w-1/4 w-full max-w-[550px]">
           <div>
             <p className="text-center text-5xl font-medium m-3 text-raisin-600">
               History

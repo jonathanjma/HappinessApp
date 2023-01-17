@@ -18,7 +18,6 @@ function CommentShow(props) {
 }
 
 export default function HistoryCard(props) {
-  console.log(props);
   return (
     <>
       <div className="@xl:flex w-full justify-center min-h-[175px] max-w-[650px] mx-3 mt-4 bg-cultured-50 rounded-xl shadow-lg space-y-2">
