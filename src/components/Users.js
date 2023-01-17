@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useState} from "react";
 
 export default function Users(num) {
   const [users, setUsers] = useState([
@@ -8,7 +8,7 @@ export default function Users(num) {
       email: "ayw29@cornell.edu",
       img: "https://images-ext-1.discordapp.net/external/-EIjsJAZFDJw3y57OkMdXG2u199aL0rtccT2dcp22dk/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/285542608024109057/9e3499987c94208af7ddb20e65907d1a.png",
       friends: [20, 3, 4],
-      group: 1000,
+      group: [1, 2, 4],
       settings: [[true, false], 0],
       data: [
         {
@@ -71,12 +71,12 @@ export default function Users(num) {
       // we can decide later
     },
     {
-      id: 20,
+      id: 2,
       name: "Zach",
       email: "zes4@cornell.edu",
       img: "https://play-lh.googleusercontent.com/o7hHBVIagQ_rylkmNuIx_sOEzaoAgRSHQhsfBM_C5MV3nJThWC_kkTYaBJJwTnfVc7I",
       friends: [1],
-      group: 1000,
+      group: [1, 2],
       settings: [0, 0],
       data: [
         {
@@ -137,7 +137,7 @@ export default function Users(num) {
       email: "jjm498@cornell.edu",
       img: "https://combo.staticflickr.com/pw/images/buddyicon04_r.png#196752228@N08",
       friends: [1],
-      group: 1001,
+      group: [1, 2, 3],
       settings: [0, 0],
       data: [
         {
@@ -197,7 +197,7 @@ export default function Users(num) {
       email: "jeremydominion@hotmail.com",
       img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/I-172.svg/1200px-I-172.svg.png",
       friends: [],
-      group: 1001,
+      group: [1, 3],
       settings: [0, 0],
       data: [
         {
@@ -257,7 +257,7 @@ export default function Users(num) {
       email: "sashaair@gmail.com",
       img: "https://www.stadthalle.com/tools/imager/imager.php?file=%2Fmedia%2Fimage%2Foriginal%2F5168.jpg&height=750",
       friends: [6],
-      group: null,
+      group: [],
       settings: [0, 0],
       data: [
         {
@@ -317,7 +317,7 @@ export default function Users(num) {
       email: "andrewthegreat@yahoo.com",
       img: "https://c4.wallpaperflare.com/wallpaper/868/982/438/blue-background-orange-fruit-yellow-orange-wallpaper-preview.jpg",
       friends: [5],
-      group: 1000,
+      group: [1, 4],
       settings: [0, 0],
       data: [
         {
