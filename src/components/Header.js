@@ -36,6 +36,10 @@ export default function Header({ user_id }) {
               Groups
             </NavDropdown.Item>
             <NavDropdown.Divider />
+            <NavDropdown.Item as={NavLink} to="/settings">
+              Settings
+            </NavDropdown.Item>
+            <NavDropdown.Divider />
             <NavDropdown.Item as={NavLink} to="/">
               Logout
             </NavDropdown.Item>

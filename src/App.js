@@ -4,8 +4,10 @@ import Profile from "./pages/Profile";
 import Header from "./components/Header";
 import Welcome from "./pages/Welcome";
 import Container from "react-bootstrap/Container";
+import Settings from "./pages/Settings";
 import Home from "./pages/Home";
-import {useState} from "react";
+import { useState } from "react";
+import History from "./pages/History"
 import UserGroups from "./pages/UserGroups";
 import Group from "./pages/Group";
 
@@ -20,7 +22,7 @@ export default function App() {
       {!isLoggedIn ? (
         <Welcome setIsLoggedIn={setIsLoggedIn} />
       ) : (
-        <Container fluid className="App bg-rhythm-200">
+        <Container fluid className="App bg-buff-50">
           <BrowserRouter>
             <Header user_id={id} />
             <div className="max-w-7xl mx-auto min-h-screen px-3 py-2">
@@ -30,6 +32,8 @@ export default function App() {
                 <Route path="/profile" element={<Profile id={id} />} />
                 <Route path="/groups" element={<UserGroups id={id} />} />
                 <Route path="/groups/:groupID" element={<Group id={id} />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/history" element={<History id={id} />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </div>
