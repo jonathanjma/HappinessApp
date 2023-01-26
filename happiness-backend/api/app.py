@@ -12,9 +12,13 @@ ma = Marshmallow()
 apifairy = APIFairy()
 
 
+# noinspection PyUnresolvedReferences
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    # Do not remove!
+    from api import models
 
     db.init_app(app)
     migrate.init_app(app, db)

@@ -1,10 +1,10 @@
 import datetime
 import hashlib
 import os
-import bcrypt
-from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy()
+import bcrypt
+
+from api.app import db
 
 
 class User(db.Model):
