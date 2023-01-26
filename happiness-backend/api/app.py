@@ -1,11 +1,13 @@
 from apifairy import APIFairy
 from flask import Flask, redirect, url_for
 from flask_marshmallow import Marshmallow
-
+from flask_sqlalchemy import SQLAlchemy
 from config import Config
+
 
 ma = Marshmallow()
 apifairy = APIFairy()
+db = SQLAlchemy()
 
 
 def create_app():

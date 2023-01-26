@@ -4,3 +4,5 @@ flask-migrate
 flask-sqlalchemy
 apifairy
 flask-httpauth
+bcrypt
+marshmallow-sqlalchemy
