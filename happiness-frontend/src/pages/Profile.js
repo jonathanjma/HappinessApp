@@ -92,7 +92,7 @@ export default function Profile(props) {
               History
             </p>
           </div>
-          <Histories id={props.id} min={2} max={4} />
+          <Histories id={props.id} max={4} />
         </div>
       </div>
     </>
