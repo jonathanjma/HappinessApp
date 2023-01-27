@@ -1,6 +1,6 @@
 import HistoryCard from "./HistoryCard";
 import Users from "./Users";
-import { Link } from "react-router-dom";
+import {Link} from "react-router-dom";
 
 /* 
 Returns: Multiple HistoryCard elements, ordered backwards, starting from most recent happiness
