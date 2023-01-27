@@ -6,10 +6,16 @@ import bcrypt
 
 from api.app import db
 
+group_users = db.Table(
+    "group_users",
+    db.Model.metadata,
+    db.Column("group_id", db.Integer, db.ForiegnKey("group.id")),
+    db.Column("user_id", db.Integer, db.ForiegnKey("user.id"))
+)
 
 class User(db.Model):
     """
-    User model. Has a one-to-many relationship with setting table.
+    User model. Has a one-to-many relationship with Setting.
     """
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -26,6 +32,8 @@ class User(db.Model):
     session_expiration = db.Column(db.DateTime, nullable=False)
     update_token = db.Column(db.String, nullable=False, unique=True)
 
+    groups = db.Relationship("Group", secondary=group_users, back_populates="users")
+
     def __init__(self, **kwargs):
         """
         Initializes a User object.
@@ -33,7 +41,8 @@ class User(db.Model):
         """
         self.email = kwargs.get("email")
         # Convert raw password into encrypted string that can still be decrypted, but we cannot decrypt it.
-        self.password_digest = bcrypt.hashpw(kwargs.get("password").encode("utf8"), bcrypt.gensalt(rounds=13))
+        self.password_digest = bcrypt.hashpw(kwargs.get("password").encode("utf8"),
+                                             bcrypt.gensalt(rounds=13))
         self.username = kwargs.get("username")
         self.renew_session()
 
@@ -126,3 +135,13 @@ class Setting(db.Model):
             "value": self.value,
             "user_id": self.user_id,
         }
+
+
+class Group(db.Model):
+    """
+    Group model. Has a many-to-many relationship with User.
+    """
+    __tablename__ = "group"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String, nullable=False)
+    users = db.Relationship("User", secondary=group_users, back_populates="groups")
