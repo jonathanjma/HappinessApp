@@ -7,21 +7,19 @@ Returns: Multiple HistoryCard elements, ordered backwards, starting from most re
 Requires: max # of cards; id of current user
 */
 
-export default function Histories(props) {
+export default function Histories({ id, max }) {
   const tiles = [];
   const button = [];
-  const userData = Users(props.id).data;
+  const userData = Users(id).data;
   const len = userData.length;
   let i = 1;
   let count = 0;
-  while (count < props.max) {
+  while (count < max) {
     if (len - i < 0) {
       break;
     }
     if (userData[len - i].level !== null) {
-      tiles.push(
-        <HistoryCard key={i} id={props.id} data={userData[len - i]} />
-      );
+      tiles.push(<HistoryCard key={i} id={id} data={userData[len - i]} />);
       count++;
     }
     i++;
