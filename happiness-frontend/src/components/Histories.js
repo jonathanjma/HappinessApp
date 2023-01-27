@@ -1,6 +1,7 @@
 import HistoryCard from "./HistoryCard";
 import Users from "./Users";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
+import { Button } from "react-bootstrap";
 
 /* 
 Returns: Multiple HistoryCard elements, ordered backwards, starting from most recent happiness
@@ -29,7 +30,7 @@ export default function Histories({ id, max }) {
       <>
         <div className="m-2.5">
           <Link to="/history">
-            <button>show all</button>
+            <Button variant="outline-secondary">show all</Button>
           </Link>
         </div>
       </>
