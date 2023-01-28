@@ -19,6 +19,7 @@ class User(db.Model):
     username = db.Column(db.String, nullable=False, unique=True)
     password_digest = db.Column(db.String, nullable=False)
     profile_picture = db.Column(db.String, nullable=False)  # Will represent an AWS URL
+    # If the user has not yet set a profile picture the field gets set to "default"
     settings = db.relationship("Setting", cascade="delete")
 
     # Session information
@@ -35,6 +36,7 @@ class User(db.Model):
         # Convert raw password into encrypted string that can still be decrypted, but we cannot decrypt it.
         self.password_digest = bcrypt.hashpw(kwargs.get("password").encode("utf8"), bcrypt.gensalt(rounds=13))
         self.username = kwargs.get("username")
+        self.profile_picture = kwargs.get("profile_picture", "default")
         self.renew_session()
 
     def serialize(self):
@@ -46,18 +48,7 @@ class User(db.Model):
             "id": self.id,
             "username": self.username,
             "profile picture": self.profile_picture,
-            "settings": [setting.serialize_short() for setting in self.settings]
-        }
-
-    def serialize_short(self):
-        """
-        Serializes a user object but excludes the settings objects.
-        Useful for serializing the user when displaying a settings object.
-        """
-        return {
-            "id": self.id,
-            "username": self.username,
-            "profile picture": self.profile_picture
+            "settings": [setting.serialize() for setting in self.settings]
         }
 
     def _urlsafe_base_64(self):

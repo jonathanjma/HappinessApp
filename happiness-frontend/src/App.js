@@ -10,6 +10,8 @@ import { useState } from "react";
 import History from "./pages/History";
 import UserGroups from "./pages/UserGroups";
 import Group from "./pages/Group";
+import "./App.css"
+
 
 // change id number to id of user in Users.js (temporary until backend + login set up)
 export default function App() {

@@ -8,6 +8,10 @@ from api.app import db
 from api.models import User
 
 
+def get_user_by_id(id):
+    return User.query.filter(User.id == id).first()
+
+
 def get_user_by_username(username):
     """
     Returns a User object by username.
