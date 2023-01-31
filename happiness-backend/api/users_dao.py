@@ -5,8 +5,7 @@ Helper file containing functions for accessing data in our database
 """
 
 from api.app import db
-from api.models import User
-
+from api.models import User, Group
 
 def get_user_by_username(username):
     """
@@ -63,3 +62,7 @@ def renew_session(update_token):
     optional_user.renew_session()
     db.session.commit()
     return True, optional_user
+
+
+def get_group_by_id(group_id):
+    return Group.query.filter(Group.id == group_id).first()

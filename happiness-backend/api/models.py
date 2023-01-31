@@ -9,8 +9,8 @@ from api.app import db
 group_users = db.Table(
     "group_users",
     db.Model.metadata,
-    db.Column("group_id", db.Integer, db.ForiegnKey("group.id")),
-    db.Column("user_id", db.Integer, db.ForiegnKey("user.id"))
+    db.Column("group_id", db.Integer, db.ForeignKey("group.id", ondelete='cascade')),
+    db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
 )
 
 class User(db.Model):
@@ -24,7 +24,8 @@ class User(db.Model):
     email = db.Column(db.String, nullable=False, unique=True)
     username = db.Column(db.String, nullable=False, unique=True)
     password_digest = db.Column(db.String, nullable=False)
-    profile_picture = db.Column(db.String, nullable=False)  # Will represent an AWS URL
+    profile_picture = db.Column(db.String, nullable=False,
+                                default="default")  # Will represent an AWS URL
     settings = db.relationship("Setting", cascade="delete")
 
     # Session information
@@ -32,7 +33,7 @@ class User(db.Model):
     session_expiration = db.Column(db.DateTime, nullable=False)
     update_token = db.Column(db.String, nullable=False, unique=True)
 
-    groups = db.Relationship("Group", secondary=group_users, back_populates="users")
+    groups = db.relationship("Group", secondary=group_users, back_populates="users")
 
     def __init__(self, **kwargs):
         """
@@ -144,4 +145,23 @@ class Group(db.Model):
     __tablename__ = "group"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
-    users = db.Relationship("User", secondary=group_users, back_populates="groups")
+    users = db.relationship("User", secondary=group_users, back_populates="groups")
+
+    def __init__(self, **kwargs):
+        """
+        Initializes a group.
+        Requires that kwargs contains name
+        """
+        self.name = kwargs.get("name")
+
+    def add_users(self, new_users):
+        for user_dict in new_users:
+            user = User.query.filter(User.username == user_dict['username']).first()
+            if user not in self.users:
+                self.users.append(user)
+
+    def remove_users(self, users_to_remove):
+        for user_dict in users_to_remove:
+            user = User.query.filter(User.username == user_dict['username']).first()
+            if user in self.users:
+                self.users.remove(user)

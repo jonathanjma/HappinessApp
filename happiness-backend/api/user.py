@@ -1,11 +1,29 @@
+from apifairy import response
 from flask import Blueprint
+from flask import json, request
+
+from api import users_dao
+from api.app import db
 from api.models import User, Setting
 from api.responses import success_response, failure_response
-from flask import json, request
-from api.app import db
-from api import users_dao
+from api.schema import GroupSchema
+
 user = Blueprint('user', __name__)
 
+
+def check_logged_in():
+    """
+    Checks whether the current user is authenticated and has a valid session.
+    :return: Returns a tuple containing whether the user is logged in. If they are logged in the second entry of the
+    tuple is a user object.
+    """
+    success, token = extract_token(request)
+    if not success:
+        return False, None
+    current_user = users_dao.get_user_by_session_token(token)
+    if current_user is None or not current_user.verify_session_token(token):
+        return False, None
+    return True, current_user
 
 def extract_token(my_request):
     """
@@ -98,3 +116,12 @@ def get_all_users():
     # if users is None:
     #     return failure_response("Users not found")
     # return success_response({"users:": [usr.serialize() for usr in users]})
+
+
+@user.get('/groups')
+@response(GroupSchema(many=True))
+def user_groups():
+    success, cur_user = check_logged_in()
+    if not success or cur_user is None:
+        return failure_response('Login error')
+    return cur_user.groups
