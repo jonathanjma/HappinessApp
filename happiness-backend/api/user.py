@@ -7,6 +7,21 @@ from api import users_dao
 user = Blueprint('user', __name__)
 
 
+def check_loggedIn():
+    """
+    Checks whether the current user is authenticated and has a valid session.
+    :return: Returns a tuple containing whether the user is logged in. If they are logged in the second entry of the
+    tuple is a user object.
+    """
+    success, token = extract_token(request)
+    if not success:
+        return False, None
+    current_user = users_dao.get_user_by_session_token(token)
+    if current_user is None or not current_user.verify_session_token(token):
+        return False, None
+    return True, current_user
+
+
 def extract_token(my_request):
     """
     Helper function that extracts the token from the header of a request
@@ -26,7 +41,8 @@ def extract_token(my_request):
 @user.post('/')
 def create_user():
     body = json.loads(request.data)
-    email, username, password = body.get("email"), body.get("username"), body.get("password")
+    email, username, password = body.get(
+        "email"), body.get("username"), body.get("password")
     if username is None or email is None or password is None:
         return failure_response("Insufficient information", 400)
 
@@ -58,7 +74,7 @@ def add_user_setting():
     if not success:
         return failure_response("Session token not found. Relog?")
     current_user = users_dao.get_user_by_session_token(token)
-    if current_user is None:
+    if current_user is None or not current_user.verify_session_token(token):
         return failure_response("Current user not found. Relog?")
     key, value = body.get("key"), body.get("value")
     if key is None or value is None:
@@ -82,7 +98,7 @@ def get_user_settings():
     if not success:
         return failure_response("Session token not found. Relog?")
     current_user = users_dao.get_user_by_session_token(token)
-    if current_user is None:
+    if current_user is None or not current_user.verify_session_token(token):
         return failure_response("User with current session token not found. Relog?")
     settings = Setting.query.filter(Setting.user_id == current_user.id).all()
     return success_response({
@@ -93,8 +109,11 @@ def get_user_settings():
 # TODO get all users is a temporary route, remove before deployment!!!
 @user.get('/')
 def get_all_users():
-    users = User.query.filter(User.id == 1).first()
-    return success_response("")
+    users = User.query.filter(User.id >= 1).all()
+    if users is None:
+        return failure_response("Users not found")
+    return success_response({"users:": [usr.serialize() for usr in users]})
+    # return success_response("")
     # if users is None:
     #     return failure_response("Users not found")
     # return success_response({"users:": [usr.serialize() for usr in users]})

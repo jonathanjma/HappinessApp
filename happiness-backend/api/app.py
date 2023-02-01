@@ -11,8 +11,9 @@ migrate = Migrate()
 ma = Marshmallow()
 apifairy = APIFairy()
 
-
 # noinspection PyUnresolvedReferences
+
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
