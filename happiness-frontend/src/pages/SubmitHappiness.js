@@ -1,7 +1,5 @@
-import LSUModal from "../components/LSUModal";
-import { useState } from "react";
+import {useState} from "react";
 import "../App.css";
-import Journal from "../media/journal-icon.svg";
 import HappinessCommentModal from "../components/HappinessCommentModal";
 
 export default function SubmitHappiness() {
@@ -51,8 +49,8 @@ export default function SubmitHappiness() {
     >
       <div className="flex flex-col justify-center items-center ">
         {/* Prompt */}
-        <h1 className="text-7xl text-white text-stroke-3 text-center mt-5 font-rubik">
-          <b>How are you feeling today?</b>
+        <h1 className="text-7xl text-white text-stroke-3 text-center mt-20 position-relative font-rubik-bold">
+          How are you feeling today?
         </h1>
         {/* Happiness slider */}
         <input
@@ -64,7 +62,7 @@ export default function SubmitHappiness() {
           className="w-1/2 h-2 rounded-lg appearance-none cursor-pointer dark:bg-white-300 scale-150 flex-col justify-center mt-20"
         />
         {/* Happiness number */}
-        <p className="flex-1 text-8xl text-white text-stroke-4 mt-5">
+        <p className="flex-1 text-8xl text-white text-stroke-4 mt-5 font-rubik-bold">
           <b>{Math.floor(happiness / 10)}</b>
         </p>
         {/* Smiley Face */}

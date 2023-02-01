@@ -46,6 +46,28 @@
     }
 }
 
+@font-face {
+    font-family: "rubik-regular";
+    src: local("Rubik-Regular"), url("./fonts/rubik/Rubik-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "rubik-bold";
+    src: local("Rubik-Bold"), url("./fonts/rubik/Rubik-Bold.ttf") format("truetype");
+}
+
+.font-rubik-bold {
+    font-family: rubik-bold, sans-serif;
+}
+
+.font-rubik {
+    font-family: rubik-regular, sans-serif;
+}
+
+.text-stroke-8 {
+    -webkit-text-stroke: 8px black;
+}
+
 .text-stroke-4 {
     -webkit-text-stroke: 4px black;
 }
