@@ -4,7 +4,7 @@ DAO (Data Access Object) file
 Helper file containing functions for accessing data in our database
 """
 
-from api.models import User
+from api.models import User, Group
 
 
 def get_user_by_id(id):
@@ -25,3 +25,7 @@ def get_user_by_email(email):
     Returns a user object from the database given an email
     """
     return User.query.filter(User.email == email).first()
+
+
+def get_group_by_id(group_id):
+    return Group.query.filter(Group.id == group_id).first()

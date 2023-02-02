@@ -1,26 +1,24 @@
-from apifairy import body, response, other_responses
+from apifairy import authenticate, body, response, other_responses
 from flask import Blueprint
 
 from api.app import db
 from api.models import Group
 from api.responses import failure_response
 from api.schema import CreateGroupSchema, EditGroupSchema, GroupSchema
-from api.user import check_logged_in
+from api.token import token_auth
 from api.users_dao import get_group_by_id
 
 group = Blueprint('group', __name__)
 
 
 @group.post('/')
+@authenticate(token_auth)
 @body(CreateGroupSchema)
 @response(GroupSchema, 201)
 def create_group(req):
-    success, cur_user = check_logged_in()
-    if not success or cur_user is None:
-        return failure_response('Login Error', 401)
 
     new_group = Group(name=req['name'])
-    new_group.users.append(cur_user)
+    new_group.users.append(token_auth.current_user())
 
     db.session.add(new_group)
     db.session.commit()
@@ -29,19 +27,17 @@ def create_group(req):
 
 
 @group.put('/<int:group_id>')
+@authenticate(token_auth)
 @body(EditGroupSchema)
 @response(GroupSchema)
 @other_responses({404: "Invalid Group", 403: "Not Allowed"})
 def edit_group(req, group_id):
-    success, cur_user = check_logged_in()
-    if not success or cur_user is None:
-        return failure_response('Login Error', 401)
-
-    new_name, add_users, remove_users = req.get('new_name'), req.get('add_users'), req.get(
-        'remove_users')
+    new_name, add_users, remove_users = req.get('new_name'), req.get('add_users'), \
+        req.get('remove_users')
     if new_name is None and add_users is None and remove_users is None:
         return failure_response('Insufficient Information', 400)
 
+    cur_user = token_auth.current_user()
     cur_group = get_group_by_id(group_id)
     if cur_group is None:
         return failure_response('Group Not Found', 404)
@@ -61,23 +57,19 @@ def edit_group(req, group_id):
 
 
 @group.get('/<int:group_id>')
+@authenticate(token_auth)
 @response(GroupSchema)
 @other_responses({404: "Invalid Group"})
 def group_info(group_id):
-    success, cur_user = check_logged_in()
-    if not success or cur_user is None:
-        return failure_response('Login Error', 401)
 
     return get_group_by_id(group_id) or failure_response('Group Not Found', 404)
 
 
 @group.delete('/<int:group_id>')
+@authenticate(token_auth)
 @other_responses({404: "Invalid Group", 403: "Not Allowed"})
 def delete_group(group_id):
-    success, cur_user = check_logged_in()
-    if not success or cur_user is None:
-        return failure_response('Login Error', 401)
-
+    cur_user = token_auth.current_user()
     cur_group = get_group_by_id(group_id)
     if cur_group is None:
         return failure_response('Group Not Found', 404)
