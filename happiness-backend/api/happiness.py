@@ -33,6 +33,32 @@ def create_happiness():
     return success_response(happiness.serialize(), 201)
 
 
+@happiness.put('/<int:id>')
+def edit_happiness(id):
+    # success, cur_user = check_logged_in()
+    # if not success or cur_user is None:
+    #     return failure_response('Login Error', 401)
+    success, token = extract_token(request)
+    user_id = request.args.get("user_id")
+    if not success:
+        return failure_response("Session token not found. Relog?")
+    current_user = users_dao.get_user_by_session_token(token)
+    if current_user is None or not current_user.verify_session_token(token):
+        return failure_response("Current user not found. Relog?")
+
+    query_data = Happiness.query.filter(Happiness.id == id).first()
+    if query_data:
+        value = request.args.get("value")
+        comment = request.args.get("comment")
+        if value:
+            query_data.value = value
+        if comment:
+            query_data.comment = comment
+        db.session.commit()
+        return success_response("Updated happiness value: " + query_data, 201)
+    return failure_response("Data not found.")
+
+
 @happiness.get('/')
 def get_happiness():
     """
@@ -50,7 +76,7 @@ def get_happiness():
         return failure_response("Session token not found. Relog?")
     current_user = users_dao.get_user_by_session_token(token)
     if current_user is None or not current_user.verify_session_token(token):
-        return failure_response("User with current session token not found. Relog?")
+        return falure_response("User with current session token not found. Relog?")
     # TODO check if user with given user_id is friend of the current user
     query_data = Happiness.query.filter(
         Happiness.user_id == user_id,
