@@ -9,6 +9,7 @@ from api.token import token_auth
 
 user = Blueprint('user', __name__)
 
+
 @user.post('/')
 def create_user():
     body = json.loads(request.data)
@@ -50,6 +51,7 @@ def get_user_by_id():
         "profile_picture": friend_user.profile_picture,
         "settings": [s.serialize() for s in friend_user.settings],
     })
+
 
 @user.delete('/')
 def delete_user():

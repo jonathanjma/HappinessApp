@@ -6,8 +6,10 @@ Helper file containing functions for accessing data in our database
 
 from api.models import User
 
+
 def get_user_by_id(id):
     return User.query.filter(User.id == id).first()
+
 
 def get_user_by_username(username):
     """

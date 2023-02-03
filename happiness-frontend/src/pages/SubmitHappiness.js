@@ -51,7 +51,7 @@ export default function SubmitHappiness() {
     >
       <div className="flex flex-col justify-center items-center ">
         {/* Prompt */}
-        <h1 className="text-7xl text-white text-stroke-3 text-center mt-20 position-relative font-rubik-bold">
+        <h1 className="text-5xl text-white text-stroke-3 text-center mt-20 position-relative font-rubik-bold md:text-7xl">
           How are you feeling today?
         </h1>
         {/* Happiness slider */}
@@ -94,7 +94,7 @@ export default function SubmitHappiness() {
           onClick={submitHappiness}
           className="flex-1 scale-150 text-white bg-gradient-to-r from-raisin-500 via-raisin-600 to-raisin-700 shadow-lg
         font-roboto font-semibold rounded-lg text-sm px-5 outline-none
-        py-2.5 text-center mr-2 mb-2 mt-9"
+        py-2.5 text-center mr-2 mb-2 mt-9 "
         >
           Submit
         </button>
