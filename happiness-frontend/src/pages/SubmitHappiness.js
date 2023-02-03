@@ -51,8 +51,8 @@ export default function SubmitHappiness() {
     >
       <div className="flex flex-col justify-center items-center ">
         {/* Prompt */}
-        <h1 className="text-7xl text-white text-stroke-3 text-center mt-5 font-rubik">
-          <b>How are you feeling today?</b>
+        <h1 className="text-5xl text-white text-stroke-3 text-center mt-20 position-relative font-rubik-bold md:text-7xl">
+          How are you feeling today?
         </h1>
         {/* Happiness slider */}
         <input
@@ -64,7 +64,7 @@ export default function SubmitHappiness() {
           className="w-1/2 h-2 rounded-lg appearance-none cursor-pointer dark:bg-white-300 scale-150 flex-col justify-center mt-20"
         />
         {/* Happiness number */}
-        <p className="flex-1 text-8xl text-white text-stroke-4 mt-5">
+        <p className="flex-1 text-8xl text-white text-stroke-4 mt-5 font-rubik-bold">
           <b>{Math.floor(happiness / 10)}</b>
         </p>
         {/* Smiley Face */}
@@ -94,7 +94,7 @@ export default function SubmitHappiness() {
           onClick={submitHappiness}
           className="flex-1 scale-150 text-white bg-gradient-to-r from-raisin-500 via-raisin-600 to-raisin-700 shadow-lg
         font-roboto font-semibold rounded-lg text-sm px-5 outline-none
-        py-2.5 text-center mr-2 mb-2 mt-9"
+        py-2.5 text-center mr-2 mb-2 mt-9 "
         >
           Submit
         </button>

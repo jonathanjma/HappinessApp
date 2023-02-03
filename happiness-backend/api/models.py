@@ -1,6 +1,6 @@
-import datetime
 import hashlib
 import os
+from datetime import datetime, timedelta
 
 import bcrypt
 
@@ -20,6 +20,7 @@ class User(db.Model):
     password_digest = db.Column(db.String, nullable=False)
     # Will represent an AWS URL
     profile_picture = db.Column(db.String, nullable=False)
+    # If the user has not yet set a profile picture the field gets set to "default"
     settings = db.relationship("Setting", cascade="delete")
 
     # Session information
@@ -37,8 +38,8 @@ class User(db.Model):
         self.password_digest = bcrypt.hashpw(kwargs.get(
             "password").encode("utf8"), bcrypt.gensalt(rounds=13))
         self.username = kwargs.get("username")
-        self.profile_picture = kwargs.get("profile_picture")
-        self.renew_session()
+        self.profile_picture = kwargs.get("profile_picture", "default")
+        self.get_token()
 
     def serialize(self):
         """
@@ -49,36 +50,8 @@ class User(db.Model):
             "id": self.id,
             "username": self.username,
             "profile picture": self.profile_picture,
-            "settings": [setting.serialize_short() for setting in self.settings]
+            "settings": [setting.serialize() for setting in self.settings]
         }
-
-    def serialize_short(self):
-        """
-        Serializes a user object but excludes the settings objects.
-        Useful for serializing the user when displaying a settings object.
-        """
-        return {
-            "id": self.id,
-            "username": self.username,
-            "profile picture": self.profile_picture
-        }
-
-    def _urlsafe_base_64(self):
-        """
-        Randomly generates hashed tokens (used for session/update tokens)
-        """
-        return hashlib.sha1(os.urandom(64)).hexdigest()
-
-    def renew_session(self):
-        """
-        Renews the sessions, i.e.
-        1. Creates a new session token
-        2. Sets the expiration time of the session to be a week from now
-        3. Creates a new update token
-        """
-        self.session_token = self._urlsafe_base_64()
-        self.session_expiration = datetime.datetime.now() + datetime.timedelta(weeks=1)
-        self.update_token = self._urlsafe_base_64()
 
     def verify_password(self, password):
         """
@@ -86,17 +59,32 @@ class User(db.Model):
         """
         return bcrypt.checkpw(password.encode("utf8"), self.password_digest)
 
-    def verify_session_token(self, session_token):
+    def _urlsafe_base_64(self):
+        """
+        Randomly generates hashed tokens (used for session/update tokens)
+        """
+        return hashlib.sha1(os.urandom(64)).hexdigest()
+
+    def get_token(self):
+        """
+        Generates a new session token for a user
+        """
+        self.session_token = self._urlsafe_base_64()
+        self.session_expiration = datetime.utcnow() + timedelta(weeks=1)
+        self.update_token = self._urlsafe_base_64()  # don't need anymore?
+        return self.session_token
+
+    def revoke_token(self):
+        """
+        Expires the session token of a user
+        """
+        self.session_expiration = datetime.utcnow() - timedelta(seconds=1)
+
+    def verify_session_token(self):
         """
         Verifies the session token of a user
         """
-        return session_token == self.session_token and datetime.datetime.now() < self.session_expiration
-
-    def verify_update_token(self, update_token):
-        """
-        Verifies the update token of a user
-        """
-        return update_token == self.update_token
+        return self.session_expiration > datetime.utcnow()
 
 
 class Setting(db.Model):
