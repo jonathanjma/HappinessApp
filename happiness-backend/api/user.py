@@ -1,4 +1,4 @@
-from apifairy import response
+from apifairy import authenticate, response
 from flask import Blueprint
 from flask import json, request
 
@@ -11,8 +11,12 @@ from api.token import token_auth
 
 user = Blueprint('user', __name__)
 
+
 @user.post('/')
 def create_user():
+    """
+    Create User
+    """
     body = json.loads(request.data)
     email, username, password = body.get("email"), body.get("username"), body.get("password")
     if username is None or email is None or password is None:
@@ -28,13 +32,14 @@ def create_user():
     db.session.add(current_user)
     db.session.commit()
 
-    return success_response({"session_token": current_user.session_token}, 201)
+    return '', 201
 
 
 @user.get('/')
-@token_auth.login_required
+@authenticate(token_auth)
 def get_user_by_id():
     """
+    Get by ID
     This method gets user information from a user by querying the user by id.
     The body json should have "id": <int: id> passed in.
     TODO this method should only be allowed to be called by someone in the same group as the target user.
@@ -55,15 +60,21 @@ def get_user_by_id():
 
 
 @user.get('/groups')
-@token_auth.login_required()
+@authenticate(token_auth)
 @response(GroupSchema(many=True))
 def user_groups():
+    """
+    Get Groups
+    Gets the happiness groups the user is in.
+    """
     return token_auth.current_user().groups
 
 
 @user.delete('/')
+@authenticate(token_auth)
 def delete_user():
     """
+    Delete User
     Deletes the user that is currently logged in, including all user data.
     :return: A success with serialized user or failure response with the appropriate message.
     """
@@ -75,9 +86,10 @@ def delete_user():
 
 
 @user.post('/settings')
-@token_auth.login_required
+@authenticate(token_auth)
 def add_user_setting():
     """
+    Add Settings
     Adds a setting to the current user's property bag.
     :return: A JSON success response that contains the added setting, or a failure response.
     """
@@ -94,9 +106,10 @@ def add_user_setting():
 
 
 @user.get('/settings')
-@token_auth.login_required
+@authenticate(token_auth)
 def get_user_settings():
     """
+    Get Settings
     Gets the settings of the current user by authorization token.
     :return: A JSON response of a list of key value pairs that contain setting keys and their values for the user.
     """

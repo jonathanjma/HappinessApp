@@ -1,3 +1,4 @@
+from apifairy import authenticate
 from flask import Blueprint
 from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 
@@ -38,17 +39,28 @@ def token_auth_error(status):
 
 
 @token.post('/')
-@basic_auth.login_required
+@authenticate(basic_auth)
+# @response(201)
 def get_token():
+    """
+    Get Token
+    Creates a session token for a user to access the Happiness App API. Equivalent to "logging in".
+    """
+
     session_token = basic_auth.current_user().get_token()
     db.session.commit()
 
-    return {'session_token': session_token}
+    return {'session_token': session_token}, 201
 
 
 @token.delete('/')
-@token_auth.login_required
+@authenticate(token_auth)
 def revoke_token():
+    """
+    Revoke Token
+    Expires a user's API access token. Equivalent to "logging out".
+    """
+
     token_auth.current_user().revoke_token()
     db.session.commit()
 

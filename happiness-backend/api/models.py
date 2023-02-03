@@ -6,6 +6,7 @@ import bcrypt
 
 from api.app import db
 
+# Group Users association table
 group_users = db.Table(
     "group_users",
     db.Model.metadata,
@@ -137,18 +138,27 @@ class Group(db.Model):
     def __init__(self, **kwargs):
         """
         Initializes a group.
-        Requires that kwargs contains name
+        Requires that kwargs argument name
         """
         self.name = kwargs.get("name")
 
+    # TODO error if username not valid
     def add_users(self, new_users):
-        for user_dict in new_users:
-            user = User.query.filter(User.username == user_dict['username']).first()
+        """
+        Adds users to a group
+        Requires a list of usernames to add
+        """
+        for username in new_users:
+            user = User.query.filter(User.username == username).first()
             if user not in self.users:
                 self.users.append(user)
 
     def remove_users(self, users_to_remove):
-        for user_dict in users_to_remove:
-            user = User.query.filter(User.username == user_dict['username']).first()
+        """
+        Removes users to a group
+        Requires a list of usernames to remove
+        """
+        for username in users_to_remove:
+            user = User.query.filter(User.username == username).first()
             if user in self.users:
                 self.users.remove(user)
