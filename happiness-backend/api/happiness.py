@@ -1,31 +1,30 @@
-from flask import Blueprint
-from api.models import User, Happiness
+from flask import Blueprint, json, request
+from api.models import Happiness
 from api.responses import success_response, failure_response
-from flask import json, request
 from api.app import db
-from api import users_dao
-from api.user import extract_token
-from datetime import datetime, timezone
+from api import happiness_dao
+from api.token import token_auth
+from datetime import datetime
 
 happiness = Blueprint('happiness', __name__)
 
 
 @happiness.post('/')
+@token_auth.login_required
 def create_happiness():
     body = json.loads(request.data)
-    success, token = extract_token(request)
-    if not success:
-        return failure_response("Session token not found. Relog?")
-    current_user = users_dao.get_user_by_session_token(token)
-    if current_user is None or not current_user.verify_session_token(token):
-        return failure_response("Current user not found. Relog?")
-
+    current_user = token_auth.current_user()
     value, comment, timestamp = body.get(
         "value"), body.get("comment"), body.get("timestamp")
     if value is None:
         return failure_response("Please submit a value!")
     if timestamp is None:
         return failure_response("Error. Please try again!")
+
+    # check if date already exists, rn used to avoid errors when debugging
+    if happiness_dao.get_happiness_by_date(current_user.id, datetime.strptime(timestamp, "%Y-%m-%d")):
+        return failure_response("Date already exists.")
+
     happiness = Happiness(user_id=current_user.id, value=value,
                           comment=comment, timestamp=datetime.strptime(timestamp, "%Y-%m-%d"))
     db.session.add(happiness)
@@ -34,20 +33,17 @@ def create_happiness():
 
 
 @happiness.put('/<int:id>')
+@token_auth.login_required
 def edit_happiness(id):
     # success, cur_user = check_logged_in()
     # if not success or cur_user is None:
     #     return failure_response('Login Error', 401)
-    success, token = extract_token(request)
-    user_id = request.args.get("user_id")
-    if not success:
-        return failure_response("Session token not found. Relog?")
-    current_user = users_dao.get_user_by_session_token(token)
-    if current_user is None or not current_user.verify_session_token(token):
-        return failure_response("Current user not found. Relog?")
+    user_id = token_auth.current_user().id
 
-    query_data = Happiness.query.filter(Happiness.id == id).first()
+    query_data = happiness_dao.get_happiness_by_id(id)
     if query_data:
+        if query_data.user_id != user_id:
+            return failure_response("Unauthorized.")
         value = request.args.get("value")
         comment = request.args.get("comment")
         if value:
@@ -55,34 +51,44 @@ def edit_happiness(id):
         if comment:
             query_data.comment = comment
         db.session.commit()
-        return success_response("Updated happiness value: " + query_data, 201)
+        return success_response(query_data.serialize(), 201)
     return failure_response("Data not found.")
 
 
+@happiness.delete('/<int:id>')
+@token_auth.login_required
+def delete_happiness(id):
+    """
+    Deletes the happiness data corresponding to a specific id.
+    Requires: user must be logged in
+    :return: A success message with the delete information, or a failure response with the appropriate message."""
+    happiness = happiness_dao.get_happiness_by_id(id)
+    if not happiness:
+        return ("Happiness not found.")
+    if happiness.user_id == token_auth.current_user().id:
+        db.session.delete(happiness)
+        db.session.commit()
+        return success_response(happiness.serialize(), 200)
+    return failure_response("Unauthorized.")
+
+
 @happiness.get('/')
+@token_auth.login_required
 def get_happiness():
     """
     Gets the happiness of values of a given user. Requires: the time represented by start comes before the end
     :return: A JSON response of a list of key value pairs that contain each day's happiness value, comment, and timestamp.
     """
-    success, token = extract_token(request)
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
     user_id = request.args.get("user_id")
     start = request.args.get("start")
     end = request.args.get("end", today)
     stfor = datetime.strptime(start, "%Y-%m-%d")
     enfor = datetime.strptime(end, "%Y-%m-%d")
-    if not success:
-        return failure_response("Session token not found. Relog?")
-    current_user = users_dao.get_user_by_session_token(token)
-    if current_user is None or not current_user.verify_session_token(token):
-        return falure_response("User with current session token not found. Relog?")
+
     # TODO check if user with given user_id is friend of the current user
-    query_data = Happiness.query.filter(
-        Happiness.user_id == user_id,
-        Happiness.timestamp.between(stfor, enfor)).all()
-    # return success_response("starttime: " + start + " and endtime: " + end)
-    special_list = [(datetime.strftime(h.timestamp, "%Y-%m-%d"), h.value)
+    query_data = happiness_dao.get_happiness_by_range(user_id, stfor, enfor)
+    special_list = [(datetime.strftime(h.timestamp, "%Y-%m-%d"), h.value, h.comment)
                     for h in query_data]
     special_list.sort()
     return success_response({"happiness": special_list})
