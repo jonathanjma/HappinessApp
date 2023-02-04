@@ -33,9 +33,9 @@ def get_user_happiness(user_id):
     return Happiness.query.filter(Happiness.user_id == user_id).all()
 
 
-def get_happiness_by_count(user_id, start, page, n):
+def get_happiness_by_count(user_id, page, n):
     """
-    Returns a list of n Happiness objects (sorted from newest to oldest) given a starting value.
+    Returns a list of n Happiness objects (sorted from newest to oldest).
     Page variable can be changed to show the next n objects for pagination.
     """
-    return Happiness.query.filter(Happiness.user_id == user_id, Happiness.timestamp <= start).order_by(Happiness.timestamp.desc()).paginate(page=page, per_page=n, error_out=False)
+    return Happiness.query.filter(Happiness.user_id == user_id).order_by(Happiness.timestamp.desc()).paginate(page=page, per_page=n, error_out=False)

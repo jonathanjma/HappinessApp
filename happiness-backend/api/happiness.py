@@ -132,15 +132,12 @@ def get_all_happiness():
 @token_auth.login_required
 def get_paginaged_happiness():
     user_id = request.args.get("user_id")
-    st = request.args.get("start", datetime.strftime(
-        datetime.today(), "%Y-%m-%d"))
     page = request.args.get("page", 1, type=int)
     count = request.args.get("count", 10, type=int)
-    start = datetime.strptime(st, "%Y-%m-%d")
 
     # TODO check if user with user_id is friend of current user
     query_data = happiness_dao.get_happiness_by_count(
-        user_id, start, page, count)
+        user_id, page, count)
     special_list = [(datetime.strftime(h.timestamp, "%Y-%m-%d"), h.value, h.comment)
                     for h in query_data]
     return success_response({"happiness": special_list})
