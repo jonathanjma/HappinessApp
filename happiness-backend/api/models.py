@@ -13,6 +13,7 @@ group_users = db.Table(
     db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
 )
 
+
 class User(db.Model):
     """
     User model. Has a one-to-many relationship with Setting.
@@ -24,14 +25,18 @@ class User(db.Model):
     email = db.Column(db.String, nullable=False, unique=True)
     username = db.Column(db.String, nullable=False, unique=True)
     password_digest = db.Column(db.String, nullable=False)
-    profile_picture = db.Column(db.String, nullable=False)  # Will represent an AWS URL
+    profile_picture = db.Column(db.String, nullable=False)
+    # Will represent an AWS URL
     # If the user has not yet set a profile picture the field gets set to "default"
+
+    confirmed = db.Column(db.Boolean, nullable=False, default=False)
+    # Whether the user has confirmed their email
+
     settings = db.relationship("Setting", cascade="delete")
 
     # Session information
     session_token = db.Column(db.String, nullable=False, unique=True)
     session_expiration = db.Column(db.DateTime, nullable=False)
-    update_token = db.Column(db.String, nullable=False, unique=True)
 
     groups = db.relationship("Group", secondary=group_users, back_populates="users")
 
@@ -46,6 +51,7 @@ class User(db.Model):
                                              bcrypt.gensalt(rounds=13))
         self.username = kwargs.get("username")
         self.profile_picture = kwargs.get("profile_picture", "default")
+        self.confirmed = kwargs.get("confirmed", False)
         self.get_token()
 
     def serialize(self):
@@ -78,7 +84,6 @@ class User(db.Model):
         """
         self.session_token = self._urlsafe_base_64()
         self.session_expiration = datetime.utcnow() + timedelta(weeks=1)
-        self.update_token = self._urlsafe_base_64()  # don't need anymore?
         return self.session_token
 
     def revoke_token(self):
@@ -92,6 +97,7 @@ class User(db.Model):
         Verifies the session token of a user
         """
         return self.session_expiration > datetime.utcnow()
+
 
 class Setting(db.Model):
     """

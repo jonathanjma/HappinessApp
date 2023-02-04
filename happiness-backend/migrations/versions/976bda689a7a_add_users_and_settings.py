@@ -23,12 +23,12 @@ def upgrade():
                     sa.Column('username', sa.String(), nullable=False),
                     sa.Column('password_digest', sa.String(), nullable=False),
                     sa.Column('profile_picture', sa.String(), nullable=False),
-                    sa.Column('session_token', sa.String(), nullable=False),
-                    sa.Column('session_expiration', sa.DateTime(), nullable=False),
+                    sa.Column('token', sa.String(), nullable=False),
+                    sa.Column('token_expiration', sa.DateTime(), nullable=False),
                     sa.Column('update_token', sa.String(), nullable=False),
                     sa.PrimaryKeyConstraint('id'),
                     sa.UniqueConstraint('email'),
-                    sa.UniqueConstraint('session_token'),
+                    sa.UniqueConstraint('token'),
                     sa.UniqueConstraint('update_token'),
                     sa.UniqueConstraint('username')
                     )

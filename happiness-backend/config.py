@@ -15,6 +15,18 @@ class Config:
     APIFAIRY_VERSION = '1.0'
     APIFAIRY_UI = os.environ.get('DOCS_UI', 'elements')
 
+    # Security measures
+    SECURITY_PASSWORD_SALT = os.environ.get("SECURITY_PASSWORD_SALT")
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+
+    # Email sending
+    MAIL_SERVER = "smtp.gmail.com"
+    MAIL_PORT = "465"
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = True
+    MAIL_USERNAME = "cu.happiness.app@gmail.com"
+    MAIL_PASSWORD = os.environ.get("SECRET_APP_PASSWORD")
+
 
 class TestConfig:
     TESTING = True

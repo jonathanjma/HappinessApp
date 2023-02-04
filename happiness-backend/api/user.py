@@ -2,6 +2,7 @@ from apifairy import response
 from flask import Blueprint
 from flask import json, request
 
+import happiness_backend
 from api import users_dao
 from api.app import db
 from api.models import User, Setting
@@ -9,10 +10,17 @@ from api.responses import success_response, failure_response
 from api.schema import GroupSchema
 from api.token import token_auth
 
+import threading
+
 user = Blueprint('user', __name__)
+
 
 @user.post('/')
 def create_user():
+    """
+    Registers an unconfirmed user to the database.
+    Also starts a thread which sends a confirmation email to the user.
+    """
     body = json.loads(request.data)
     email, username, password = body.get("email"), body.get("username"), body.get("password")
     if username is None or email is None or password is None:
@@ -24,9 +32,10 @@ def create_user():
     similar_user = users_dao.get_user_by_username(username)
     if similar_user is not None:
         return failure_response("Username is already taken.", 400)
-    current_user = User(email=email, password=password, username=username)
+    current_user = User(email=email, password=password, username=username, profile_picture="default", confirmed=False)
     db.session.add(current_user)
     db.session.commit()
+    threading.Thread(target=happiness_backend.send_verify_email_async, args=(email,)).start()
 
     return success_response({"session_token": current_user.session_token}, 201)
 
