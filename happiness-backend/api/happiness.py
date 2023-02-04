@@ -5,6 +5,7 @@ from api.app import db
 from api import happiness_dao
 from api.token import token_auth
 from datetime import datetime
+from sqlalchemy import delete
 
 happiness = Blueprint('happiness', __name__)
 
@@ -72,11 +73,25 @@ def delete_happiness(id):
     return failure_response("Unauthorized.")
 
 
+@happiness.delete('/user/<int:user_id>')
+@token_auth.login_required
+def delete_user_happiness(user_id):
+    """
+    Given the ID of a user, deletes all happiness entries relating to that user.
+    :return: A success message, or a failure response with the appropriate message.
+    """
+    user_id = token_auth.current_user().id
+    statement = delete(Happiness).where(Happiness.user_id == user_id)
+    db.session.execute(statement)
+    db.session.commit()
+    return success_response("All entries deleted!")
+
+
 @happiness.get('/')
 @token_auth.login_required
 def get_happiness():
     """
-    Gets the happiness of values of a given user. Requires: the time represented by start comes before the end
+    Gets the happiness of values of a given user between a specified start and end time. Requires: the time represented by start comes before the end
     :return: A JSON response of a list of key value pairs that contain each day's happiness value, comment, and timestamp.
     """
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
@@ -88,6 +103,24 @@ def get_happiness():
 
     # TODO check if user with given user_id is friend of the current user
     query_data = happiness_dao.get_happiness_by_range(user_id, stfor, enfor)
+    special_list = [(datetime.strftime(h.timestamp, "%Y-%m-%d"), h.value, h.comment)
+                    for h in query_data]
+    special_list.sort()
+    return success_response({"happiness": special_list})
+
+
+@happiness.get('/all/')
+@token_auth.login_required
+def get_all_happiness():
+    """
+    Gets all of the happiness entries corresponding to a given user.
+    :return: A JSON response of a list of key value pairs that contain each day's happiness value, comment, and timestamp.
+    """
+    # could merge with above function?????
+
+    user_id = request.args.get("user_id")
+    # TODO check if user with user_id is friend of current user
+    query_data = happiness_dao.get_user_happiness(user_id)
     special_list = [(datetime.strftime(h.timestamp, "%Y-%m-%d"), h.value, h.comment)
                     for h in query_data]
     special_list.sort()

@@ -24,3 +24,10 @@ def get_happiness_by_range(user_id, start, end):
     return Happiness.query.filter(
         Happiness.user_id == user_id,
         Happiness.timestamp.between(start, end)).all()
+
+
+def get_user_happiness(user_id):
+    """
+    :return: a list of all Happiness objects corresponding to the given User ID.
+    """
+    return Happiness.query.filter(Happiness.user_id == user_id).all()
