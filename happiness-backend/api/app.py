@@ -1,19 +1,34 @@
+import os.path
+
 from apifairy import APIFairy
 from flask import Flask, redirect, url_for
 from flask_marshmallow import Marshmallow
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail
 
 from config import Config
 
+db = SQLAlchemy()
+migrate = Migrate()
 ma = Marshmallow()
 apifairy = APIFairy()
+mail = Mail()
 
 
-def create_app():
+# noinspection PyUnresolvedReferences
+def create_app(config=Config):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config)
 
+    # Do not remove!
+    from api import models
+
+    db.init_app(app)
+    migrate.init_app(app, db)
     ma.init_app(app)
     apifairy.init_app(app)
+    mail.init_app(app)
 
     from api.user import user
     app.register_blueprint(user, url_prefix='/api/user')
