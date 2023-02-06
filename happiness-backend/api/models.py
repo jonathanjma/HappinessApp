@@ -128,7 +128,7 @@ class Happiness(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     value = db.Column(db.Integer)
     comment = db.Column(db.String(700))
-    timestamp = db.Column(db.DateTime, unique=True)
+    timestamp = db.Column(db.DateTime)
 
     def __init__(self, **kwargs):
         """
@@ -139,7 +139,6 @@ class Happiness(db.Model):
         self.value = kwargs.get("value")
         self.comment = kwargs.get("comment")
         self.timestamp = kwargs.get("timestamp")
-        # self.timestamp = kwargs.get("timestamp")
 
     def serialize(self):
         return {

@@ -36,9 +36,6 @@ def create_happiness():
 @happiness.put('/<int:id>')
 @token_auth.login_required
 def edit_happiness(id):
-    # success, cur_user = check_logged_in()
-    # if not success or cur_user is None:
-    #     return failure_response('Login Error', 401)
     user_id = token_auth.current_user().id
 
     query_data = happiness_dao.get_happiness_by_id(id)
@@ -65,26 +62,12 @@ def delete_happiness(id):
     :return: A success message with the delete information, or a failure response with the appropriate message."""
     happiness = happiness_dao.get_happiness_by_id(id)
     if not happiness:
-        return ("Happiness not found.")
+        return failure_response("Happiness not found.")
     if happiness.user_id == token_auth.current_user().id:
         db.session.delete(happiness)
         db.session.commit()
         return success_response(happiness.serialize(), 200)
     return failure_response("Unauthorized.")
-
-
-@happiness.delete('/user/<int:user_id>')
-@token_auth.login_required
-def delete_user_happiness(user_id):
-    """
-    Given the ID of a user, deletes all happiness entries relating to that user.
-    :return: A success message, or a failure response with the appropriate message.
-    """
-    user_id = token_auth.current_user().id
-    statement = delete(Happiness).where(Happiness.user_id == user_id)
-    db.session.execute(statement)
-    db.session.commit()
-    return success_response("All entries deleted!")
 
 
 @happiness.get('/')
@@ -96,7 +79,7 @@ def get_happiness():
     """
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
     user_id = request.args.get("user_id")
-    start = request.args.get("start")
+    start = request.args.get("start", "2023-01-01")
     end = request.args.get("end", today)
     stfor = datetime.strptime(start, "%Y-%m-%d")
     enfor = datetime.strptime(end, "%Y-%m-%d")
@@ -105,26 +88,6 @@ def get_happiness():
     query_data = happiness_dao.get_happiness_by_range(user_id, stfor, enfor)
     special_list = [(datetime.strftime(h.timestamp, "%Y-%m-%d"), h.value, h.comment)
                     for h in query_data]
-    special_list.sort()
-    return success_response({"happiness": special_list})
-
-
-@happiness.get('/all/')
-@token_auth.login_required
-def get_all_happiness():
-    """
-    Gets all of the happiness entries corresponding to a given user.
-    :return: A JSON response of a list of key value pairs that contain each day's happiness value, comment, and timestamp.
-    """
-    # could merge with above function?????
-
-    user_id = request.args.get("user_id")
-
-    # TODO check if user with user_id is friend of current user
-    query_data = happiness_dao.get_user_happiness(user_id)
-    special_list = [(datetime.strftime(h.timestamp, "%Y-%m-%d"), h.value, h.comment)
-                    for h in query_data]
-    special_list.sort()
     return success_response({"happiness": special_list})
 
 
