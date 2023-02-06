@@ -117,14 +117,32 @@ def get_user_settings():
     })
 
 
+@user.post('/username')
+@token_auth.login_required()
+def change_username():
+    """
+    Changes a user's username to their newly desired username sent in request body.
+    """
+    body = json.loads(request.data)
+    new_username = body.get("username")
+    current_user = token_auth.current_user()
+    if new_username is None:
+        return failure_response("New username not provided", 400)
+    current_user.username = new_username
+    db.session.commit()
+    return success_response({
+        "username": current_user.username
+    })
+
+
 @user.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     """
     IMPORTANT:
     This function was written under the assumption that when the user receives a verify password email,
     they would be redirected to a page where they are prompted to enter a new password. Then from this page they
-    make a post request to the backend with their new intended password.
-    There is no get method for this route.
+    make a post request to the backend with their new intended password. For a get request, the route currently
+    shows a basic success response. This will be replaced with the front-end page to reset your password.
     """
     if request.method == "POST":
         # Reset password to desired password
