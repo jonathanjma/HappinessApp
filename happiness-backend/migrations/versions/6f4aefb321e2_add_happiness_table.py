@@ -1,17 +1,16 @@
 """add happiness table
 
 Revision ID: 6f4aefb321e2
-Revises: 976bda689a7a
+Revises: 63d75aae7325
 Create Date: 2023-02-02 14:25:07.348567
 
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '6f4aefb321e2'
-down_revision = '976bda689a7a'
+down_revision = '63d75aae7325'
 branch_labels = None
 depends_on = None
 
