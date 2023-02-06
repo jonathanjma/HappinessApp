@@ -1,22 +1,28 @@
 import HistoryCard from "./HistoryCard";
 import Users from "./Users";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
+import { Button } from "react-bootstrap";
 
 /* 
 Returns: Multiple HistoryCard elements, ordered backwards, starting from most recent happiness
-Requires: min value and max value (min <= max); id of current user
+Requires: max # of cards; id of current user
 */
 
-export default function Histories(props) {
+export default function Histories({ id, max }) {
   const tiles = [];
   const button = [];
-  const len = Users(props.id).data.length;
-  let i = props.min;
-  while (i <= props.max) {
+  const userData = Users(id).data;
+  const len = userData.length;
+  let i = 1;
+  let count = 0;
+  while (count < max) {
     if (len - i < 0) {
       break;
     }
-    tiles.push(<HistoryCard id={props.id} index={len - i} />);
+    if (userData[len - i].level !== null) {
+      tiles.push(<HistoryCard key={i} id={id} data={userData[len - i]} />);
+      count++;
+    }
     i++;
   }
   if (i <= len) {
@@ -24,13 +30,12 @@ export default function Histories(props) {
       <>
         <div className="m-2.5">
           <Link to="/history">
-            <button>show all</button>
+            <Button variant="outline-secondary">show all</Button>
           </Link>
         </div>
       </>
     );
   }
-  // button will link to NEW history page that shows full history (all happiness info)
 
   return (
     <>

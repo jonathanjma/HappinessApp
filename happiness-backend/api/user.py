@@ -1,30 +1,22 @@
+from apifairy import authenticate, response
 from flask import Blueprint
+from flask import json, request
+
+from api import users_dao
+from api.app import db
 from api.models import User, Setting
 from api.responses import success_response, failure_response
-from flask import json, request
-from api.app import db
-from api import users_dao
+from api.schema import GroupSchema
+from api.token import token_auth
+
 user = Blueprint('user', __name__)
-
-
-def extract_token(my_request):
-    """
-    Helper function that extracts the token from the header of a request
-    """
-    auth_header = my_request.headers.get("Authorization")
-    if auth_header is None:
-        return False, failure_response("Missing authorization header", 400)
-
-    # Header looks like "Authorization: Bearer <token>"
-    bearer_token = auth_header.replace("Bearer ", "").strip()
-    if bearer_token is None or not bearer_token:
-        return False, failure_response("Invalid authorization header", 400)
-
-    return True, bearer_token
 
 
 @user.post('/')
 def create_user():
+    """
+    Create User
+    """
     body = json.loads(request.data)
     email, username, password = body.get("email"), body.get("username"), body.get("password")
     if username is None or email is None or password is None:
@@ -40,61 +32,89 @@ def create_user():
     db.session.add(current_user)
     db.session.commit()
 
+    return '', 201
+
+
+@user.get('/')
+@authenticate(token_auth)
+def get_user_by_id():
+    """
+    Get by ID
+    This method gets user information from a user by querying the user by id.
+    The body json should have "id": <int: id> passed in.
+    TODO this method should only be allowed to be called by someone in the same group as the target user.
+    :return: JSON of User object containing user information
+    """
+
+    body = json.loads(request.data)
+    friend_id = body.get("id")
+    friend_user = users_dao.get_user_by_id(friend_id)
+    if friend_user is None:
+        return failure_response("Friend not found")
     return success_response({
-        "session_token": current_user.session_token,
-        "session_expiration": str(current_user.session_expiration),
-        "update_token": current_user.update_token
-    }, 201)
+        "id": friend_id,
+        "username": friend_user.username,
+        "profile_picture": friend_user.profile_picture,
+        "settings": [s.serialize() for s in friend_user.settings],
+    })
 
 
-@user.post('/settings/')
+@user.get('/groups')
+@authenticate(token_auth)
+@response(GroupSchema(many=True))
+def user_groups():
+    """
+    Get Groups
+    Gets the happiness groups the user is in.
+    """
+    return token_auth.current_user().groups
+
+
+@user.delete('/')
+@authenticate(token_auth)
+def delete_user():
+    """
+    Delete User
+    Deletes the user that is currently logged in, including all user data.
+    :return: A success with serialized user or failure response with the appropriate message.
+    """
+    current_user = token_auth.current_user()
+    db.session.delete(current_user)
+    db.session.commit()
+
+    return success_response(current_user.serialize(), 200)
+
+
+@user.post('/settings')
+@authenticate(token_auth)
 def add_user_setting():
     """
+    Add Settings
     Adds a setting to the current user's property bag.
     :return: A JSON success response that contains the added setting, or a failure response.
     """
     body = json.loads(request.data)
-    success, token = extract_token(request)
-    if not success:
-        return failure_response("Session token not found. Relog?")
-    current_user = users_dao.get_user_by_session_token(token)
-    if current_user is None:
-        return failure_response("Current user not found. Relog?")
+    current_user = token_auth.current_user()
     key, value = body.get("key"), body.get("value")
     if key is None or value is None:
         return failure_response("Insufficient setting information provided", 400)
     setting = Setting(key=key, value=value, user_id=current_user.id)
     db.session.add(setting)
     db.session.commit()
-    # TODO test this
 
     return success_response(setting.serialize(), 201)
 
 
-@user.get('/settings/')
+@user.get('/settings')
+@authenticate(token_auth)
 def get_user_settings():
     """
-    Gets the settings of a current user.
+    Get Settings
+    Gets the settings of the current user by authorization token.
     :return: A JSON response of a list of key value pairs that contain setting keys and their values for the user.
     """
-    # TODO test this
-    success, token = extract_token(request)
-    if not success:
-        return failure_response("Session token not found. Relog?")
-    current_user = users_dao.get_user_by_session_token(token)
-    if current_user is None:
-        return failure_response("User with current session token not found. Relog?")
+    current_user = token_auth.current_user()
     settings = Setting.query.filter(Setting.user_id == current_user.id).all()
     return success_response({
         "settings": [(s.key, s.value) for s in settings]
     })
-
-
-# TODO get all users is a temporary route, remove before deployment!!!
-@user.get('/')
-def get_all_users():
-    users = User.query.filter(User.id == 1).first()
-    return success_response("")
-    # if users is None:
-    #     return failure_response("Users not found")
-    # return success_response({"users:": [usr.serialize() for usr in users]})
