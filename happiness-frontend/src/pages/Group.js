@@ -1,9 +1,9 @@
-import { useParams } from "react-router-dom";
+import {useParams} from "react-router-dom";
 import GroupData from "../components/GroupData";
 import Graph from "../components/Graph";
 import Stat from "../components/Stat";
 import Users from "../components/Users";
-import { Card, Stack } from "react-bootstrap";
+import HistoryCard from "../components/HistoryCard";
 
 export default function Group({ id }) {
   const { groupID } = useParams();
@@ -23,35 +23,35 @@ export default function Group({ id }) {
     );
   }
 
-  function comp(a, b) {
-    return Number(b.date.split("/")[1]) - Number(a.date.split("/")[1]);
-  }
-
-  allHappiness.sort(comp);
+  allHappiness.sort(
+    (a, b) => Number(b.date.split("/")[1]) - Number(a.date.split("/")[1])
+  );
 
   let tiles = [];
   let cur_date = "";
+  let i = 0;
   for (let datapoint of allHappiness) {
     if (datapoint.date !== cur_date) {
-      tiles.push(<p>{datapoint.date}</p>);
+      tiles.push(
+        <>
+          <p className="flex w-full justify-center text-2xl font-medium mx-3 mt-4 text-raisin-600">
+            {datapoint.date}
+          </p>
+        </>
+      );
       cur_date = datapoint.date;
     }
     if (datapoint.level !== null) {
       tiles.push(
-        <>
-          <Card>
-            <Stack direction="horizontal" gap={3}>
-              <img
-                className="justify-center rounded-full max-h-[50px] max-w-[50px] @xl:max-w-[60px] @xl:max-h-[60px] block mx-auto h-24 rounded-full sm:mx-0 sm:shrink-0"
-                src={Users(datapoint.user).img}
-                alt="profile"
-              />
-              <p>Happiness: {datapoint.level}</p>
-            </Stack>
-          </Card>
-        </>
+        <HistoryCard
+          key={i}
+          id={datapoint.user}
+          data={datapoint}
+          useDate={false}
+        />
       );
     }
+    i++;
   }
 
   return (
@@ -70,10 +70,10 @@ export default function Group({ id }) {
           return null;
         })}
       </div>
-      <p className="text-center text-xl font-medium m-3 text-raisin-600">
+      <p className="text-center text-3xl font-medium m-3 text-raisin-600">
         Happiness Log
       </p>
-      <div className="flex flex-wrap justify-center items-center">
+      <div className="@container flex flex-wrap justify-center">
         {tiles.map((e) => e)}
       </div>
     </>

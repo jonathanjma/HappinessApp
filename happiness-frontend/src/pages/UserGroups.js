@@ -32,15 +32,13 @@ export default function UserGroups({ id }) {
   };
 
   return (
-    <>
-      <p className="text-center text-4xl font-medium m-3 text-raisin-600">
-        Groups Page
-      </p>
-      <p className="text-center text-xl font-medium m-3 text-raisin-600">
+    <div className="grid justify-items-center">
+      <p className="text-4xl font-medium m-3 text-raisin-600">Groups Page</p>
+      <p className="text-2xl font-medium m-3 text-raisin-600">
         Create a New Group
       </p>
-      <Form onSubmit={onSubmit}>
-        <Stack direction="horizontal" gap={3}>
+      <Form onSubmit={onSubmit} className="grid justify-items-center">
+        <Stack direction="horizontal" gap={3} className="items-start">
           <InputField
             name="text"
             label="Group Name"
@@ -49,27 +47,29 @@ export default function UserGroups({ id }) {
           />
           <InputField
             name="text"
-            label="User IDs (comma seperated)"
+            label="Usernames (comma seperated)"
             error={formErrors.users}
             fieldRef={usersField}
           />
         </Stack>
-        <Button variant="outline-primary" type="submit">
+        <Button type="submit" className="mt-2">
           + Create Group
         </Button>
       </Form>
-      <p className="text-center text-xl font-medium m-3 text-raisin-600">
+      <p className="text-2xl font-medium mt-4 mb-3 text-raisin-600">
         Your Groups
       </p>
       {userGroups.length === 0 ? (
-        <p>You are not a member of any groups. Create one above!</p>
+        <p className="text-xl font-medium m-3 text-raisin-600">
+          You are not a member of any groups. Create one above!
+        </p>
       ) : (
-        <>
+        <div className="flex flex-wrap">
           {userGroups.map((group) => (
             <GroupCard key={group} id={group} data={GroupData(group)} />
           ))}
-        </>
+        </div>
       )}
-    </>
+    </div>
   );
 }

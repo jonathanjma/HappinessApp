@@ -27,3 +27,5 @@ yarn-error.log*
 
 .idea/
 *.iml
+
+happiness-backend/app.db
