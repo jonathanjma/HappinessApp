@@ -10,9 +10,11 @@ from api.app import db
 group_users = db.Table(
     "group_users",
     db.Model.metadata,
-    db.Column("group_id", db.Integer, db.ForeignKey("group.id", ondelete='cascade')),
+    db.Column("group_id", db.Integer, db.ForeignKey(
+        "group.id", ondelete='cascade')),
     db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
 )
+
 
 class User(db.Model):
     """
@@ -25,7 +27,8 @@ class User(db.Model):
     email = db.Column(db.String, nullable=False, unique=True)
     username = db.Column(db.String, nullable=False, unique=True)
     password_digest = db.Column(db.String, nullable=False)
-    profile_picture = db.Column(db.String, nullable=False)  # Will represent an AWS URL
+    # Will represent an AWS URL
+    profile_picture = db.Column(db.String, nullable=False)
     # If the user has not yet set a profile picture the field gets set to "default"
     settings = db.relationship("Setting", cascade="delete")
 
@@ -34,7 +37,8 @@ class User(db.Model):
     session_expiration = db.Column(db.DateTime, nullable=False)
     update_token = db.Column(db.String, nullable=False, unique=True)
 
-    groups = db.relationship("Group", secondary=group_users, back_populates="users")
+    groups = db.relationship(
+        "Group", secondary=group_users, back_populates="users")
 
     def __init__(self, **kwargs):
         """
@@ -42,6 +46,7 @@ class User(db.Model):
         Requires non-null kwargs: unique email, password, and unique username.
         """
         self.email = kwargs.get("email")
+
         # Convert raw password into encrypted string that can still be decrypted, but we cannot decrypt it.
         self.password_digest = bcrypt.hashpw(kwargs.get("password").encode("utf8"),
                                              bcrypt.gensalt(rounds=13))
@@ -94,6 +99,7 @@ class User(db.Model):
         """
         return self.session_expiration > datetime.utcnow()
 
+
 class Setting(db.Model):
     """
     Settings model. Has a many-to-one relationship with User.
@@ -133,7 +139,8 @@ class Group(db.Model):
     __tablename__ = "group"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
-    users = db.relationship("User", secondary=group_users, back_populates="groups")
+    users = db.relationship(
+        "User", secondary=group_users, back_populates="groups")
 
     def __init__(self, **kwargs):
         """
@@ -162,3 +169,25 @@ class Group(db.Model):
             user = User.query.filter(User.username == username).first()
             if user in self.users:
                 self.users.remove(user)
+
+
+class Happiness(db.Model):
+    """
+    Happiness model. Has a many-to-one relationship with users table.
+    """
+    __tablename__ = "happiness"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    value = db.Column(db.Integer)
+    comment = db.Column(db.String(700))
+    timestamp = db.Column(db.DateTime)
+
+    def __init__(self, **kwargs):
+        """
+        Initializes a Happiness object.
+        Requires non-null kwargs: happiness value, timestamp, and user ID.
+        """
+        self.user_id = kwargs.get("user_id")
+        self.value = kwargs.get("value")
+        self.comment = kwargs.get("comment")
+        self.timestamp = kwargs.get("timestamp")

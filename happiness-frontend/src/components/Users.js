@@ -7,7 +7,7 @@ export default function Users(num) {
       name: "Alex",
       email: "ayw29@cornell.edu",
       img: "https://images-ext-1.discordapp.net/external/-EIjsJAZFDJw3y57OkMdXG2u199aL0rtccT2dcp22dk/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/285542608024109057/9e3499987c94208af7ddb20e65907d1a.png",
-      friends: [20, 3, 4],
+      friends: [2, 3, 4],
       group: [1, 2, 4],
       settings: [[true, false], 0],
       data: [

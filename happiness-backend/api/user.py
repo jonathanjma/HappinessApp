@@ -18,7 +18,8 @@ def create_user():
     Create User
     """
     body = json.loads(request.data)
-    email, username, password = body.get("email"), body.get("username"), body.get("password")
+    email, username, password = body.get(
+        "email"), body.get("username"), body.get("password")
     if username is None or email is None or password is None:
         return failure_response("Insufficient information", 400)
 
