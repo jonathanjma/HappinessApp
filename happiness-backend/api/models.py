@@ -99,6 +99,15 @@ class User(db.Model):
         """
         return self.session_expiration > datetime.utcnow()
 
+    def has_mutual_group(self, user_to_check):
+        """
+        Checks to see if another user shares a happiness group with the user
+        """
+        for group in self.groups:
+            if user_to_check in group.users:
+                return True
+        return False
+
 
 class Setting(db.Model):
     """
