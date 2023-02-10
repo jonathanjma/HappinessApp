@@ -1,6 +1,7 @@
+from marshmallow import post_dump
+
 from api.app import ma
 from api.models import User, Group, Happiness
-from marshmallow import post_dump
 
 
 class UserSchema(ma.SQLAlchemySchema):
@@ -43,7 +44,7 @@ class HappinessSchema(ma.SQLAlchemySchema):
 
     @post_dump
     def fix_time(self, data, **kwargs):
-        data['timestamp'] = data['timestamp'].split()[0]
+        if data.get('timestamp'): data['timestamp'] = data['timestamp'].split()[0]
         return data
 
 
