@@ -2,11 +2,13 @@ from apifairy import authenticate, body, response, other_responses
 from flask import Blueprint
 
 from api.app import db
+from api.groups_dao import get_group_by_id
+from api.happiness_dao import get_happiness_by_group
 from api.models import Group
 from api.responses import failure_response
-from api.schema import CreateGroupSchema, EditGroupSchema, GroupSchema
+from api.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
+    HappinessGetCount
 from api.token import token_auth
-from api.users_dao import get_group_by_id
 
 group = Blueprint('group', __name__)
 
@@ -18,7 +20,9 @@ group = Blueprint('group', __name__)
 def create_group(req):
     """
     Create Group
-    Creates a new group for users to share their happiness with each other.
+    Creates a new happiness group with a given name. \n
+    Requires: group name \n
+    Returns: JSON representation for the new group
     """
 
     new_group = Group(name=req['name'])
@@ -38,7 +42,9 @@ def create_group(req):
 def edit_group(req, group_id):
     """
     Edit Group
-    Edit a happiness group by changing its name, adding users, or removing users.
+    Edit a happiness group by changing its name, adding users, or removing users. \n
+    Requires: valid group ID, at least one of name, users to add, or users to remove \n
+    Returns: JSON representation for the updated group
     """
 
     new_name, add_users, remove_users = req.get('new_name'), req.get('add_users'), \
@@ -46,11 +52,12 @@ def edit_group(req, group_id):
     if new_name is None and add_users is None and remove_users is None:
         return failure_response('Insufficient Information', 400)
 
+    # Return 404 if invalid group or 403 if user is not in group
     cur_user = token_auth.current_user()
     cur_group = get_group_by_id(group_id)
     if cur_group is None:
         return failure_response('Group Not Found', 404)
-    elif cur_user not in cur_group.users:  # Only allow editing if user is member of group
+    elif cur_user not in cur_group.users:
         return failure_response('Not Allowed', 403)
 
     # Perform editing actions
@@ -75,11 +82,44 @@ def edit_group(req, group_id):
 def group_info(group_id):
     """
     Get Group Info
-    Get a happiness group's name and data about its users.
+    Get a happiness group's name and data about its users. \n
+    Requires: valid group ID \n
+    Returns: JSON representation for the requested group
     """
 
-    return get_group_by_id(group_id) or failure_response('Group Not Found', 404)
+    # Return 404 if invalid group or 403 if user is not in group
+    cur_group = get_group_by_id(group_id)
+    if cur_group is None:
+        return failure_response('Group Not Found', 404)
+    elif token_auth.current_user() not in cur_group.users:
+        return failure_response('Not Allowed', 403)
 
+    return cur_group
+
+
+@group.get('/<int:group_id>/happiness')
+@authenticate(token_auth)
+@body(HappinessGetCount)
+@response(HappinessSchema(many=True))
+def group_happiness(req, group_id):
+    """
+    Get Group Happiness
+    Gets the happiness information for a group. Page number and happiness count used for pagination.
+    Defaults to first 10 values on first page. \n
+    Requires: valid group ID \n
+    Returns: Specified number of happiness values in reverse order.
+    """
+
+    # Return 404 if invalid group or 403 if user is not in group
+    cur_group = get_group_by_id(group_id)
+    if cur_group is None:
+        return failure_response('Group Not Found', 404)
+    elif token_auth.current_user() not in cur_group.users:
+        return failure_response('Not Allowed', 403)
+
+    page, count = req.get('page', 1), req.get('count', 10)
+
+    return get_happiness_by_group(list(map(lambda x: x.id, cur_group.users)), page, count)
 
 @group.delete('/<int:group_id>')
 @authenticate(token_auth)
@@ -87,16 +127,18 @@ def group_info(group_id):
 def delete_group(group_id):
     """
     Delete Group
-    Deletes a happiness group.
+    Deletes a happiness group. \n
+    Requires: valid group ID
     """
 
-    cur_user = token_auth.current_user()
+    # Return 404 if invalid group or 403 if user is not in group
     cur_group = get_group_by_id(group_id)
     if cur_group is None:
         return failure_response('Group Not Found', 404)
-    elif cur_user not in cur_group.users:  # Only allow deletion if user is member of group
+    elif token_auth.current_user() not in cur_group.users:
         return failure_response('Not Allowed', 403)
 
+    # deletes entry from group table and user entries from association table
     db.session.delete(cur_group)
     db.session.commit()
 

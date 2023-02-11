@@ -1,12 +1,14 @@
-from flask import Blueprint, json, request
+from datetime import datetime
+
+from apifairy import authenticate, body, response, other_responses
+from flask import Blueprint
+
+from api import happiness_dao
+from api.app import db
 from api.models import Happiness
 from api.responses import success_response, failure_response
-from api.app import db
-from api import happiness_dao
-from api.token import token_auth
 from api.schema import HappinessSchema, HappinessPutSchema, HappinessGetTime, HappinessGetCount
-from datetime import datetime
-from apifairy import authenticate, body, response, other_responses
+from api.token import token_auth
 
 happiness = Blueprint('happiness', __name__)
 
@@ -95,15 +97,15 @@ def get_happiness(req):
     Requires: the time represented by start comes before the end \n
     Returns: A JSON response of a list of key value pairs that contain each day's happiness value, comment, and timestamp.
     """
+    user_id = token_auth.current_user().id
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
-    user_id = req.get("user_id")
     start = req.get("start", "2023-01-01")
     end = req.get("end", today)
     stfor = datetime.strptime(start, "%Y-%m-%d")
     enfor = datetime.strptime(end, "%Y-%m-%d")
 
     # TODO check if user with given user_id is friend of the current user
-    query_data = happiness_dao.get_happiness_by_range(user_id, stfor, enfor)
+    query_data = happiness_dao.get_happiness_by_timestamp(user_id, stfor, enfor)
     return query_data
 
 
@@ -111,18 +113,16 @@ def get_happiness(req):
 @authenticate(token_auth)
 @body(HappinessGetCount)
 @response(HappinessSchema(many=True))
-def get_paginaged_happiness(req):
+def get_paginated_happiness(req):
     """
     Get Happiness by Count
     Gets a specified number of happiness values in reverse order. Page number used for pagination. \n
     Default: First 10 values on first page \n
     Returns: Specified number of happiness values in reverse order.
     """
-    user_id = req.get("user_id")
-    page = req.get("page", 1)
-    count = req.get("count", 10)
+    user_id = token_auth.current_user().id
+    page, count = req.get("page", 1), req.get("count", 10)
 
     # TODO check if user with user_id is friend of current user
-    query_data = happiness_dao.get_happiness_by_count(
-        user_id, page, count)
+    query_data = happiness_dao.get_happiness_by_count(user_id, page, count)
     return query_data
