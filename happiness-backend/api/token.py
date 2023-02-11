@@ -40,11 +40,11 @@ def token_auth_error(status):
 
 @token.post('/')
 @authenticate(basic_auth)
-# @response(201)
 def get_token():
     """
     Get Token
-    Creates a session token for a user to access the Happiness App API. Equivalent to "logging in".
+    Creates a session token for a user to access the Happiness App API. Equivalent to "logging in". \n
+    Returns: a new session token for the user
     """
 
     session_token = basic_auth.current_user().get_token()

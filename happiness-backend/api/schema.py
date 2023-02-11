@@ -38,6 +38,7 @@ class HappinessSchema(ma.SQLAlchemySchema):
         model = Happiness
 
     id = ma.auto_field(dump_only=True)
+    user_id = ma.auto_field(dump_only=True)
     value = ma.auto_field(required=True)
     comment = ma.auto_field()
     timestamp = ma.Str(required=True)
@@ -54,12 +55,10 @@ class HappinessPutSchema(ma.Schema):
 
 
 class HappinessGetTime(ma.Schema):
-    user_id = ma.Int(required=True)
     start = ma.Str()
     end = ma.Str()
 
 
 class HappinessGetCount(ma.Schema):
-    user_id = ma.Int(required=True)
     page = ma.Int()
     count = ma.Int()
