@@ -1,7 +1,5 @@
-import LSUModal from "../components/LSUModal";
-import { useState } from "react";
+import {useState} from "react";
 import "../App.css";
-import Journal from "../media/journal-icon.svg";
 import HappinessCommentModal from "../components/HappinessCommentModal";
 
 export default function SubmitHappiness() {

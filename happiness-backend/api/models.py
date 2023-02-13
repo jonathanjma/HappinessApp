@@ -6,10 +6,19 @@ import bcrypt
 
 from api.app import db
 
+# Group Users association table
+group_users = db.Table(
+    "group_users",
+    db.Model.metadata,
+    db.Column("group_id", db.Integer, db.ForeignKey(
+        "group.id", ondelete='cascade')),
+    db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
+)
+
 
 class User(db.Model):
     """
-    User model. Has a one-to-many relationship with setting table.
+    User model. Has a one-to-many relationship with Setting.
     """
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -28,15 +37,19 @@ class User(db.Model):
     session_expiration = db.Column(db.DateTime, nullable=False)
     update_token = db.Column(db.String, nullable=False, unique=True)
 
+    groups = db.relationship(
+        "Group", secondary=group_users, back_populates="users")
+
     def __init__(self, **kwargs):
         """
         Initializes a User object.
         Requires non-null kwargs: unique email, password, and unique username.
         """
         self.email = kwargs.get("email")
+
         # Convert raw password into encrypted string that can still be decrypted, but we cannot decrypt it.
-        self.password_digest = bcrypt.hashpw(kwargs.get(
-            "password").encode("utf8"), bcrypt.gensalt(rounds=13))
+        self.password_digest = bcrypt.hashpw(kwargs.get("password").encode("utf8"),
+                                             bcrypt.gensalt(rounds=13))
         self.username = kwargs.get("username")
         self.profile_picture = kwargs.get("profile_picture", "default")
         self.get_token()
@@ -86,6 +99,15 @@ class User(db.Model):
         """
         return self.session_expiration > datetime.utcnow()
 
+    def has_mutual_group(self, user_to_check):
+        """
+        Checks to see if another user shares a happiness group with the user
+        """
+        for group in self.groups:
+            if user_to_check in group.users:
+                return True
+        return False
+
 
 class Setting(db.Model):
     """
@@ -119,6 +141,45 @@ class Setting(db.Model):
         }
 
 
+class Group(db.Model):
+    """
+    Group model. Has a many-to-many relationship with User.
+    """
+    __tablename__ = "group"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String, nullable=False)
+    users = db.relationship(
+        "User", secondary=group_users, back_populates="groups")
+
+    def __init__(self, **kwargs):
+        """
+        Initializes a group.
+        Requires that kwargs argument name
+        """
+        self.name = kwargs.get("name")
+
+    # TODO error if username not valid
+    def add_users(self, new_users):
+        """
+        Adds users to a group
+        Requires a list of usernames to add
+        """
+        for username in new_users:
+            user = User.query.filter(User.username == username).first()
+            if user not in self.users:
+                self.users.append(user)
+
+    def remove_users(self, users_to_remove):
+        """
+        Removes users to a group
+        Requires a list of usernames to remove
+        """
+        for username in users_to_remove:
+            user = User.query.filter(User.username == username).first()
+            if user in self.users:
+                self.users.remove(user)
+
+
 class Happiness(db.Model):
     """
     Happiness model. Has a many-to-one relationship with users table.
@@ -139,11 +200,3 @@ class Happiness(db.Model):
         self.value = kwargs.get("value")
         self.comment = kwargs.get("comment")
         self.timestamp = kwargs.get("timestamp")
-
-    def serialize(self):
-        return {
-            "user id": self.user_id,
-            "happiness value": self.value,
-            "comment": self.comment,
-            "timestamp": self.timestamp.strftime("%Y-%m-%d")
-        }

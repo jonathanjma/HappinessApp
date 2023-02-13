@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useState} from "react";
 
 export default function Users(num) {
   const [users, setUsers] = useState([
@@ -160,11 +160,11 @@ export default function Users(num) {
         },
         {
           date: "1/8",
-          level: null,
+          level: 5,
         },
         {
           date: "1/9",
-          level: null,
+          level: 2,
         },
         {
           date: "1/10",

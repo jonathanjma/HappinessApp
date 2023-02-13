@@ -12,13 +12,15 @@ export default function GroupCard({ id, data }) {
   };
 
   return (
-    <Card className="my-3">
+    <Card
+      onClick={onClick}
+      style={{ cursor: "pointer" }}
+      className="flex w-full group my-2 p-3"
+    >
       <Card.Body>
         <Card.Title>{data.name}</Card.Title>
         <Card.Text>Users: {groupUsers.join(", ")}</Card.Text>
-        <Button onClick={onClick} variant="outline-primary">
-          Open Group
-        </Button>
+        <Button onClick={onClick}>Open Group</Button>
       </Card.Body>
     </Card>
   );

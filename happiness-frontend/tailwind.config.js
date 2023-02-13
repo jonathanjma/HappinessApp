@@ -85,4 +85,5 @@ module.exports = {
     },
   },
   plugins: [require("@tailwindcss/container-queries")],
+  corePlugins: { preflight: false },
 };

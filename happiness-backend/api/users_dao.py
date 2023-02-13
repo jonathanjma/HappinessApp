@@ -8,6 +8,9 @@ from api.models import User
 
 
 def get_user_by_id(id):
+    """
+    Returns a User object by ID.
+    """
     return User.query.filter(User.id == id).first()
 
 
