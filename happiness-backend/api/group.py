@@ -70,6 +70,10 @@ def edit_group(req, group_id):
         rem_usernames = list(map(lambda x: x['username'], remove_users))
         cur_group.remove_users(rem_usernames)
 
+        # delete group if all users removed
+        if len(cur_group.users) == 0:
+            db.session.delete(cur_group)
+
     db.session.commit()
 
     return cur_group
