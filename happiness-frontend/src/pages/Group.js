@@ -3,7 +3,7 @@ import GroupData from "../components/GroupData";
 import Graph from "../components/Graph";
 import Stat from "../components/Stat";
 import Users from "../components/Users";
-import HistoryCard from "../components/HistoryCard";
+import OldHistoryCard from "../components/OldHistoryCard";
 
 export default function Group({ id }) {
   const { groupID } = useParams();
@@ -43,7 +43,7 @@ export default function Group({ id }) {
     }
     if (datapoint.level !== null) {
       tiles.push(
-        <HistoryCard
+        <OldHistoryCard
           key={i}
           id={datapoint.user}
           data={datapoint}

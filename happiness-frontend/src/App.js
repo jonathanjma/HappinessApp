@@ -14,7 +14,7 @@ import "./App.css";
 
 // change id number to id of user in Users.js (temporary until backend + login set up)
 export default function App() {
-  const id = 3;
+  const id = 1;
   //TODO this is a placeholder with basic functionality, we will have to rewrite after backend implementation.
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 

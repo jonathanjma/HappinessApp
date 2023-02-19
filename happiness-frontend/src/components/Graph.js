@@ -51,7 +51,7 @@ export default function Graph(props) {
     <ChartPreview chartData={chartData} open={cShow} setOpen={setCShow} />
   );
   const dayPreview = (
-    <DayPreview open={dShow} setOpen={setDShow} id={selUser} index={day} />
+    <DayPreview open={dShow} setOpen={setDShow} id={selUser} data={Users(selUser).data[day]} />
   );
   return (
     <>

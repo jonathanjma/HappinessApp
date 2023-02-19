@@ -9,7 +9,7 @@ export default function History(props) {
           History
         </p>
       </div>
-      <Histories id={props.id} max={Users(props.id).data.length} />
+      <Histories id={props.id} max={Users(props.id).data.length} division={true} />
     </>
   );
 }

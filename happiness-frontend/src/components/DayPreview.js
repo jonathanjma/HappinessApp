@@ -1,7 +1,8 @@
-import HistoryCard from "./HistoryCard";
+import OldHistoryCard from "./OldHistoryCard";
 import LineChart from "./LineChart";
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
+import Users from "./Users";
 
 /* 
 Things to implement:
@@ -9,7 +10,7 @@ Things to implement:
 - allow DayPreview to show multiple HistoryCards (when multiple users have the same happiness on the same day)
 */
 
-export default function DayPreview({ open, setOpen, id, index }) {
+export default function DayPreview({ open, setOpen, id, data }) {
   const cancelButtonRef = useRef(null);
   const handleShow = () => setOpen(true);
 
@@ -46,7 +47,7 @@ export default function DayPreview({ open, setOpen, id, index }) {
                 leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
               >
                 <Dialog.Panel className="sm:w-full sm:max-w-xl">
-                  <HistoryCard id={id} index={index} />
+                  <OldHistoryCard id={id} data={data}/>
                 </Dialog.Panel>
               </Transition.Child>
             </div>
