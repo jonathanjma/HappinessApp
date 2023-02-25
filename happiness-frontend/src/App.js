@@ -16,7 +16,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 export default function App() {
   const id = 3;
   //TODO this is a placeholder with basic functionality, we will have to rewrite after backend implementation.
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   return (
     <>
