@@ -10,17 +10,19 @@ import { useState } from "react";
 import History from "./pages/History";
 import UserGroups from "./pages/UserGroups";
 import Group from "./pages/Group";
+import ForgotPassword from "./pages/ForgotPassword";
 
 // change id number to id of user in Users.js (temporary until backend + login set up)
 export default function App() {
   const id = 3;
   //TODO this is a placeholder with basic functionality, we will have to rewrite after backend implementation.
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
     <>
       {!isLoggedIn ? (
-        <Welcome setIsLoggedIn={setIsLoggedIn} />
+        // <Welcome setIsLoggedIn={setIsLoggedIn} />
+        <ForgotPassword />
       ) : (
         <Container fluid className="App bg-buff-50">
           <BrowserRouter>

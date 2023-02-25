@@ -3,6 +3,9 @@ const colors = require("tailwindcss/colors");
 module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx,html}"],
   theme: {
+    fontFamily: {
+      custom: ['Roboto', 'Roboto']
+    },
     extend: {
       colors: {
         buff: {
@@ -85,4 +88,5 @@ module.exports = {
     },
   },
   plugins: [require("@tailwindcss/container-queries")],
+
 };
