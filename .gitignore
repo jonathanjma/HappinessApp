@@ -20,6 +20,9 @@
 .env.test.local
 .env.production.local
 /happiness-backend/.env
+*/.pytest_cache
+**/__pycache__
+
 
 npm-debug.log*
 yarn-debug.log*

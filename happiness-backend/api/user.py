@@ -1,10 +1,9 @@
-import flask
 from apifairy import response
 from flask import Blueprint
 from flask import json, request
 
-import happiness_backend
 from api import users_dao
+from api import email_methods
 from api.app import db
 from api.models import User, Setting
 from api.responses import success_response, failure_response
@@ -21,6 +20,7 @@ def create_user():
     """
     Registers an unconfirmed user to the database.
     Also starts a thread which sends a confirmation email to the user.
+    Requires JSON to be passed with keys "email" and "password"
     """
     body = json.loads(request.data)
     email, username, password = body.get("email"), body.get("username"), body.get("password")
@@ -72,6 +72,7 @@ def user_groups():
 
 
 @user.delete('/')
+@token_auth.login_required()
 def delete_user():
     """
     Deletes the user that is currently logged in, including all user data.
@@ -84,11 +85,12 @@ def delete_user():
     return success_response(current_user.serialize(), 200)
 
 
-@user.post('/settings')
+@user.post('/settings/')
 @token_auth.login_required
 def add_user_setting():
     """
     Adds a setting to the current user's property bag.
+    Requires a setting to be passed, with keys "key" for the setting name and "value" for the setting value.
     :return: A JSON success response that contains the added setting, or a failure response.
     """
     body = json.loads(request.data)
@@ -103,7 +105,7 @@ def add_user_setting():
     return success_response(setting.serialize(), 201)
 
 
-@user.get('/settings')
+@user.get('/settings/')
 @token_auth.login_required
 def get_user_settings():
     """
@@ -117,11 +119,12 @@ def get_user_settings():
     })
 
 
-@user.post('/username')
+@user.post('/username/')
 @token_auth.login_required()
 def change_username():
     """
     Changes a user's username to their newly desired username sent in request body.
+    Requires json to be passed with username as the key.
     """
     body = json.loads(request.data)
     new_username = body.get("username")
@@ -135,7 +138,7 @@ def change_username():
     })
 
 
-@user.route('/reset_password/<token>', methods=['GET', 'POST'])
+@user.route('/reset_password/<token>/', methods=['GET', 'POST'])
 def reset_password(token):
     """
     IMPORTANT:
@@ -143,6 +146,9 @@ def reset_password(token):
     they would be redirected to a page where they are prompted to enter a new password. Then from this page they
     make a post request to the backend with their new intended password. For a get request, the route currently
     shows a basic success response. This will be replaced with the front-end page to reset your password.
+
+    This route is not included in testing as it is very difficult to automate since it uses emails. However it has
+    been tested using Postman and should work properly.
     """
     if request.method == "POST":
         # Reset password to desired password
@@ -183,7 +189,7 @@ def send_reset_password_email():
     user_by_email = users_dao.get_user_by_email(email)
     if user_by_email is None:
         return failure_response("User associated email not found")
-    threading.Thread(target=happiness_backend.send_password_reset_email, args=(user_by_email,)).start()
+    threading.Thread(target=email_methods.send_password_reset_email, args=(user_by_email,)).start()
     return success_response({
         "user": user_by_email.serialize()
     })

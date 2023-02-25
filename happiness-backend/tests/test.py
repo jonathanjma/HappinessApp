@@ -4,6 +4,7 @@ from api import create_app
 from api.app import db
 from api.users_dao import *
 from config import TestConfig
+from flask import json
 
 
 @pytest.fixture
@@ -17,12 +18,16 @@ def client():
 
 
 def test_create_user(client):
+    """
+    Tests the creation of one user. Ensures fields are properly set and response code is correct.
+    """
     response = client.post('/api/user/', json={
         'email': 'test@example.com',
         'username': 'test',
-        'password': 'test'
+        'password': 'test',
     })
     assert response.status_code == 201
     user = get_user_by_id(1)
     assert user.email == 'test@example.com'
     assert user.username == 'test'
+
