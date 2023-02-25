@@ -85,7 +85,9 @@ export default function SubmitHappiness() {
         {/* Happy Face, Slider, and Happiness Number (Desktop only) */}
         <div className="flex flex-row items-center justify-center mobile-hidden">
           {/* Happy Face Decorator */}
-          <DynamicSmile happiness={happiness} />
+          <span className="mr-28 mt-10">
+            <DynamicSmile happiness={happiness} />
+          </span>
           {/* Happiness Slider */}
           <input
             id="default-range"
@@ -93,11 +95,13 @@ export default function SubmitHappiness() {
             onChange={(e) => {
               setHappiness(e.target.value);
             }}
-            className="w-40 md:w-72 h-2 rounded-lg appearance-none cursor-pointer dark:bg-white-300 scale-150 justify-center mt-20 flex-2"
+            className="w-40 md:w-72 h-2 rounded-lg appearance-none cursor-pointer dark:bg-white-300 scale-150 mt-20"
           />
 
           {/* Happiness Number */}
-          <p className="text-8xl text-white text-stroke-4 ml-28 mt-10 font-roboto flex-3 flex-row  ">
+          {/* TODO the fixed width causes it to be off center,
+           but good enough for now I guess */}
+          <p className="text-8xl text-white text-stroke-4 mt-10 ml-28 font-roboto flex-none flex-row w-40">
             <b>{formatHappinessNum(happiness)}</b>
           </p>
         </div>
