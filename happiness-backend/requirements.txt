@@ -12,3 +12,4 @@ itsdangerous~=2.1.2
 Werkzeug~=2.2.2
 alembic~=1.9.2
 SQLAlchemy~=1.4.46
+PyJWT

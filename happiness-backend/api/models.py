@@ -1,5 +1,7 @@
+import base64
 import hashlib
 import os
+import jwt
 from datetime import datetime, timedelta
 
 import bcrypt
@@ -97,6 +99,29 @@ class User(db.Model):
         Verifies the session token of a user
         """
         return self.session_expiration > datetime.utcnow()
+
+    def get_reset_password_token(self, expires_in=10):
+        """
+        Generates a password reset token with PyJWT.
+        :param expires_in: How long it takes for the token to expire, in minutes.
+        :return: an encoded
+        """
+        return jwt.encode(
+            {'reset_password': self.id, 'exp': datetime.utcnow() + timedelta(minutes=expires_in)},
+            os.environ.get("SECRET_KEY"), algorithm='HS256'
+        )
+
+    def set_password(self, password):
+        self.password_digest = bcrypt.hashpw(password.encode("utf8"),
+                                             bcrypt.gensalt(rounds=13))
+
+    @staticmethod
+    def verify_reset_password(token):
+        try:
+            id = jwt.decode(token, os.environ.get("SECRET_KEY"), algorithms=['HS256'])['reset_password']
+        except:
+            return
+        return User.query.get(id)
 
 
 class Setting(db.Model):
