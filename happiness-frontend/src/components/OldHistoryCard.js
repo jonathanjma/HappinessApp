@@ -17,10 +17,10 @@ function CommentShow({ data }) {
   }
 }
 
-export default function OldHistoryCard({ id, data, useDate = true }) {
+export default function OldHistoryCard({ id, data, shown = false, useDate = true }) {
   return (
     <>
-      <div className="@xl:flex w-full justify-center min-h-[175px] max-w-[650px] mx-3 mt-4 bg-cultured-50 rounded-xl shadow-lg space-y-2">
+      {shown ? <div className="@xl:flex w-full justify-center min-h-[175px] max-w-[650px] mx-3 mt-4 bg-cultured-50 rounded-xl shadow-lg space-y-2">
         <div className="flex w-full flex-wrap justify-center items-center bg-buff-300 @xl:h-full @xl:w-1/2 px-2 py-3 min-w-[215px] @xl:rounded-none @xl:rounded-l-xl rounded-t-xl">
           <p className="text-center text-xl md:text-2xl font-medium text-raisin-600 w-2/3 pt-3">
             {useDate ? <>Friday, {data.date}</> : <>{Users(id).name}</>}
@@ -31,7 +31,6 @@ export default function OldHistoryCard({ id, data, useDate = true }) {
               src={Users(id).img}
               alt="face based on happiness level, implement later"
             />
-            {/* Current placeholder - will eventually put happy face/sad face depending on happiness level*/}
           </div>
         </div>
         <div className="w-full justify-center">
@@ -42,7 +41,7 @@ export default function OldHistoryCard({ id, data, useDate = true }) {
           </div>
           <CommentShow data={data} />
         </div>
-      </div>
+      </div> : <></>}
     </>
   );
 }

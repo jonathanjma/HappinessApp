@@ -44,35 +44,36 @@ export default function Graph(props) {
   });
   const [cShow, setCShow] = useState(false);
   const [dShow, setDShow] = useState(false);
-  const [day, setDay] = useState();
-  const [selUser, setSelUser] = useState(props.id);
+  const [day, setDay] = useState(0);
+  const [selUser, setSelUser] = useState([props.id]);
 
   const chartPreview = (
     <ChartPreview chartData={chartData} open={cShow} setOpen={setCShow} />
   );
+  const ids = props.index.map(e => {if (selUser.includes(e)) {return e} else {return 0}})
   const dayPreview = (
-    <DayPreview open={dShow} setOpen={setDShow} id={selUser} data={Users(selUser).data[day]} />
+    <DayPreview open={dShow} setOpen={setDShow} ids_list={ids} day={day} />
   );
   return (
     <>
-      <div className="w-full justify-center min-w-[330px] max-w-[560px] min-h-[325px] mx-4 mb-4 py-8 px-8 bg-cultured-50 rounded-xl shadow-lg space-y-2">
-        <p className="flex w-full justify-center font-medium text-xl text-raisin-600">
-          {chartData.time} Happiness
-        </p>
-        <div className="flex w-full justify-center min-h-[280px] max-h-[280px]">
-          <div className="flex w-full justify-center">
-            <LineChart
-              chartData={chartData}
-              chartShow={setCShow}
-              dayShow={setDShow}
-              daySet={setDay}
-              userSet={setSelUser}
-            />
-            {chartPreview}
-            {dayPreview}
+      <div className="flex w-full justify-center">
+          <div className="flex flex-wrap justify-center w-full @lg:min-h-[600px] min-h-[380px] max-h-[380px] mb-4 py-8 bg-cultured-50 rounded-xl shadow-lg space-y-2">
+            <p className="flex w-full justify-center font-medium text-xl text-raisin-600">
+              {chartData.time} Happiness
+            </p>
+            <div className="flex w-full justify-center mx-2 @lg:min-h-[500px] min-h-[285px] max-h-[285px]">
+              <LineChart
+                chartData={chartData}
+                chartShow={setCShow}
+                dayShow={setDShow}
+                daySet={setDay}
+                userSet={setSelUser}
+              />
+              {chartPreview}
+              {dayPreview}
+            </div>
           </div>
         </div>
-      </div>
     </>
   );
 }

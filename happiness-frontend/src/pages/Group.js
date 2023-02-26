@@ -47,6 +47,7 @@ export default function Group({ id }) {
           key={i}
           id={datapoint.user}
           data={datapoint}
+          shown={true}
           useDate={false}
         />
       );
@@ -59,7 +60,7 @@ export default function Group({ id }) {
       <p className="text-center text-4xl font-medium m-3 text-raisin-600">
         {groupData.name}
       </p>
-      <div className="flex flex-wrap justify-center items-center">
+      <div className="flex flex-wrap justify-center items-center lg:@container">
         <Graph index={groupData.users} time="Weekly" id={id} />
       </div>
       <div className="flex flex-wrap justify-center items-center">

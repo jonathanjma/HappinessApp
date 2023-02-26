@@ -18,7 +18,7 @@ export default function Profile(props) {
               <div className="flex flex-wrap justify-center w-full bg-buff-300 rounded-t-xl">
                 <div className="flex items-center px-4 m-4">
                   <img
-                    className="justify-center rounded-full min-h-[125px] max-h-[125px] min-w-[125px] max-w-[125px] block mx-auto h-24 rounded-full sm:mx-0 sm:shrink-0"
+                    className="justify-center min-h-[125px] max-h-[125px] min-w-[125px] max-w-[125px] block mx-auto h-24 rounded-full sm:mx-0 sm:shrink-0"
                     src={Users(props.id).img}
                     alt="profile"
                   />
@@ -76,7 +76,7 @@ export default function Profile(props) {
               </div>
             </div>
             <div className="flex flex-wrap justify-center items-center">
-              <div className="flex flex-wrap justify-center items-center max-w-[500px] -mx-2">
+              <div className="flex flex-wrap justify-center items-center ml-4 max-w-[400px] max-h-[400px]">
                 <Graph index={[props.id]} time="My Weekly" id={props.id} />
               </div>
               <div className="flex flex-wrap justify-center items-center md:max-w-[205px] sm:max-w-[400px] mr-2">

@@ -5,7 +5,7 @@ import DayPreview from "./DayPreview";
 export default function HistoryCard({ id, data, useDate = true }) {
   const [dShow, setDShow] = useState(false);
   const dayPreview = (
-    <DayPreview open={dShow} setOpen={setDShow} id={id} data={data} />
+    <DayPreview open={dShow} setOpen={setDShow} ids_list={[id]} data={data} />
   );
   return (
     <>
