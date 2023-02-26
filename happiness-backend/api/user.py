@@ -1,4 +1,4 @@
-from apifairy import response
+from apifairy import authenticate, response
 from flask import Blueprint
 from flask import json, request
 
@@ -18,12 +18,13 @@ user = Blueprint('user', __name__)
 @user.post('/')
 def create_user():
     """
-    Registers an unconfirmed user to the database.
-    Also starts a thread which sends a confirmation email to the user.
-    Requires JSON to be passed with keys "email" and "password"
+    Create User
+    Registers a new user given an email, username, and password \n
+    Requires: email and username are unique
     """
     body = json.loads(request.data)
-    email, username, password = body.get("email"), body.get("username"), body.get("password")
+    email, username, password = body.get(
+        "email"), body.get("username"), body.get("password")
     if username is None or email is None or password is None:
         return failure_response("Insufficient information", 400)
 
@@ -33,24 +34,23 @@ def create_user():
     similar_user = users_dao.get_user_by_username(username)
     if similar_user is not None:
         return failure_response("Username is already taken.", 400)
-    current_user = User(email=email, password=password, username=username, profile_picture="default", confirmed=False)
+    current_user = User(email=email, password=password, username=username)
     db.session.add(current_user)
     db.session.commit()
-    # threading.Thread(target=happiness_backend.send_email_async, args=(email,)).start() todo email verify?
 
-    return success_response({"session_token": current_user.session_token}, 201)
+    return success_response({"user": current_user.serialize()}, 201)
 
 
 @user.get('/')
-@token_auth.login_required
+@authenticate(token_auth)
 def get_user_by_id():
     """
-    This method gets user information from a user by querying the user by id.
-    The body json should have "id": <int: id> passed in.
-    TODO this method should only be allowed to be called by someone in the same group as the target user.
-    :return: JSON of User object containing user information
+    Get by ID
+    This method gets user information from a user by querying the user by id. \n
+    The body json should have "id": <int: id> passed in. \n
+    Returns: JSON of User object containing user information
     """
-
+    # TODO this method should only be allowed to be called by someone in the same group as the target user.
     body = json.loads(request.data)
     friend_id = body.get("id")
     friend_user = users_dao.get_user_by_id(friend_id)
@@ -65,18 +65,24 @@ def get_user_by_id():
 
 
 @user.get('/groups')
-@token_auth.login_required()
+@authenticate(token_auth)
 @response(GroupSchema(many=True))
 def user_groups():
+    """
+    Get Groups
+    Gets the happiness groups the user is in. \n
+    Returns: a list of happiness groups that the user is in.
+    """
     return token_auth.current_user().groups
 
 
 @user.delete('/')
-@token_auth.login_required()
+@authenticate(token_auth)
 def delete_user():
     """
-    Deletes the user that is currently logged in, including all user data.
-    :return: A success with serialized user or failure response with the appropriate message.
+    Delete User
+    Deletes the user that is currently logged in, including all user data. \n
+    Returns: A success with serialized user or failure response with the appropriate message.
     """
     current_user = token_auth.current_user()
     db.session.delete(current_user)
@@ -85,13 +91,13 @@ def delete_user():
     return success_response(current_user.serialize(), 200)
 
 
-@user.post('/settings/')
-@token_auth.login_required
+@user.post('/settings')
+@authenticate(token_auth)
 def add_user_setting():
     """
-    Adds a setting to the current user's property bag.
-    Requires a setting to be passed, with keys "key" for the setting name and "value" for the setting value.
-    :return: A JSON success response that contains the added setting, or a failure response.
+    Add Settings
+    Adds a setting to the current user's property bag. \n
+    Returns: A JSON success response that contains the added setting, or a failure response.
     """
     body = json.loads(request.data)
     current_user = token_auth.current_user()
@@ -105,12 +111,13 @@ def add_user_setting():
     return success_response(setting.serialize(), 201)
 
 
-@user.get('/settings/')
-@token_auth.login_required
+@user.get('/settings')
+@authenticate(token_auth)
 def get_user_settings():
     """
-    Gets the settings of the current user by authorization token.
-    :return: A JSON response of a list of key value pairs that contain setting keys and their values for the user.
+    Get Settings
+    Gets the settings of the current user by authorization token. \n
+    Returns: A JSON response of a list of key value pairs that contain setting keys and their values for the user.
     """
     current_user = token_auth.current_user()
     settings = Setting.query.filter(Setting.user_id == current_user.id).all()
