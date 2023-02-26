@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from apifairy import authenticate, body, response, other_responses
-from flask import Blueprint
+from flask import Blueprint, request
 
 from api import happiness_dao
 from api.app import db
@@ -126,3 +126,16 @@ def get_paginated_happiness(req):
     # TODO check if user with user_id is friend of current user
     query_data = happiness_dao.get_happiness_by_count(user_id, page, count)
     return query_data
+
+@happiness.post('/import')
+def import_happiness():
+    body = request.json['data']
+    happiness_objs = []
+    for entry in body:
+        happiness_objs.append(
+            Happiness(user_id=entry['user_id'], value=entry['value'], comment=entry.get('comment'),
+                      timestamp=datetime.strptime(entry['timestamp'], "%Y-%m-%d")))
+    db.session.add_all(happiness_objs)
+    db.session.commit()
+
+    return success_response(str(len(happiness_objs)) + ' happiness entries imported')
