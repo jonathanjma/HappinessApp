@@ -20,17 +20,17 @@ function CommentShow({ data }) {
 export default function OldHistoryCard({ id, data, shown = false, useDate = true }) {
   return (
     <>
-      {shown ? <div className="@xl:flex w-full justify-center min-h-[175px] max-w-[650px] mx-3 mt-4 bg-cultured-50 rounded-xl shadow-lg space-y-2">
+      {shown ? <div className="@xl:flex w-full justify-center min-h-[175px] max-w-[650px] min-w-[285px] mt-4 bg-cultured-50 rounded-xl shadow-lg space-y-2">
         <div className="flex w-full flex-wrap justify-center items-center bg-buff-300 @xl:h-full @xl:w-1/2 px-2 py-3 min-w-[215px] @xl:rounded-none @xl:rounded-l-xl rounded-t-xl">
-          <p className="text-center text-xl md:text-2xl font-medium text-raisin-600 w-2/3 pt-3">
+          <div className="relative w-full text-center text-xl md:text-2xl font-medium text-raisin-600 py-2">
             {useDate ? <>Friday, {data.date}</> : <>{Users(id).name}</>}
-          </p>
-          <div className="justify-center @xl:w-full">
-            <img
-              className="justify-center rounded-full max-h-[50px] max-w-[50px] @xl:max-w-[60px] @xl:max-h-[60px] block mx-auto h-24 sm:mx-0 sm:shrink-0"
-              src={Users(id).img}
-              alt="face based on happiness level, implement later"
-            />
+            <div className="absolute right-2 top-1">
+              <img
+                className="justify-end rounded-full max-h-[50px] max-w-[50px] @xl:max-w-[60px] @xl:max-h-[60px] block mx-auto h-24 sm:mx-0 sm:shrink-0"
+                src={Users(id).img}
+                alt="pfp"
+              />
+            </div>
           </div>
         </div>
         <div className="w-full justify-center">
