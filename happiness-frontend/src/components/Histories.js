@@ -1,5 +1,5 @@
 import OldHistoryCard from "./OldHistoryCard";
-import HistoryCard from "./HistoryCard"
+import HistoryCard from "./HistoryCard";
 import Users from "./Users";
 import { Link } from "react-router-dom";
 import { Button } from "react-bootstrap";
@@ -22,28 +22,32 @@ export default function Histories({ id, max, division }) {
       break;
     }
     if ((len - i) % 7 == 0 && division) {
-      if (len-i == len-1) {
-        tiles.push(<div className="w-full text-center pt-2">
-          <h3>This Week</h3>
-          </div>)
+      if (len - i == len - 1) {
+        tiles.push(
+          <div className="w-full text-center pt-2">
+            <h3>This Week</h3>
+          </div>
+        );
+      } else {
+        tiles.push(
+          <div className="w-full text-center pt-5">
+            <h3>Week of 1/2</h3>
+          </div>
+        );
       }
-      else {
-        tiles.push(<div className="w-full text-center pt-5"><h3>Week of 1/2</h3></div>)
-      }
-     }
+    }
     if (userData[len - i].level !== null && !division) {
       tiles.push(<HistoryCard key={i} id={id} data={userData[len - i]} />);
       count++;
-    }
-    else {
-      tiles.push(<HistoryCard key={i} id={id} data={userData[len - i]} />)
+    } else {
+      tiles.push(<HistoryCard key={i} id={id} data={userData[len - i]} />);
     }
     i++;
   }
   if (i <= len) {
     button.push(
       <>
-        <div className="m-2.5">
+        <div className="m-3">
           <Link to="/history">
             <Button variant="outline-secondary">show all</Button>
           </Link>

@@ -2,8 +2,19 @@ import Stat from "../components/Stat";
 import Users from "../components/Users";
 import Graph from "../components/Graph";
 import Histories from "../components/Histories";
+import DayPreview from "../components/DayPreview";
+import { useState } from "react";
 
 export default function Profile(props) {
+  const [dShow, setDShow] = useState(false);
+  const dayPreview = (
+    <DayPreview
+      open={dShow}
+      setOpen={setDShow}
+      ids_list={[props.id]}
+      data={Users(props.id).data[Users(props.id).data.length - 1]}
+    />
+  );
   return (
     <>
       <div className="flex flex-wrap justify-center">
@@ -15,15 +26,15 @@ export default function Profile(props) {
           </div>
           <div className="flex flex-wrap justify-center items-center">
             <div className="flex flex-wrap justify-center min-w-[330px] max-w-[600px] min-h-[200px] m-4 bg-cultured-50 rounded-xl shadow-lg space-y-2">
-              <div className="flex flex-wrap justify-center w-full bg-buff-300 rounded-t-xl">
-                <div className="flex items-center px-4 m-4">
+              <div className="relative flex flex-wrap justify-center w-full bg-buff-300 rounded-t-xl">
+                <div className="absolute -sm:absolute sm:relative left-4 top-4 sm:flex items-center md:px-4 md:w-1/3 sm:mx-4">
                   <img
-                    className="justify-center min-h-[125px] max-h-[125px] min-w-[125px] max-w-[125px] block mx-auto h-24 rounded-full sm:mx-0 sm:shrink-0"
+                    className="mb-4 justify-center max-w-[65px] max-h-[65px] sm:min-h-[125px] sm:max-h-[125px] sm:min-w-[125px] sm:max-w-[125px] block mx-auto rounded-full sm:mx-0 sm:shrink-0"
                     src={Users(props.id).img}
                     alt="profile"
                   />
                 </div>
-                <div className="w-1/2 py-2 px-4">
+                <div className="w-full justify-end sm:w-1/2 py-2 px-4">
                   <p className="text-center text-2xl font-medium m-2 text-raisin-600">
                     {Users(props.id).name}
                   </p>
@@ -51,32 +62,45 @@ export default function Profile(props) {
                 </div>
               </div>
               <div className="flex m-4">
-                <div className="space-y-2 px-4">
-                  <p className="text-lg text-raisin-600 font-semibold text-center">
-                    Today's Happiness
-                  </p>
-                  <p className="text-3xl text-rhythm-500 font-medium text-center">
-                    {
-                      Users(props.id).data[Users(props.id).data.length - 1]
-                        .level
-                    }
-                  </p>
-                </div>
-                <div className="space-y-2 px-4">
-                  <p className="text-lg text-raisin-600 font-semibold text-center">
-                    Comment
-                  </p>
-                  <p className="text-lg text-rhythm-500 font-medium text-center">
-                    {
-                      Users(props.id).data[Users(props.id).data.length - 1]
-                        .pubComment
-                    }
-                  </p>
-                </div>
+                {Users(props.id).data[Users(props.id).data.length - 1].level ? (
+                  <div className="space-y-2 px-2 md:px-4">
+                    <p className="text-md md:text-lg text-raisin-600 font-semibold text-center">
+                      Today's Happiness
+                    </p>
+                    <p className="text-2xl md:text-3xl text-rhythm-500 font-medium text-center">
+                      {
+                        Users(props.id).data[Users(props.id).data.length - 1]
+                          .level
+                      }
+                    </p>
+                  </div>
+                ) : (
+                  <></>
+                )}
+                {Users(props.id).data[Users(props.id).data.length - 1]
+                  .pubComment ? (
+                  <div
+                    className="space-y-2 px-2 md:px-4 md:mx-4"
+                    onClick={() => setDShow(true)}
+                  >
+                    <p className="text-md md:text-lg text-raisin-600 font-semibold text-center">
+                      Comment
+                    </p>
+                    <p className="line-clamp-3 -md:line-clamp-3 text-md md:text-lg text-rhythm-500 font-medium text-center">
+                      {
+                        Users(props.id).data[Users(props.id).data.length - 1]
+                          .pubComment
+                      }
+                    </p>
+                    {dayPreview}
+                  </div>
+                ) : (
+                  <></>
+                )}
               </div>
             </div>
             <div className="flex flex-wrap justify-center items-center">
-              <div className="flex flex-wrap justify-center items-center ml-4 max-w-[400px] max-h-[400px]">
+              <div className="flex flex-wrap justify-center items-center m-4 md:ml-4 max-w-[400px] max-h-[400px]">
                 <Graph index={[props.id]} time="My Weekly" id={props.id} />
               </div>
               <div className="flex flex-wrap justify-center items-center md:max-w-[205px] sm:max-w-[400px] mr-2">

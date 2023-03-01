@@ -84,6 +84,9 @@ module.exports = {
       black: colors.black,
     },
   },
-  plugins: [require("@tailwindcss/container-queries")],
+  plugins: [
+    require("@tailwindcss/container-queries"),
+    require("@tailwindcss/line-clamp"),
+  ],
   corePlugins: { preflight: false },
 };
