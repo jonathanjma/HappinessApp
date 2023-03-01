@@ -6,12 +6,11 @@ import pytest
 
 from api import create_app
 from api.app import db
-from api.models import Setting
 from api.users_dao import *
 from config import TestConfig
 from flask import json
 
-COMPREHENSIVE_TEST = False
+COMPREHENSIVE_TEST = True
 
 
 @pytest.fixture
@@ -165,12 +164,12 @@ def test_login_user(client):
     })
     user1_credentials = base64.b64encode(b"test:test").decode('utf-8')
     user1_login_res = client.post('/api/token/', headers={"Authorization": f"Basic {user1_credentials}"})
-    assert user1_login_res.status_code == 200
+    assert user1_login_res.status_code == 201
     assert json.loads(user1_login_res.get_data()).get("session_token") is not None
 
     user2_credentials = base64.b64encode(b"test2:test2").decode('utf-8')
     user2_login_res = client.post('/api/token/', headers={"Authorization": f"Basic {user2_credentials}"})
-    assert user2_login_res.status_code == 200
+    assert user2_login_res.status_code == 201
     assert json.loads(user2_login_res.get_data()).get("session_token") is not None
 
 
@@ -185,7 +184,7 @@ def test_delete_user(client):
     assert user_create_response.status_code == 201
 
     login_response = client.post('/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
-    assert login_response.status_code == 200
+    assert login_response.status_code == 201
     bearer_token = json.loads(login_response.get_data()).get("session_token")
     assert bearer_token is not None
 
@@ -197,7 +196,10 @@ def test_delete_user(client):
 
 @pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_add_user_setting(client):
-    # Test with a single user
+    """
+    Tests adding two settings to a single user in an instance of the backend.
+    :param client: The client to perform the test on.
+    """
     client, bearer_token = register_and_login_demo_user(client)
     k1, k2 = "SHOW_MEDIAN", "SHOW_MEAN"
     v1, v2 = True, False
@@ -236,6 +238,7 @@ def test_add_user_setting(client):
     assert b3.get("value") == v3
 
 
+@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_get_user_settings(client):
     """
     Tests the get specific user setting and get all user settings operation.
@@ -261,13 +264,13 @@ def test_get_user_settings(client):
     get_settings_res = client.get("/api/user/settings/", headers={"Authorization": f"Bearer {bearer_token}"})
     assert get_settings_res.status_code == 200
     settings = json.loads(get_settings_res.get_data()).get("settings")
-    print("\n\n", settings)
     assert settings[0][0] == k1
     assert settings[0][1] == v1
     assert settings[1][0] == k2
     assert settings[1][1] == v2
 
 
+@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_change_username(client):
     """
     Tests to change the username of a randomly generated user.
@@ -281,6 +284,54 @@ def test_change_username(client):
         })
     assert user_name_change_res.status_code == 200
     assert get_user_by_username(new_username) is not None
+
+
+def test_get_user_by_id(client):
+    create_user_res = client.post('/api/user/', json={
+        'email': 'test@example.com',
+        'username': 'test',
+        'password': 'test',
+    })
+    assert create_user_res.status_code == 201
+    client, bearer_token = register_and_login_demo_user(client, uname_and_password="user2")
+
+    make_group_res = client.post('/api/group/',
+                    json={"name": "Epic group of awesome happiness"},
+                    headers={"Authorization": f"Bearer {bearer_token}"},
+                    )
+    add_member_res = client.put('/api/group/1', json={"add_users": [{"username": "test"}]},
+                                headers={"Authorization": f"Bearer {bearer_token}"},
+                                )
+
+    assert make_group_res.status_code == 201
+    assert add_member_res.status_code == 200
+
+    # Try to get user2's information
+    get_user_by_id_res = client.get("/api/user/1", headers={"Authorization": f"Bearer {bearer_token}"})
+    # Check that the request went through
+    assert get_user_by_id_res.status_code == 200
+
+    # Ensure that the data was as expected
+    body_res = json.loads(get_user_by_id_res.get_data())
+    assert body_res.get("id") == 1
+    assert body_res.get("username") == "test"
+    assert body_res.get("profile_picture") == "default"
+
+
+
+def test_invalid_get_user_by_id(client):
+    create_user_res = client.post('/api/user/', json={
+        'email': 'test@example.com',
+        'username': 'test',
+        'password': 'test',
+    })
+    assert create_user_res.status_code == 201
+    client, bearer_token = register_and_login_demo_user(client)
+
+    get_initial_user_res = client.get('/api/user/0')
+    assert get_initial_user_res.status_code == 401
+
+    pass
 
 
 def random_email():
@@ -306,7 +357,7 @@ def register_and_login_demo_user(client, email=None, uname_and_password=None):
     :param email: The email of the demo user. Defaults to a random email unless otherwise specified.
     :param uname_and_password: A single string that will be set as both the username and password of the demo user.
     Defaults to a random string unless otherwise specified.
-    :return: The bearer token generated by the login.
+    :return: The client of the current session, followed by the bearer token generated by the login.
     """
     if email is None:
         email = random_email()
@@ -322,7 +373,7 @@ def register_and_login_demo_user(client, email=None, uname_and_password=None):
     assert user_create_response.status_code == 201
 
     login_response = client.post('/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
-    assert login_response.status_code == 200
+    assert login_response.status_code == 201
     bearer_token = json.loads(login_response.get_data()).get("session_token")
     assert bearer_token is not None
     return client, bearer_token

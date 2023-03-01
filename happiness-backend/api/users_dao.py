@@ -28,3 +28,10 @@ def get_user_by_email(email):
     Returns a user object from the database given an email
     """
     return User.query.filter(User.email == email).first()
+
+
+def get_all_users():
+    """
+    Returns information for all users.
+    """
+    return User.query.all()

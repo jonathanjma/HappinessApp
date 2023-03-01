@@ -41,26 +41,27 @@ def create_user():
     return success_response({"user": current_user.serialize()}, 201)
 
 
-@user.get('/')
+@user.get('/<int:user_id>')
 @authenticate(token_auth)
-def get_user_by_id():
+def get_user_by_id(user_id):
     """
     Get by ID
     This method gets user information from a user by querying the user by id. \n
     The body json should have "id": <int: id> passed in. \n
     Returns: JSON of User object containing user information
     """
-    # TODO this method should only be allowed to be called by someone in the same group as the target user.
-    body = json.loads(request.data)
-    friend_id = body.get("id")
-    friend_user = users_dao.get_user_by_id(friend_id)
+    current_user = token_auth.current_user()
+
+    friend_user = users_dao.get_user_by_id(user_id)
     if friend_user is None:
         return failure_response("Friend not found")
+    if not current_user.has_mutual_group(friend_user):
+        return failure_response("Unauthorized: you do not share a group with this user", 401)
+
     return success_response({
-        "id": friend_id,
+        "id": user_id,
         "username": friend_user.username,
         "profile_picture": friend_user.profile_picture,
-        "settings": [s.serialize() for s in friend_user.settings],
     })
 
 
@@ -91,7 +92,7 @@ def delete_user():
     return success_response(current_user.serialize(), 200)
 
 
-@user.post('/settings')
+@user.post('/settings/')
 @authenticate(token_auth)
 def add_user_setting():
     """
@@ -111,7 +112,7 @@ def add_user_setting():
     return success_response(setting.serialize(), 201)
 
 
-@user.get('/settings')
+@user.get('/settings/')
 @authenticate(token_auth)
 def get_user_settings():
     """
@@ -145,7 +146,7 @@ def change_username():
     })
 
 
-@user.route('/reset_password/<token>/', methods=['GET', 'POST'])
+@user.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     """
     IMPORTANT:
@@ -176,7 +177,6 @@ def reset_password(token):
             })
     else:
         # Display password reset page, this allows user to post new password to this request.
-        # TODO this is a placeholder and we will need to route this to show something on the frontend.
         return success_response({
             "reset": "Reset your password here."
         })

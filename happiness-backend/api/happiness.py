@@ -3,7 +3,7 @@ from datetime import datetime
 from apifairy import authenticate, body, response, other_responses
 from flask import Blueprint
 
-from api import happiness_dao
+from api import happiness_dao, users_dao
 from api.app import db
 from api.models import Happiness
 from api.responses import success_response, failure_response

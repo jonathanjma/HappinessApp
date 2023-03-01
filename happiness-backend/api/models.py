@@ -102,6 +102,7 @@ class User(db.Model):
     def has_mutual_group(self, user_to_check):
         """
         Checks to see if another user shares a happiness group with the user
+        :param user_to_check the user object to check if it is in the same group.
         """
         for group in self.groups:
             if user_to_check in group.users:
@@ -178,6 +179,13 @@ class Group(db.Model):
             user = User.query.filter(User.username == username).first()
             if user in self.users:
                 self.users.remove(user)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "users": [u.serialize() for u in self.users]
+        }
 
 
 class Happiness(db.Model):

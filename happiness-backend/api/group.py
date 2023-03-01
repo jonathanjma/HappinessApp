@@ -121,6 +121,7 @@ def group_happiness(req, group_id):
 
     return get_happiness_by_group(list(map(lambda x: x.id, cur_group.users)), page, count)
 
+
 @group.delete('/<int:group_id>')
 @authenticate(token_auth)
 @other_responses({404: 'Invalid Group', 403: 'Not Allowed'})
