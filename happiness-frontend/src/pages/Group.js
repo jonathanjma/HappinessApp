@@ -1,20 +1,39 @@
-import {useParams} from "react-router-dom";
+import { useParams } from "react-router-dom";
 import GroupData from "../components/GroupData";
 import Graph from "../components/Graph";
 import Stat from "../components/Stat";
 import Users from "../components/Users";
 import HistoryCard from "../components/HistoryCard";
+import { Fragment, useState } from "react";
+import { Tab } from "@headlessui/react";
+
+function TabButton({ text }) {
+  console.log(text);
+  return (
+    <Tab as={Fragment}>
+      {({ selected }) => (
+        <button
+          className={
+            "inline-block px-2 py-2.5 m-1.5 w-[140px] rounded-lg " +
+            (selected
+              ? "text-cultured-50 bg-raisin-600"
+              : "hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white")
+          }
+        >
+          {text}
+        </button>
+      )}
+    </Tab>
+  );
+}
 
 export default function Group({ id }) {
   const { groupID } = useParams();
   const groupData = GroupData(groupID);
+  const [selectedIndex, setSelectedIndex] = useState(1);
 
-  const stats = [
-    { value: true, key: 0 },
-    { value: true, key: 1 },
-    { value: true, key: 5 },
-    { value: true, key: 8 },
-  ];
+  const stats = [0, 1, 5, 8];
+  const tabs = ["At a Glance", "Stats", "Log", "Settings"];
 
   let allHappiness = [];
   for (let user of groupData.users) {
@@ -56,25 +75,39 @@ export default function Group({ id }) {
 
   return (
     <>
-      <p className="text-center text-4xl font-medium m-3 text-raisin-600">
-        {groupData.name}
-      </p>
-      <div className="flex flex-wrap justify-center items-center">
-        <Graph index={groupData.users} time="Weekly" id={id} />
-      </div>
-      <div className="flex flex-wrap justify-center items-center">
-        {stats.map((e) => {
-          if (e.value) {
-            return <Stat id={id} key={e.key} val={e.key} />;
-          }
-          return null;
-        })}
-      </div>
-      <p className="text-center text-3xl font-medium m-3 text-raisin-600">
-        Happiness Log
-      </p>
-      <div className="@container flex flex-wrap justify-center">
-        {tiles.map((e) => e)}
+      <div className="flex flex-col items-center">
+        <p className="text-4xl font-medium m-3 text-raisin-600">
+          {groupData.name}
+        </p>
+        <Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
+          <Tab.List className="flex justify-center mb-3">
+            {tabs.map((name, i) => (
+              <TabButton key={i} text={name} />
+            ))}
+          </Tab.List>
+          <Tab.Panels>
+            <Tab.Panel></Tab.Panel>
+            <Tab.Panel>
+              <div className="flex justify-center">
+                <Graph index={groupData.users} time="Weekly" id={id} />
+              </div>
+              <div className="flex flex-wrap justify-center items-center">
+                {stats.map((e) => (
+                  <Stat id={id} key={e} val={e} />
+                ))}
+              </div>
+            </Tab.Panel>
+            <Tab.Panel>
+              <p className="text-3xl font-medium m-3 text-raisin-600">
+                Happiness Log
+              </p>
+              <div className="@container flex flex-wrap justify-center">
+                {tiles.map((e) => e)}
+              </div>
+            </Tab.Panel>
+            <Tab.Panel></Tab.Panel>
+          </Tab.Panels>
+        </Tab.Group>
       </div>
     </>
   );

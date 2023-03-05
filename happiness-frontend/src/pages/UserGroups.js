@@ -1,9 +1,9 @@
-// Groups system - group creation, invites, view your group's happiness + graph
 import Users from "../components/Users";
 import GroupCard from "../components/GroupCard";
 import GroupData from "../components/GroupData";
 import NewGroupModal from "../components/NewGroupModal";
 
+// User Groups Page: view all the groups the user is in
 export default function UserGroups({ id }) {
   const userGroups = Users(id).group;
 

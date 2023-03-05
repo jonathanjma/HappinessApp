@@ -8,12 +8,11 @@ export default function GroupCard({ id, data }) {
   const navigate = useNavigate();
 
   const onClick = (ev) => {
-    ev.preventDefault();
     navigate("/groups/" + id);
   };
 
   return (
-    <Card onClick={onClick} style={{ cursor: "pointer" }} className="m-2">
+    <Card onClick={onClick} style={{ cursor: "pointer" }} className="m-2 group">
       <Card.Body>
         <Card.Title>{data.name}</Card.Title>
         <div className="grid">
