@@ -28,7 +28,7 @@ export default function DayPreview({ open, setOpen, ids_list, day=0, data=undefi
           as="div"
           className="relative z-10"
           initialFocus={cancelButtonRef}
-          onClose={setOpen}
+          onClose={() => setOpen(false)}
         >
           <Transition.Child
             as={Fragment}
@@ -43,7 +43,7 @@ export default function DayPreview({ open, setOpen, ids_list, day=0, data=undefi
           </Transition.Child>
 
           <div className="fixed inset-0 z-10 overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center md:items-center md:p-0">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center md:p-0">
               <Transition.Child
                 as={Fragment}
                 enter="ease-out duration-300"

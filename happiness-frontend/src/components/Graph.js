@@ -7,27 +7,30 @@ import DayPreview from "./DayPreview";
 function IndexData(ids) {
   // constructs array of data values based on given indices for the LineChart
   let colors = [
-    "blue",
     "red",
+    "blue",
     "green",
     "purple",
     "orange",
+    "salmon",
     "brown",
     "pink",
+    "turquoise",
     "black",
+    "magenta",
     "yellow",
     "gray",
+    "violet",
+    "indigo",
   ];
   var selectedData = [];
-  ids.map((i) => {
+  ids.map((i, t) => {
     selectedData.push({
       label: Users(i).name,
       data: Users(i).data.map((e) => e.level),
       tension: 0.4,
-      borderColor: colors[0],
+      borderColor: colors[t % 15],
     });
-    // removes first element of color array
-    colors.splice(0, 1);
     return selectedData;
   });
   return selectedData;

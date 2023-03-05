@@ -10,11 +10,11 @@ export default function HistoryCard({ id, data, useDate = true }) {
   return (
     <>
       <div
-        className="w-full justify-center min-h-[100px] max-w-[151px] md:max-w-[230px] mx-2.5 mt-4 bg-cultured-50 rounded-xl shadow-lg space-y-2"
+        className="w-full justify-center min-h-[100px] max-w-[146px] md:max-w-[230px] mx-2.5 mt-4 bg-cultured-50 rounded-xl shadow-lg space-y-2"
         onClick={() => setDShow(true)}
       >
         <div className="flex w-full flex-wrap justify-center items-center bg-buff-300 px-2 py-3 rounded-t-xl h-2/5">
-          <p className="text-center text-md md:text-2xl font-medium text-raisin-600">
+          <p className="text-center text-sm md:text-2xl font-medium text-raisin-600">
             {useDate ? <>Wednesday, {data.date}</> : <>{Users(id).name}</>}
           </p>
         </div>
