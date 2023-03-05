@@ -6,9 +6,9 @@ import Users from "../components/Users";
 import HistoryCard from "../components/HistoryCard";
 import { Fragment, useState } from "react";
 import { Tab } from "@headlessui/react";
+import GroupManage from "../components/GroupManage";
 
 function TabButton({ text }) {
-  console.log(text);
   return (
     <Tab as={Fragment}>
       {({ selected }) => (
@@ -85,8 +85,12 @@ export default function Group({ id }) {
               <TabButton key={i} text={name} />
             ))}
           </Tab.List>
-          <Tab.Panels>
-            <Tab.Panel></Tab.Panel>
+          <Tab.Panels className="w-full">
+            <Tab.Panel>
+              <p className="text-center text-3xl font-medium m-3 text-raisin-600">
+                Weekly/Monthly View
+              </p>
+            </Tab.Panel>
             <Tab.Panel>
               <div className="flex justify-center">
                 <Graph index={groupData.users} time="Weekly" id={id} />
@@ -98,14 +102,19 @@ export default function Group({ id }) {
               </div>
             </Tab.Panel>
             <Tab.Panel>
-              <p className="text-3xl font-medium m-3 text-raisin-600">
+              <p className="text-center text-3xl font-medium m-3 text-raisin-600">
                 Happiness Log
               </p>
               <div className="@container flex flex-wrap justify-center">
                 {tiles.map((e) => e)}
               </div>
             </Tab.Panel>
-            <Tab.Panel></Tab.Panel>
+            <Tab.Panel>
+              <p className="text-center text-3xl font-medium m-3 text-raisin-600">
+                Manage Group
+              </p>
+              <GroupManage id={id} />
+            </Tab.Panel>
           </Tab.Panels>
         </Tab.Group>
       </div>

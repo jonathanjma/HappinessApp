@@ -1,7 +1,5 @@
-import { useState } from "react";
-
 export default function Users(num) {
-  const [users, setUsers] = useState([
+  const users = [
     {
       id: 1,
       name: "Alex",
@@ -371,7 +369,7 @@ export default function Users(num) {
         max: 10,
       },
     },
-  ]);
+  ];
   return users.find((item) => item.id === num);
 }
 
