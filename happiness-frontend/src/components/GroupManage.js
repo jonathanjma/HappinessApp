@@ -43,14 +43,13 @@ export default function GroupManage({ id }) {
 
     // do an api call
     for (let i = 1; i <= 6; i++) {
+      // temp brute force solution lol
       if (Users(i).name === newUser) {
         setGroupUsers([...groupUsers, Users(i)]);
         break;
       }
     }
   };
-
-  console.log(Users(0));
 
   const removeUser = (id) => {
     setGroupUsers(groupUsers.filter((user) => user.id !== id));
@@ -73,7 +72,7 @@ export default function GroupManage({ id }) {
         </div>
       </Form>
       <p className="text-2xl font-medium m-3 text-raisin-600">Edit Users</p>
-      <div className="grid md:grid-cols-4">
+      <div className="grid md:grid-cols-3">
         {/* List current group members */}
         {groupUsers.map((user) => (
           <Card body className="m-1.5 p-1">
@@ -109,6 +108,7 @@ export default function GroupManage({ id }) {
           </Form>
         </Card>
       </div>
+      <Button className="mt-3">Save Changes</Button>
     </div>
   );
 }
