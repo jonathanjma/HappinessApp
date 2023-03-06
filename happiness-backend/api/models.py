@@ -35,7 +35,6 @@ class User(db.Model):
     # Session information
     session_token = db.Column(db.String, nullable=False, unique=True)
     session_expiration = db.Column(db.DateTime, nullable=False)
-    update_token = db.Column(db.String, nullable=False, unique=True)
 
     groups = db.relationship(
         "Group", secondary=group_users, back_populates="users")
@@ -74,7 +73,7 @@ class User(db.Model):
 
     def _urlsafe_base_64(self):
         """
-        Randomly generates hashed tokens (used for session/update tokens)
+        Randomly generates hashed tokens (used for session tokens)
         """
         return hashlib.sha1(os.urandom(64)).hexdigest()
 
@@ -84,7 +83,6 @@ class User(db.Model):
         """
         self.session_token = self._urlsafe_base_64()
         self.session_expiration = datetime.utcnow() + timedelta(weeks=1)
-        self.update_token = self._urlsafe_base_64()  # don't need anymore?
         return self.session_token
 
     def revoke_token(self):
