@@ -20,12 +20,12 @@ export default function Profile(props) {
       <div className="flex flex-wrap justify-center">
         <div className="lg:w-3/4 sm:w-full">
           <div>
-            <p className="text-center text-5xl font-medium m-3 text-raisin-600">
+            <p className="text-center text-5xl font-medium m-2 text-raisin-600">
               Profile
             </p>
           </div>
           <div className="flex flex-wrap justify-center items-center">
-            <div className="flex flex-wrap justify-center min-w-[330px] max-w-[600px] min-h-[200px] m-4 bg-cultured-50 rounded-xl shadow-lg space-y-2">
+            <div className="flex flex-wrap justify-center min-w-[330px] max-w-[600px] min-h-[200px] mx-4 my-2 bg-cultured-50 rounded-xl shadow-lg space-y-2">
               <div className="relative flex flex-wrap justify-center w-full bg-buff-300 rounded-t-xl">
                 <div className="absolute -sm:absolute sm:relative left-4 top-4 sm:flex items-center md:px-4 md:w-1/3 sm:mx-4">
                   <img
@@ -112,7 +112,7 @@ export default function Profile(props) {
         </div>
         <div className="justify-center lg:w-1/4 w-full max-w-[550px]">
           <div>
-            <p className="text-center text-5xl font-medium m-3 text-raisin-600">
+            <p className="text-center text-5xl font-medium m-2 text-raisin-600">
               History
             </p>
           </div>

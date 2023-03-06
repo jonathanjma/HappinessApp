@@ -7,8 +7,8 @@ import DayPreview from "./DayPreview";
 function IndexData(ids) {
   // constructs array of data values based on given indices for the LineChart
   let colors = [
-    "red",
     "blue",
+    "red",
     "green",
     "purple",
     "orange",

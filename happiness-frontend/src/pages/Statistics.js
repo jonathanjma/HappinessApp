@@ -64,7 +64,7 @@ export default function Statistics(props) {
             )}
           </Tab>
         </Tab.List>
-        <Tab.Panels className="flex w-full justify-center">
+        <Tab.Panels>
           <Tab.Panel className="w-full justify-center">
             <div className="mt-4 -md:mt-4 md:flex md:flex-wrap justify-center items-center @container">
               <Graph
