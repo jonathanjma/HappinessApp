@@ -28,4 +28,6 @@ yarn-error.log*
 .idea/
 *.iml
 
+.vscode/
+
 happiness-backend/app.db
