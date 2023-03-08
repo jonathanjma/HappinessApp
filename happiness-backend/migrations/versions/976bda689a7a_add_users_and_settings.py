@@ -25,11 +25,9 @@ def upgrade():
                     sa.Column('profile_picture', sa.String(), nullable=False),
                     sa.Column('session_token', sa.String(), nullable=False),
                     sa.Column('session_expiration', sa.DateTime(), nullable=False),
-                    sa.Column('update_token', sa.String(), nullable=False),
                     sa.PrimaryKeyConstraint('id'),
                     sa.UniqueConstraint('email'),
                     sa.UniqueConstraint('session_token'),
-                    sa.UniqueConstraint('update_token'),
                     sa.UniqueConstraint('username')
                     )
     op.create_table('setting',
