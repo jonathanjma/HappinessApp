@@ -14,6 +14,7 @@ export default function InputField({
       <Form.Control
         type={type || "text"}
         placeholder={placeholder}
+        className={error && "is-invalid"}
         ref={fieldRef}
       />
       <Form.Text className="text-danger">{error}</Form.Text>

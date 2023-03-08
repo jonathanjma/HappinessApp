@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from apifairy import authenticate, body, response, other_responses
-from flask import Blueprint
+from flask import Blueprint, request
 
 from api import happiness_dao, users_dao
 from api.app import db
@@ -129,8 +129,20 @@ def get_paginated_happiness(req):
     my_user_obj = users_dao.get_user_by_id(user_id)
     page, count, id = req.get("page", 1), req.get(
         "count", 10), req.get("id", user_id)
-
     if user_id == id or my_user_obj.has_mutual_group(users_dao.get_user_by_id(id)):
         query_data = happiness_dao.get_happiness_by_count(id, page, count)
         return query_data
     return failure_response("Unauthorized", 403)
+
+@happiness.post('/import')
+def import_happiness():
+    body = request.json['data']
+    happiness_objs = []
+    for entry in body:
+        happiness_objs.append(
+            Happiness(user_id=entry['user_id'], value=entry['value'], comment=entry.get('comment'),
+                      timestamp=datetime.strptime(entry['timestamp'], "%Y-%m-%d")))
+    db.session.add_all(happiness_objs)
+    db.session.commit()
+
+    return success_response(str(len(happiness_objs)) + ' happiness entries imported')
