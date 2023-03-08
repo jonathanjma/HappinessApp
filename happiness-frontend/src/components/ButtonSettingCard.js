@@ -39,7 +39,7 @@ export default function ButtonSettingCard(props) {
   };
 
   return (
-    <div className="min-w-[300px] max-w-[350px] m-2 py-8 px-8 max-w-sm bg-white rounded-xl shadow-lg space-y-2 sm:py-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-6 bg-white">
+    <div className="w-[300px] m-2 py-8 px-8 max-w-sm bg-white rounded-xl shadow-lg space-y-2 sm:py-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-6">
       <p className="text-xl">{props.name}</p>
       <button>
         <img

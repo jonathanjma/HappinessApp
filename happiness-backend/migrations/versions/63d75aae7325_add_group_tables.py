@@ -25,7 +25,7 @@ def upgrade():
     op.create_table('group_users',
                     sa.Column('group_id', sa.Integer(), nullable=True),
                     sa.Column('user_id', sa.Integer(), nullable=True),
-                    sa.ForeignKeyConstraint(['group_id'], ['group.id'], ),
+                    sa.ForeignKeyConstraint(['group_id'], ['group.id'], ondelete='cascade'),
                     sa.ForeignKeyConstraint(['user_id'], ['user.id'], )
                     )
     # ### end Alembic commands ###

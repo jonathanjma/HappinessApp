@@ -22,7 +22,8 @@ export default function App() {
   return (
     <>
       {!isLoggedIn ? (
-        <Welcome setIsLoggedIn={setIsLoggedIn} />
+        // <Welcome setIsLoggedIn={setIsLoggedIn} />
+        <Welcome />
       ) : (
         <Container fluid className="App bg-buff-50">
           <BrowserRouter>

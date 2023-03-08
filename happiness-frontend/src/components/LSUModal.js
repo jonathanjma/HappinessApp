@@ -45,6 +45,9 @@ export default function LSUModal() {
           <LSUForm isLoggingIn={isLoggingIn} />
         </Modal.Body>
         <Modal.Footer>
+          <p className="mr-auto underline" onClick={() => {}}>
+            Forgot your password?
+          </p>
           <button
             className="bg-raisin-500 hover:bg-raisin-400 text-white font-semibold py-2 px-4 rounded duration-500"
             onClick={handleClose}
