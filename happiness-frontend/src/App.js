@@ -1,4 +1,4 @@
-import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Statistics from "./pages/Statistics";
 import Profile from "./pages/Profile";
 import Header from "./components/Header";
@@ -6,7 +6,7 @@ import Welcome from "./pages/Welcome";
 import Container from "react-bootstrap/Container";
 import Settings from "./pages/Settings";
 import Home from "./pages/Home";
-import {useState} from "react";
+import { useState } from "react";
 import History from "./pages/History";
 import UserGroups from "./pages/UserGroups";
 import Group from "./pages/Group";
@@ -15,7 +15,7 @@ import ApiProvider from "./components/ApiProvider";
 
 // change id number to id of user in Users.js (temporary until backend + login set up)
 export default function App() {
-  const id = 3;
+  const id = 1;
   //TODO this is a placeholder with basic functionality, we will have to rewrite after backend implementation.
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 

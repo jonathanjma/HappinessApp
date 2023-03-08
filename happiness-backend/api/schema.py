@@ -45,20 +45,23 @@ class HappinessSchema(ma.SQLAlchemySchema):
 
     @post_dump
     def fix_time(self, data, **kwargs):
-        if data.get('timestamp'): data['timestamp'] = data['timestamp'].split()[0]
+        if data.get('timestamp'):
+            data['timestamp'] = data['timestamp'].split()[0]
         return data
 
 
 class HappinessPutSchema(ma.Schema):
-    value = ma.Int()
+    value = ma.Float()
     comment = ma.Str()
 
 
 class HappinessGetTime(ma.Schema):
     start = ma.Str()
     end = ma.Str()
+    id = ma.Int()
 
 
 class HappinessGetCount(ma.Schema):
     page = ma.Int()
     count = ma.Int()
+    id = ma.Int()

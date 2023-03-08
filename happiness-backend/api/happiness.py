@@ -3,7 +3,7 @@ from datetime import datetime
 from apifairy import authenticate, body, response, other_responses
 from flask import Blueprint, request
 
-from api import happiness_dao
+from api import happiness_dao, users_dao
 from api.app import db
 from api.models import Happiness
 from api.responses import success_response, failure_response
@@ -61,6 +61,7 @@ def edit_happiness(req, id):
         if value:
             query_data.value = value
         if comment:
+            print('hi')
             query_data.comment = comment
         db.session.commit()
         return query_data
@@ -90,6 +91,7 @@ def delete_happiness(id):
 @authenticate(token_auth)
 @body(HappinessGetTime)
 @response(HappinessSchema(many=True))
+@other_responses({403: "Unauthorized.", 404: "Happiness not found."})
 def get_happiness(req):
     """
     Get Happiness by Time Range
@@ -98,15 +100,18 @@ def get_happiness(req):
     Returns: A JSON response of a list of key value pairs that contain each day's happiness value, comment, and timestamp.
     """
     user_id = token_auth.current_user().id
+    my_user_obj = users_dao.get_user_by_id(user_id)
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
-    start = req.get("start", "2023-01-01")
-    end = req.get("end", today)
+    start, end, id = req.get(
+        "start", "2023-01-01"), req.get("end", today), req.get("id", user_id)
     stfor = datetime.strptime(start, "%Y-%m-%d")
     enfor = datetime.strptime(end, "%Y-%m-%d")
 
-    # TODO check if user with given user_id is friend of the current user
-    query_data = happiness_dao.get_happiness_by_timestamp(user_id, stfor, enfor)
-    return query_data
+    if user_id == id or my_user_obj.has_mutual_group(users_dao.get_user_by_id(id)):
+        query_data = happiness_dao.get_happiness_by_timestamp(
+            id, stfor, enfor)
+        return query_data
+    return failure_response("Unauthorized", 403)
 
 
 @happiness.get('/count')
@@ -121,11 +126,13 @@ def get_paginated_happiness(req):
     Returns: Specified number of happiness values in reverse order.
     """
     user_id = token_auth.current_user().id
-    page, count = req.get("page", 1), req.get("count", 10)
-
-    # TODO check if user with user_id is friend of current user
-    query_data = happiness_dao.get_happiness_by_count(user_id, page, count)
-    return query_data
+    my_user_obj = users_dao.get_user_by_id(user_id)
+    page, count, id = req.get("page", 1), req.get(
+        "count", 10), req.get("id", user_id)
+    if user_id == id or my_user_obj.has_mutual_group(users_dao.get_user_by_id(id)):
+        query_data = happiness_dao.get_happiness_by_count(id, page, count)
+        return query_data
+    return failure_response("Unauthorized", 403)
 
 @happiness.post('/import')
 def import_happiness():

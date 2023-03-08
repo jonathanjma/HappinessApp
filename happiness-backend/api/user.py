@@ -35,7 +35,7 @@ def create_user():
     db.session.add(current_user)
     db.session.commit()
 
-    return '', 201
+    return success_response({"user": current_user.serialize()}, 201)
 
 
 @user.get('/')
