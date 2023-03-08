@@ -20,8 +20,8 @@ export default function History(props) {
               <button
                 className={
                   selected
-                    ? "inline-block px-4 py-3 m-1.5 w-[110px] rounded-lg text-cultured-50 bg-raisin-600"
-                    : "inline-block px-4 py-3 m-1.5 w-[110px] rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white"
+                    ? "inline-block sm:px-4 py-2 sm:py-4 mb-1 md:m-1.5 w-[110px] md:h-[60px] rounded-l-lg md:rounded-lg text-cultured-50 bg-raisin-600 text-xs sm:text-sm md:text-md text-center"
+                    : "inline-block sm:px-4 py-2 sm:py-4 mb-1 md:m-1.5 w-[110px] md:h-[60px] rounded-l-lg md:rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white text-xs sm:text-sm md:text-md text-center"
                 }
               >
                 Weekly
@@ -33,8 +33,8 @@ export default function History(props) {
               <button
                 className={
                   selected
-                    ? "inline-block px-4 py-3 m-1.5 w-[110px] rounded-lg text-cultured-50 bg-raisin-600"
-                    : "inline-block px-4 py-3 m-1.5 w-[110px] rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white"
+                    ? "inline-block sm:px-4 py-2 sm:py-3 mb-1 md:m-1.5 w-[110px] md:h-[60px] rounded-r-lg md:rounded-lg text-cultured-50 bg-raisin-600 text-xs sm:text-sm md:text-md text-center"
+                    : "inline-block sm:px-4 py-2 sm:py-3 mb-1 md:m-1.5 w-[110px] md:h-[60px] rounded-r-lg md:rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white text-xs sm:text-sm md:text-md text-center"
                 }
               >
                 Monthly

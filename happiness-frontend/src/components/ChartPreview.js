@@ -38,7 +38,7 @@ export default function ChartPreview({ chartData, open, setOpen }) {
           </Transition.Child>
 
           <div className="fixed inset-0 z-10 overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center md:items-center md:p-0">
+            <div className="flex min-h-full items-end justify-center pb-4 -sm:pb-4 min-[400px]:p-2 text-center md:p-0">
               <Transition.Child
                 as={Fragment}
                 enter="ease-out duration-300"
@@ -48,8 +48,8 @@ export default function ChartPreview({ chartData, open, setOpen }) {
                 leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                 leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
               >
-                <Dialog.Panel className="relative transform overflow-hidden rounded-xl bg-cultured-50 text-left m-4 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-6xl">
-                  <div className="flex w-full justify-center bg-cultured-50 px-4 pt-3 pb-2 sm:p-6 sm:pb-4">
+                <Dialog.Panel className="relative transform overflow-hidden rounded-xl bg-cultured-50 text-left sm:m-4 shadow-xl transition-all my-8 w-full sm:max-w-6xl">
+                  <div className="flex w-full justify-center bg-cultured-50 px-2 sm:px-4 pt-3 pb-2 sm:p-6 sm:pb-4">
                     <div className="flex w-full sm:items-start justify-center">
                       <div className="w-full mt-3 sm:mt-0 sm:ml-4 sm:text-left">
                         <Dialog.Title
@@ -58,7 +58,7 @@ export default function ChartPreview({ chartData, open, setOpen }) {
                         >
                           Graph
                         </Dialog.Title>
-                        <div className="flex w-full justify-center min-h-[550px] mt-2">
+                        <div className="flex w-full justify-center min-h-[400px] sm:min-h-[550px] mt-2">
                           <LineChart chartData={chartData} dayShow={setDShow} daySet={setDay} userSet={setSelUser}/>
                           {dayPreview}
                         </div>

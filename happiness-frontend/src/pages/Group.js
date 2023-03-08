@@ -82,7 +82,7 @@ export default function Group({ id }) {
           {groupData.name}
         </p>
         <Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
-          <Tab.List className="flex justify-center mb-3">
+          <Tab.List className="flex flex-wrap justify-center mb-3">
             {tabs.map((name, i) => (
               <TabButton key={i} text={name} />
             ))}
