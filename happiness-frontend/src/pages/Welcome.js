@@ -11,7 +11,7 @@ export default function Welcome(props) {
     // Root div
     <div className="bg-raisin-700 min-h-screen grid place-items-center bg-cover bg-center">
       {/* Main animated text */}
-      <h1 className="font-Rubik text-tangerine-50 text-6xl text-center">
+      <h1 className="text-tangerine-50 text-6xl text-center">
         <b>
           <span className="anime-gradient">Happiness</span> App
         </b>
