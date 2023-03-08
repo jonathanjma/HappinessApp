@@ -1,46 +1,30 @@
 import Users from "./Users";
-
-function CommentShow({ data }) {
-  if (data.pubComment) {
-    return (
-      <>
-        <div className="items-center justify-center px-4 pb-3">
-          <p className="text-center text-xl font-medium mt-2 text-raisin-600">
-            Comment
-          </p>
-          <p className="text-center text-rhythm-500 font-medium text-center">
-            {data.pubComment}
-          </p>
-        </div>
-      </>
-    );
-  }
-}
+import { useState } from "react";
+import DayPreview from "./DayPreview";
 
 export default function HistoryCard({ id, data, useDate = true }) {
+  const [dShow, setDShow] = useState(false);
+  const dayPreview = (
+    <DayPreview open={dShow} setOpen={setDShow} ids_list={[id]} data={data} />
+  );
   return (
     <>
-      <div className="@xl:flex w-full justify-center min-h-[175px] max-w-[650px] mx-3 mt-4 bg-cultured-50 rounded-xl shadow-lg space-y-2">
-        <div className="flex w-full flex-wrap justify-center items-center bg-buff-300 @xl:h-full @xl:w-1/2 px-2 py-3 min-w-[215px] @xl:rounded-none @xl:rounded-l-xl rounded-t-xl">
-          <p className="text-center text-xl @[275px]:text-2xl font-medium text-raisin-600 w-2/3">
-            {useDate ? <>Friday, {data.date}</> : <>{Users(id).name}</>}
+      <div
+        className="w-full justify-center min-h-[100px] max-w-[146px] md:max-w-[230px] mx-2.5 mt-4 bg-cultured-50 rounded-xl shadow-lg space-y-2"
+        onClick={() => setDShow(true)}
+      >
+        <div className="flex w-full flex-wrap justify-center items-center bg-buff-300 px-2 py-3 rounded-t-xl h-2/5">
+          <p className="text-center text-sm md:text-2xl font-medium text-raisin-600">
+            {useDate ? <>Wednesday, {data.date}</> : <>{Users(id).name}</>}
           </p>
-          <div className="justify-center @xl:w-full">
-            <img
-              className="justify-center rounded-full max-h-[50px] max-w-[50px] @xl:max-w-[60px] @xl:max-h-[60px] block mx-auto h-24 rounded-full sm:mx-0 sm:shrink-0"
-              src={Users(id).img}
-              alt="face based on happiness level, implement later"
-            />
-            {/* Current placeholder - will eventually put happy face/sad face depending on happiness level*/}
-          </div>
         </div>
-        <div className="w-full justify-center">
-          <div className="flex justify-center px-4">
-            <p className="text-center text-2xl font-medium m-2 text-raisin-600 mt-3">
-              Happiness: {data.level}
+        <div className="flex w-full flex-wrap justify-center items-center rounded-xl pt-2.5">
+          <div className="flex items-center justify-center">
+            <p className="text-center text-4xl font-medium text-raisin-600">
+              {data.level}
             </p>
+            {dayPreview}
           </div>
-          <CommentShow data={data} />
         </div>
       </div>
     </>

@@ -3,7 +3,7 @@ import GroupData from "../components/GroupData";
 import Graph from "../components/Graph";
 import Stat from "../components/Stat";
 import Users from "../components/Users";
-import HistoryCard from "../components/HistoryCard";
+import OldHistoryCard from "../components/OldHistoryCard";
 
 export default function Group({ id }) {
   const { groupID } = useParams();
@@ -43,10 +43,11 @@ export default function Group({ id }) {
     }
     if (datapoint.level !== null) {
       tiles.push(
-        <HistoryCard
+        <OldHistoryCard
           key={i}
           id={datapoint.user}
           data={datapoint}
+          shown={true}
           useDate={false}
         />
       );
@@ -59,7 +60,7 @@ export default function Group({ id }) {
       <p className="text-center text-4xl font-medium m-3 text-raisin-600">
         {groupData.name}
       </p>
-      <div className="flex flex-wrap justify-center items-center">
+      <div className="flex flex-wrap justify-center items-center lg:@container">
         <Graph index={groupData.users} time="Weekly" id={id} />
       </div>
       <div className="flex flex-wrap justify-center items-center">

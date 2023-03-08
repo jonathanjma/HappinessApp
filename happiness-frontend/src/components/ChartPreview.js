@@ -1,10 +1,20 @@
 import LineChart from "./LineChart";
+import DayPreview from "./DayPreview"
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 
 export default function ChartPreview({ chartData, open, setOpen }) {
   const cancelButtonRef = useRef(null);
   const handleShow = () => setOpen(true);
+  const [dShow, setDShow] = useState(false);
+  const [day, setDay] = useState(0);
+  const [selUser, setSelUser] = useState([chartData.ids[0]]);
+
+  const ids = chartData.ids.map(e => {if (selUser.includes(e)) {return e} else {return 0}})
+
+  const dayPreview = (
+    <DayPreview open={dShow} setOpen={setDShow} ids_list={ids} day={day} />
+  );
 
   return (
     <>
@@ -49,7 +59,8 @@ export default function ChartPreview({ chartData, open, setOpen }) {
                           Graph
                         </Dialog.Title>
                         <div className="flex w-full justify-center min-h-[550px] mt-2">
-                          <LineChart chartData={chartData} />
+                          <LineChart chartData={chartData} dayShow={setDShow} daySet={setDay} userSet={setSelUser}/>
+                          {dayPreview}
                         </div>
                       </div>
                     </div>
