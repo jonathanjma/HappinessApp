@@ -1,29 +1,33 @@
 import LSUModal from "../components/LSUModal";
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import "../App.css";
 import Journal from "../media/journal-icon.svg";
 import HappinessCommentModal from "../components/HappinessCommentModal";
 import DynamicSmile from "../components/DynamicSmile";
 
 export default function SubmitHappiness() {
-  const [happiness, setHappiness] = useState(50);
+  // happiness represents how happy the user is on a scale of 0 to 10.
+  // this value appears as a scale from one to ten for the user.
+  // Variable invariant: This variable must be between 0 and 10, and can only be 0.5 between whole numbers.
+
+  const [happiness, setHappiness] = useState(5.0);
   const [comment, setComment] = useState("");
   let happinessColor = (happiness) => {
-    if (happiness < 10) {
+    if (happiness < 1.0) {
       return "bg-red-700";
-    } else if (happiness < 20) {
+    } else if (happiness < 2.0) {
       return "bg-red-600";
-    } else if (happiness < 30) {
+    } else if (happiness < 3.0) {
       return "bg-yellow-500";
-    } else if (happiness < 40) {
+    } else if (happiness < 4.0) {
       return "bg-yellow-400";
-    } else if (happiness < 60) {
+    } else if (happiness < 6.0) {
       return "bg-yellow-300";
-    } else if (happiness < 70) {
+    } else if (happiness < 7.0) {
       return "bg-yellow-300";
-    } else if (happiness < 80) {
+    } else if (happiness < 8.0) {
       return "bg-green-400";
-    } else if (happiness < 100) {
+    } else if (happiness < 10.0) {
       return "bg-green-500";
     } else {
       return "bg-green-600";
@@ -31,29 +35,40 @@ export default function SubmitHappiness() {
   };
 
   let formatHappinessNum = (happiness) => {
-    if (happiness % 10 >= 5) {
-      return (Math.floor(happiness / 10) + 0.5).toFixed(1);
+    if (happiness*10 % 10 >= 5) {
+      return (Math.floor(happiness) + 0.5).toFixed(1);
     } else {
-      return Math.floor(happiness / 10).toFixed(1);
+      return Math.floor(happiness).toFixed(1);
     }
   };
 
-  let getDate = () => {
+  useEffect(() => {
+    if (happiness > 10 && happiness - 10 < 1) {
+      setHappiness(10)
+    }
+    else if (happiness > 10) {
+      setHappiness(happiness / 10)
+    }
+  }, [happiness])
+
+  let getNumDay = () => {
+    const today = new Date();
+    return today.getDate();
+  };
+
+  let getWeekDay = () => {
     const daysOfWeek = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
+      "SUN",
+      "MON",
+      "TUE",
+      "WED",
+      "THU",
+      "FRI",
+      "SAT",
     ];
     const today = new Date();
-    const day = daysOfWeek[today.getDay()];
-    const numDay = today.getDate();
-    const month = today.getMonth() + 1;
-    return `${day}, ${month}/${numDay}`;
-  };
+    return daysOfWeek[today.getDay()];
+  }
 
   const submitHappiness = () => {
     //TODO submit happiness with backend.
@@ -68,19 +83,31 @@ export default function SubmitHappiness() {
     >
       {/* Items */}
       <div className="flex flex-col justify-center items-center">
+        {/* Today's Date */}
+        <div className="mr-auto flex flex-col ml-3 mt-3 drop-shadow-md ">
+          <div className="h-1/2 w-full bg-red-500 p-2 rounded-t-2xl ">
+            <p className="md:text-2xl text-xl text-white text-center font-medium -mb-1">
+              {getWeekDay()}
+            </p>
+          </div>
+          <div className="h-1/2 w-full bg-white p-2 rounded-b-2xl">
+            <p className="md:text-4xl text-xl text-red text-center font-medium -mb-1 -mt-1">
+              {getNumDay()}
+            </p>
+          </div>
+        </div>
+
         {/* Prompt */}
         <>
-          <h1 className="md:text-7xl text-5xl text-white md:text-stroke-3 text-stroke-2 text-center mt-5 font-roboto">
+          <h1 className="md:text-7xl text-5xl text-white md:text-stroke-3 text-stroke-2 text-center mt-3 font-roboto">
             <b>How are you feeling today?</b>
           </h1>
         </>
 
-        {/* Today's Date */}
-        <div className="bg-gray-200  rounded-3xl object-contain mt-5   p-3 border-gray-500 border-4">
-          <p className="md:text-4xl text-3xl text-black text-center font-light">
-            <b>{getDate()}</b>
-          </p>
-        </div>
+
+
+
+
 
         {/* Happy Face, Slider, and Happiness Number (Desktop only) */}
         <div className="flex flex-row items-center justify-center mobile-hidden">
@@ -93,7 +120,7 @@ export default function SubmitHappiness() {
             id="default-range"
             type="range"
             onChange={(e) => {
-              setHappiness(e.target.value);
+              setHappiness(e.target.value / 10);
             }}
             className="w-40 md:w-72 h-2 rounded-lg appearance-none cursor-pointer dark:bg-white-300 scale-150 mt-20"
           />
@@ -110,13 +137,21 @@ export default function SubmitHappiness() {
         <input
           className="mt-10 w-24 h-20 text-4xl text-center rounded-2xl bg-gray-100 focus:border-raisin-600 border-raisin-100 border-2 focus:border-4 md:hidden"
           type="number"
-          placeholder="5.0"
+          value={happiness}
+          placeholder=""
           onChange={(e) => {
-            // TODO fix input validation
-            e.target.value === ""
-              ? setHappiness(5.0)
-              : setHappiness(e.target.value * 10);
+            setHappiness(parseFloat(e.target.value))
           }}
+          onBlur={() => {
+            if ((happiness * 10) % 10 >= 5) {
+              setHappiness(Math.floor(happiness) + 0.5)
+            } else if (isNaN(happiness)) {
+              setHappiness(5)
+            } else {
+              setHappiness(Math.floor(happiness))
+            }
+          }
+          }
         />
 
         {/* Happiness Comment Box */}

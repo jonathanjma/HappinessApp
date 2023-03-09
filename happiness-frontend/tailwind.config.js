@@ -70,15 +70,6 @@ module.exports = {
         },
       },
     },
-    colors: {
-      yellow: colors.yellow,
-      green: colors.green,
-      red: colors.red,
-      blue: colors.blue,
-      gray: colors.gray,
-      white: colors.white,
-      black: colors.black,
-    },
   },
   plugins: [
     require("@tailwindcss/container-queries"),

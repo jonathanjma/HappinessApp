@@ -10,6 +10,7 @@ let happinessNumberMiddle = (happiness) => {
 };
 
 export default function DynamicSmile(props) {
+  const scalar = 10
   return (
     <div className="flex-1 flex-row ">
       <svg width="90" height="90" viewBox="0 0 256 256" className="flex-1">
@@ -19,10 +20,10 @@ export default function DynamicSmile(props) {
         <path
           className="smile-mouth"
           d={`M80,${happinessNumberEdges(
-            props.happiness
+            props.happiness*scalar
           )}, Q128,${happinessNumberMiddle(
-            props.happiness
-          )} 176,${happinessNumberEdges(props.happiness)}`}
+            props.happiness*scalar
+          )} 176,${happinessNumberEdges(props.happiness*scalar)}`}
         />
       </svg>
     </div>
