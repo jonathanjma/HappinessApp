@@ -136,9 +136,8 @@ def get_paginated_happiness(req):
 
 @happiness.post('/import')
 def import_happiness():
-    body = request.json['data']
     happiness_objs = []
-    for entry in body:
+    for entry in request.json:
         happiness_objs.append(
             Happiness(user_id=entry['user_id'], value=entry['value'], comment=entry.get('comment'),
                       timestamp=datetime.strptime(entry['timestamp'], "%Y-%m-%d")))

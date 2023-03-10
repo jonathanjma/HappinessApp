@@ -36,3 +36,4 @@ yarn-error.log*
 .vscode/
 
 happiness-backend/app.db
+*.pick
