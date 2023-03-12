@@ -20,7 +20,7 @@ export default function Profile(props) {
       <div className="flex flex-wrap justify-center">
         <div className="lg:w-3/4 sm:w-full">
           <div>
-            <p className="text-center text-5xl font-medium m-2 text-raisin-600">
+            <p className="text-center text-4xl font-medium m-2 text-raisin-600">
               Profile
             </p>
           </div>
@@ -64,10 +64,10 @@ export default function Profile(props) {
               <div className="flex m-4">
                 {Users(props.id).data[Users(props.id).data.length - 1].level ? (
                   <div className="space-y-2 px-2 md:px-4">
-                    <p className="text-md md:text-lg text-raisin-600 font-semibold text-center">
+                    <p className="text-md text-raisin-600 font-semibold text-center">
                       Today's Happiness
                     </p>
-                    <p className="text-2xl md:text-3xl text-rhythm-500 font-medium text-center">
+                    <p className="text-2xl text-rhythm-500 font-medium text-center">
                       {
                         Users(props.id).data[Users(props.id).data.length - 1]
                           .level
@@ -83,10 +83,10 @@ export default function Profile(props) {
                     className="space-y-2 px-2 md:px-4 md:mx-4"
                     onClick={() => setDShow(true)}
                   >
-                    <p className="text-md md:text-lg text-raisin-600 font-semibold text-center">
+                    <p className="text-md text-raisin-600 font-semibold text-center">
                       Comment
                     </p>
-                    <p className="line-clamp-3 -md:line-clamp-3 text-md md:text-lg text-rhythm-500 font-medium text-center">
+                    <p className="line-clamp-3 -md:line-clamp-3 text-md text-rhythm-500 font-medium text-center">
                       {
                         Users(props.id).data[Users(props.id).data.length - 1]
                           .pubComment
@@ -112,7 +112,7 @@ export default function Profile(props) {
         </div>
         <div className="justify-center lg:w-1/4 w-full max-w-[550px]">
           <div>
-            <p className="text-center text-5xl font-medium m-2 text-raisin-600">
+            <p className="text-center text-4xl font-medium m-2 text-raisin-600">
               History
             </p>
           </div>

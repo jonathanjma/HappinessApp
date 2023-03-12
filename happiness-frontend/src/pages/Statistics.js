@@ -20,13 +20,13 @@ export default function Statistics(props) {
   const datavals = [
     { value: true, key: 0 },
     { value: true, key: 1 },
-    { value: false, key: 2 },
-    { value: false, key: 3 },
-    { value: false, key: 4 },
+    { value: true, key: 2 },
+    { value: true, key: 3 },
+    { value: true, key: 4 },
     { value: true, key: 5 },
     { value: false, key: 6 },
     { value: false, key: 7 },
-    { value: true, key: 8 },
+    { value: false, key: 8 },
   ];
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -65,14 +65,16 @@ export default function Statistics(props) {
           </Tab>
         </Tab.List>
         <Tab.Panels>
-          <Tab.Panel className="w-full justify-center">
-            <div className="mt-4 -md:mt-4 md:flex md:flex-wrap justify-center items-center @container">
-              <Graph
-                index={[props.id].concat(Users(props.id).friends)}
-                time="Weekly"
-                id={props.id}
-              />
-              <div className="flex flex-wrap w-full justify-center items-center">
+          <Tab.Panel className="w-full lg:flex lg:flex-wrap justify-center">
+            <div className="mt-4 -lg:mt-4 w-full lg:flex lg:flex-wrap justify-center items-start @container">
+              <div className="lg:w-1/2 lg:mt-4">
+                <Graph
+                  index={[props.id].concat(Users(props.id).friends)}
+                  time="Weekly"
+                  id={props.id}
+                />                  
+              </div>
+              <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2 lg:my-4">
                 {datavals.map((e) => {
                   if (e.value) {
                     return <Stat id={props.id} key={e.key} val={e.key} />;
@@ -80,23 +82,25 @@ export default function Statistics(props) {
                   return null;
                 })}
               </div>
-            </div>
+            </div> 
           </Tab.Panel>
-          <Tab.Panel className="w-full justify-center">
-            <div className="mt-4 -md:mt-4 md:flex md:flex-wrap justify-center items-center @container">
-              <Graph
-                index={[props.id].concat(Users(props.id).friends)}
-                time="Monthly"
-                id={props.id}
-              />
-            </div>
-            <div className="flex flex-wrap justify-center items-center">
-              {datavals.map((e) => {
-                if (e.value) {
-                  return <Stat id={props.id} key={e.key} val={e.key} />;
-                }
-                return null;
-              })}
+          <Tab.Panel className="w-full lg:flex lg:flex-wrap justify-center">
+          <div className="mt-4 -lg:mt-4 w-full lg:flex lg:flex-wrap justify-center items-start @container">
+              <div className="lg:w-1/2 lg:mt-4">
+                <Graph
+                  index={[props.id].concat(Users(props.id).friends)}
+                  time="Monthly"
+                  id={props.id}
+                />                  
+              </div>
+              <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2 lg:my-4">
+                {datavals.map((e) => {
+                  if (e.value) {
+                    return <Stat id={props.id} key={e.key} val={e.key} />;
+                  }
+                  return null;
+                })}
+              </div>
             </div>
           </Tab.Panel>
         </Tab.Panels>

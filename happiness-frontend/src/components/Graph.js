@@ -66,11 +66,11 @@ export default function Graph(props) {
   return (
     <>
       <div className="flex w-full justify-center">
-        <div className="flex flex-wrap justify-center w-full @lg:min-h-[580px] min-h-[380px] max-h-[380px] mb-4 py-8 bg-cultured-50 rounded-xl shadow-lg space-y-2">
+        <div className="flex flex-wrap justify-center w-full max-w-[1000px] @lg:min-h-[500px] min-h-[380px] max-h-[380px] mb-4 py-8 bg-cultured-50 rounded-xl shadow-lg space-y-2">
           <p className="flex w-full justify-center font-medium text-xl text-raisin-600">
             {chartData.time} Happiness
           </p>
-          <div className="flex w-full justify-center mx-2 @lg:min-h-[480px] min-h-[285px] max-h-[285px]">
+          <div className="flex w-full justify-center mx-2 @lg:min-h-[400px] min-h-[285px] max-h-[285px]">
             <LineChart
               chartData={chartData}
               chartShow={setCShow}

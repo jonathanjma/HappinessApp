@@ -38,7 +38,7 @@ export default function ChartPreview({ chartData, open, setOpen }) {
           </Transition.Child>
 
           <div className="fixed inset-0 z-10 overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center pb-4 -sm:pb-4 min-[400px]:p-2 text-center md:p-0">
+            <div className="flex min-h-full md:items-center justify-center pb-4 -sm:pb-4 min-[400px]:p-2 text-center md:p-0">
               <Transition.Child
                 as={Fragment}
                 enter="ease-out duration-300"
@@ -58,7 +58,7 @@ export default function ChartPreview({ chartData, open, setOpen }) {
                         >
                           Graph
                         </Dialog.Title>
-                        <div className="flex w-full justify-center min-h-[400px] sm:min-h-[550px] mt-2">
+                        <div className="flex w-full justify-center min-h-[400px] md:min-h-[450px] mt-2">
                           <LineChart chartData={chartData} dayShow={setDShow} daySet={setDay} userSet={setSelUser}/>
                           {dayPreview}
                         </div>
