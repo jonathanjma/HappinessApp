@@ -50,8 +50,12 @@ class User(db.Model):
         self.password_digest = bcrypt.hashpw(kwargs.get("password").encode("utf8"),
                                              bcrypt.gensalt(rounds=13))
         self.username = kwargs.get("username")
-        self.profile_picture = kwargs.get("profile_picture", "default")
+        self.profile_picture = kwargs.get("profile_picture", self.avatar_url())
         self.get_token()
+
+    def avatar_url(self):
+        digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+        return f'https://www.gravatar.com/avatar/{digest}?d=identicon'
 
     def serialize(self):
         """

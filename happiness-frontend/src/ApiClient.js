@@ -1,8 +1,7 @@
 const BASE_API_URL = process.env.REACT_APP_BASE_API_URL;
 
 export default class ApiClient {
-  constructor(onError) {
-    this.onError = onError;
+  constructor() {
     this.base_url = BASE_API_URL + "/api";
   }
 
@@ -33,10 +32,6 @@ export default class ApiClient {
           };
         },
       };
-    }
-
-    if (response.status >= 500 && this.onError) {
-      this.onError(response);
     }
 
     return {

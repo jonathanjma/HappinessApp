@@ -1,11 +1,19 @@
-import Users from "../components/Users";
 import GroupCard from "../components/GroupCard";
-import GroupData from "../components/GroupData";
 import NewGroupModal from "../components/NewGroupModal";
+import { useQuery } from "react-query";
+import { useApi } from "../components/ApiProvider";
+import { Spinner } from "react-bootstrap";
 
 // User Groups Page: view all the groups the user is in
 export default function UserGroups({ id }) {
-  const userGroups = Users(id).group;
+  const api = useApi();
+  const { isLoading, isError, data, error } = useQuery("user_groups", () =>
+    api.get("/user/groups").then((res) => res.body)
+  );
+
+  // if (!isLoading && data.length === 1) {
+  //   data.push(data[0]);
+  // }
 
   return (
     <div className="flex flex-col items-center">
@@ -17,16 +25,22 @@ export default function UserGroups({ id }) {
           <NewGroupModal />
         </div>
       </div>
-      {userGroups.length === 0 ? (
-        <p className="text-xl font-medium text-raisin-600 m-3">
-          You are not a member of any groups.
-        </p>
+      {isLoading ? (
+        <Spinner animation="border" />
       ) : (
-        <div className="grid md:grid-cols-3">
-          {userGroups.map((group) => (
-            <GroupCard key={group} id={group} data={GroupData(group)} />
-          ))}
-        </div>
+        <>
+          {data.length === 0 ? (
+            <p className="text-xl font-medium text-raisin-600 m-3">
+              You are not a member of any groups.
+            </p>
+          ) : (
+            <div className={"grid md:grid-cols-" + Math.min(data.length, 3)}>
+              {data.map((group) => (
+                <GroupCard key={group.id} data={group} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

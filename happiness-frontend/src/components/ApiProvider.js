@@ -1,15 +1,20 @@
-import {createContext, useContext} from "react";
+import { createContext, useContext } from "react";
 import ApiClient from "../ApiClient";
-// import { toast } from "react-toastify";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 const ApiContext = createContext();
 
 export default function ApiProvider({ children }) {
-  const onError = {}; //toast('An unexpected error has occurred. Please try again later.');
+  const api = new ApiClient();
+  const queryClient = new QueryClient();
 
-  const api = new ApiClient(onError);
-
-  return <ApiContext.Provider value={api}>{children}</ApiContext.Provider>;
+  return (
+    <ApiContext.Provider value={api}>
+      <QueryClientProvider client={queryClient} value={api}>
+        {children}
+      </QueryClientProvider>
+    </ApiContext.Provider>
+  );
 }
 
 export function useApi() {
