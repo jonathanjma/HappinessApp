@@ -10,8 +10,8 @@ def send_email_helper(subject, sender, recipients, text_body, html_body):
     :param subject: Subject line of email.
     :param sender: Email address to send the email.
     :param recipients: Recipients of the email.
-    :param text_body: Rendered template of email body text.
-    :param html_body: Rendered template of html email body.
+    :param text_body: Rendered template of email req text.
+    :param html_body: Rendered template of html email req.
     """
     with current_app._get_current_object().app_context:  # magic
         msg = Message(subject, sender=sender, recipients=recipients)
