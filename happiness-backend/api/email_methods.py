@@ -1,7 +1,16 @@
-from flask import current_app
-from api.app import mail
-from flask_mail import Message
+from flask_mail import Message, Mail
 from flask import render_template
+
+global my_app
+global mail
+
+
+def init_app(app):
+    global my_app
+    global mail
+    mail = Mail()
+    my_app = app
+    mail.init_app(my_app)
 
 
 def send_email_helper(subject, sender, recipients, text_body, html_body):
@@ -13,7 +22,7 @@ def send_email_helper(subject, sender, recipients, text_body, html_body):
     :param text_body: Rendered template of email req text.
     :param html_body: Rendered template of html email req.
     """
-    with current_app._get_current_object().app_context:  # magic
+    with my_app.app_context():  # magic
         msg = Message(subject, sender=sender, recipients=recipients)
         msg.body = text_body
         msg.html = html_body
@@ -25,8 +34,9 @@ def send_password_reset_email(user):
     Sends a password reset email to specified user.
     :param user: The user to send the password reset email to.
     """
-    with current_app._get_current_object().app_context():  # magic
-        token = user.get_reset_password_token()
+    # TODO fix authentication for email account, get happiness email for domain?
+    with my_app.app_context():
+        token = user._urlsafe_base_64()
         send_email_helper('Happiness App Password Reset',
                           sender="noreply@happinessapp.org",
                           recipients=[user.email],

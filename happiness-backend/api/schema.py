@@ -5,16 +5,34 @@ from api.app import ma
 from api.models import User, Group, Happiness, Setting
 
 
+class SettingsSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Setting
+
+    id = ma.auto_field(dump_only=True, required=True)
+    key = ma.Str(dump_only=True, required=True)
+    value = ma.Bool(required=True)
+    user_id = ma.auto_field(dump_only=True, required=True)
+
+
 class UserSchema(ma.SQLAlchemySchema):
     class Meta:
         model = User
 
-    id = ma.auto_field(dump_only=True)
+    id = ma.auto_field(required=True, dump_only=True)
     username = ma.auto_field(required=True)
-    email = ma.auto_field(required=True)
-    password_digest = ma.auto_field(load_only=True)
+    email = ma.Email(required=True)
+    password = ma.auto_field(required=True, load_only=True)
     profile_picture = ma.auto_field()
-    settings = ma.auto_field()
+    settings = ma.List(ma.Nested(SettingsSchema))
+
+
+class UsernameSchema(ma.Schema):
+    username = ma.Str()
+
+
+class UserEmailSchema(ma.Schema):
+    email = ma.Email()  # This is probably bad practice (I am still learning)
 
 
 class CreateUserSchema(ma.Schema):
@@ -32,23 +50,8 @@ class SettingInfoSchema(ma.Schema):
     key = ma.Str(required=True)
 
 
-class SettingsSchema(ma.SQLAlchemySchema):
-    class Meta:
-        model = Setting
-
-    id = ma.auto_field(dump_only=True)
-    key = ma.Str(dump_only=True, required=True)
-    value = ma.Bool(required=True)
-    user_id = ma.auto_field(dump_only=True)
-
-
-class SettingListSchema(ma.Schema):
-    settingsList = ma.List(ma.Nested(SettingsSchema, only=('key', 'value')))
-
-
-class AddUserSettingSchema(ma.Schema):
-    key = ma.Str(required=True)
-    value = ma.Bool(required=True)
+class ManySettingsSchema(ma.Schema):
+    settings = SettingsSchema(many=True)
 
 
 class GroupSchema(ma.SQLAlchemySchema):

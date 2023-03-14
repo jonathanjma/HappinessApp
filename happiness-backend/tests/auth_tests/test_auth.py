@@ -10,7 +10,7 @@ from api.users_dao import *
 from config import TestConfig
 from flask import json
 
-COMPREHENSIVE_TEST = False
+COMPREHENSIVE_TEST = True
 
 
 @pytest.fixture
@@ -194,7 +194,7 @@ def test_delete_user(client):
             and get_user_by_id(1) is None)
 
 
-# @pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
+@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_add_user_setting(client):
     """
     Tests adding two settings to a single user in an instance of the backend.
@@ -213,7 +213,6 @@ def test_add_user_setting(client):
                                            "key": k2,
                                            "value": v2
                                        })
-    print("\n\n", json.loads(add_mean_setting_res.get_data()), "\n\n")
     assert add_median_setting_res.status_code == 201
     assert add_mean_setting_res.status_code == 201
 
@@ -264,8 +263,8 @@ def test_get_user_settings(client):
     assert add_mean_setting_res.status_code == 201
     get_settings_res = client.get("/api/user/settings/", headers={"Authorization": f"Bearer {bearer_token}"})
     assert get_settings_res.status_code == 200
-    settings = json.loads(get_settings_res.get_data()).get("settings")
-    print("MY SETTINGS ------------------\n", settings)
+    settings = json.loads(get_settings_res.get_data())
+
     assert settings[0].get("key") == k1
     assert settings[0].get("value") == v1
     assert settings[1].get("key") == k2
@@ -308,8 +307,6 @@ def test_get_user_by_id(client):
                                 )
 
     assert make_group_res.status_code == 201
-    print("\n\n", json.loads(make_group_res.get_data()), "\n\n")
-    print("\n\n", json.loads(add_member_res.get_data()), "\n\n")
 
     assert add_member_res.status_code == 200
 
