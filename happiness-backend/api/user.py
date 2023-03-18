@@ -213,10 +213,7 @@ def send_reset_password_email(req):
 def get_self():
     """
     Get Self
-    Returns a response in the form of as { \n
-        "user": <user or null> \n
-    } \n
-    Depending on whether the session token is valid. \n
-    If the token_auth is invalid it returns a failure response. \n
+    Returns the user object depending on whether the session token is valid. \n
+    If the token_auth is invalid it returns a failure response.
     """
     return token_auth.current_user()

@@ -27,6 +27,10 @@ class UserSchema(ma.SQLAlchemySchema):
     settings = ma.List(ma.Nested(SettingsSchema))
 
 
+class TokenSchema(ma.Schema):
+    session_token = ma.Str()
+
+
 class UsernameSchema(ma.Schema):
     username = ma.Str()
 
