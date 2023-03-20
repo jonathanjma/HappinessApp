@@ -1,16 +1,60 @@
 from marshmallow import post_dump
 
 from api.app import ma
-from api.models import User, Group, Happiness
+from api.models import User, Group, Happiness, Setting
+
+
+class SettingsSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Setting
+
+    id = ma.auto_field(dump_only=True, required=True)
+    key = ma.Str(dump_only=True, required=True)
+    value = ma.Bool(required=True)
+    user_id = ma.auto_field(dump_only=True, required=True)
 
 
 class UserSchema(ma.SQLAlchemySchema):
     class Meta:
         model = User
 
-    id = ma.auto_field(dump_only=True)
+    id = ma.auto_field(required=True, dump_only=True)
     username = ma.auto_field(required=True)
-    profile_picture = ma.auto_field(dump_only=True)
+    email = ma.Email(required=True)
+    password = ma.auto_field(required=True, load_only=True)
+    profile_picture = ma.auto_field()
+    settings = ma.List(ma.Nested(SettingsSchema))
+
+
+class TokenSchema(ma.Schema):
+    session_token = ma.Str()
+
+
+class UsernameSchema(ma.Schema):
+    username = ma.Str()
+
+
+class UserEmailSchema(ma.Schema):
+    email = ma.Email()  # This is probably bad practice (I am still learning)
+
+
+class CreateUserSchema(ma.Schema):
+    email = ma.Str(required=True)
+    username = ma.Str(required=True)
+    password = ma.Str(required=True, load_only=True)
+
+
+class GetUserByIdSchema(ma.Schema):
+    id = ma.Integer()
+
+
+class SettingInfoSchema(ma.Schema):
+    value = ma.Bool(required=True)
+    key = ma.Str(required=True)
+
+
+class ManySettingsSchema(ma.Schema):
+    settings = SettingsSchema(many=True)
 
 
 class GroupSchema(ma.SQLAlchemySchema):
@@ -29,8 +73,10 @@ class CreateGroupSchema(ma.Schema):
 
 class EditGroupSchema(ma.Schema):
     new_name = ma.Str()
-    add_users = ma.Nested(UserSchema, many=True)
-    remove_users = ma.Nested(UserSchema, many=True)
+    # Add users and remove users only uses an array of usernames, not full user objects.
+    # We represent these as a list of mappings: [{"username": "u1"}, {"username": "u2"}]
+    add_users = ma.List(ma.Mapping())
+    remove_users = ma.List(ma.Mapping())
 
 
 class HappinessSchema(ma.SQLAlchemySchema):

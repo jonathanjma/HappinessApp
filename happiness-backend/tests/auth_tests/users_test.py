@@ -25,5 +25,3 @@ def test_create_user(client):
     user = get_user_by_id(1)
     assert user.email == 'test@example.com'
     assert user.username == 'test'
-
-# TODO implement more tests

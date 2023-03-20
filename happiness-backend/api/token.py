@@ -1,4 +1,4 @@
-from apifairy import authenticate
+from apifairy import authenticate, response, other_responses
 from flask import Blueprint
 from flask import current_app
 from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
@@ -7,6 +7,7 @@ from itsdangerous import URLSafeTimedSerializer
 from api.app import db
 from api.errors import error_response
 from api.models import User
+from api.schema import TokenSchema
 
 token = Blueprint('token', __name__)
 
@@ -43,10 +44,12 @@ def token_auth_error(status):
 
 @token.post('/')
 @authenticate(basic_auth)
+@response(TokenSchema)
+@other_responses({401: "Unauthorized"})
 def get_token():
     """
     Get Token
-    Creates a session token for a user to access the Happiness App API. Equivalent to "logging in". \n
+    Creates a session token for a user to access the Happiness App API. (Logs them in) \n
     Returns: a new session token for the user
     """
 

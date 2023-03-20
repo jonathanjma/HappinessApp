@@ -26,7 +26,7 @@ class User(db.Model):
     # User information
     email = db.Column(db.String, nullable=False, unique=True)
     username = db.Column(db.String, nullable=False, unique=True)
-    password_digest = db.Column(db.String, nullable=False)
+    password = db.Column(db.String, nullable=False)
     # Will represent an AWS URL
     profile_picture = db.Column(db.String, nullable=False)
     # If the user has not yet set a profile picture the field gets set to "default"
@@ -47,8 +47,8 @@ class User(db.Model):
         self.email = kwargs.get("email")
 
         # Convert raw password into encrypted string that can still be decrypted, but we cannot decrypt it.
-        self.password_digest = bcrypt.hashpw(kwargs.get("password").encode("utf8"),
-                                             bcrypt.gensalt(rounds=13))
+        self.password = bcrypt.hashpw(kwargs.get("password").encode("utf8"),
+                                      bcrypt.gensalt(rounds=13))
         self.username = kwargs.get("username")
         self.profile_picture = kwargs.get("profile_picture", self.avatar_url())
         self.get_token()
@@ -73,7 +73,7 @@ class User(db.Model):
         """
         Verifies the password of a user
         """
-        return bcrypt.checkpw(password.encode("utf8"), self.password_digest)
+        return bcrypt.checkpw(password.encode("utf8"), self.password)
 
     def _urlsafe_base_64(self):
         """
