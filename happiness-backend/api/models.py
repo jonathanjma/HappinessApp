@@ -169,7 +169,7 @@ class Group(db.Model):
         """
         for username in new_users:
             user = User.query.filter(User.username == username).first()
-            if user not in self.users:
+            if user is not None and user not in self.users:
                 self.users.append(user)
 
     def remove_users(self, users_to_remove):
@@ -179,7 +179,7 @@ class Group(db.Model):
         """
         for username in users_to_remove:
             user = User.query.filter(User.username == username).first()
-            if user in self.users:
+            if user is not None and user in self.users:
                 self.users.remove(user)
 
     def serialize(self):

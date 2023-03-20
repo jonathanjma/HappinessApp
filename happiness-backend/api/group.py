@@ -64,11 +64,9 @@ def edit_group(req, group_id):
     if new_name is not None and new_name != cur_group.name:
         cur_group.name = new_name
     if add_users is not None:
-        add_usernames = list(map(lambda x: x['username'], add_users))
-        cur_group.add_users(add_usernames)
+       cur_group.add_users(add_users)
     if remove_users is not None:
-        rem_usernames = list(map(lambda x: x['username'], remove_users))
-        cur_group.remove_users(rem_usernames)
+        cur_group.remove_users(remove_users)
 
         # delete group if all users removed
         if len(cur_group.users) == 0:

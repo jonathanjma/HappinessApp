@@ -23,9 +23,9 @@ user = Blueprint('user', __name__)
 def create_user(req):
     """
     Create User
-    Registers a new user given an email, username, and password \n
-    Requires: email and username are unique
-    Returns: a JSON representation of a User object
+    Registers a new user given an email, username, and password. \n
+    Requires: Email and username are unique. \n
+    Returns: JSON representation of User object.
     """
     email, username, password = req.get(
         "email"), req.get("username"), req.get("password")
@@ -129,7 +129,7 @@ def get_user_settings():
 
 
 @user.post('/username/')
-@token_auth.login_required()
+@authenticate(token_auth)
 @body(UsernameSchema)
 @response(UserSchema)
 @other_responses({401: "Unauthorized"})
@@ -193,7 +193,7 @@ def send_reset_password_email(req):
     """
     Send Reset Password Email
     Sends a password reset request email to email sent in the req of the JSON request. \n
-    :return: a success response or failure response depending on the result of the operation
+    Returns: a success response or failure response depending on the result of the operation
     """
     email = req.get("email")
     user_by_email = users_dao.get_user_by_email(email)
@@ -203,14 +203,14 @@ def send_reset_password_email(req):
     return user_by_email
 
 
+@user.get('/self/')
 @authenticate(token_auth)
-@user.post('/self/')
 @response(UserSchema)
 @other_responses({401: "Unauthorized"})
 def get_self():
     """
     Get Self
-    Returns the user object depending on whether the session token is valid. \n
-    If the token_auth is invalid it returns a failure response.
+    Returns: the user object depending on whether the session token is valid. \n
+    If the token_auth is invalid returns a 401 error.
     """
     return token_auth.current_user()
