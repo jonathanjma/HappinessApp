@@ -70,7 +70,6 @@ export default function UserProvider({ children }) {
     }
     localStorage.setItem(Keys.TOKEN, data)
     getUserFromToken()
-    return
   }
 
   /**
@@ -90,7 +89,6 @@ export default function UserProvider({ children }) {
       return
     }
     setUser(UserState.success(data))
-    return
   }
 
   const createUser = (email, username, password) => {

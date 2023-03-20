@@ -6,7 +6,6 @@ import { Keys } from "../../keys"
  * The loading state represents when the object is loading from the backend.
  */
 export class UserState {
-  constructor() { }
   static success(user) {
     return { type: Keys.SUCCESS, user: user }
   }
