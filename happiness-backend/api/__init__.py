@@ -46,7 +46,7 @@ require access token based authentication.
 
 A token can be acquired by sending a `POST` request to the `/api/tokens` endpoint,
 passing the username and password of according to Basic Authentication scheme.
-The access token is included in the response body.
+The access token is included in the response req.
 
 To access API endpoints, the access token should be passed in using the Bearer Authentication scheme.
 

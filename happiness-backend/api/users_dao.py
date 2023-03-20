@@ -35,3 +35,10 @@ def get_all_users():
     Returns information for all users.
     """
     return User.query.all()
+
+
+def get_user_by_session_token(token):
+    """
+    Return a user object from the database given a session token
+    """
+    return User.query.filter(User.session_token == token).first()
