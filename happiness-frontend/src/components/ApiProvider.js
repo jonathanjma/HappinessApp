@@ -10,9 +10,7 @@ export default function ApiProvider({ children }) {
 
   return (
     <ApiContext.Provider value={api}>
-      <QueryClientProvider client={queryClient} value={api}>
-        {children}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </ApiContext.Provider>
   );
 }
