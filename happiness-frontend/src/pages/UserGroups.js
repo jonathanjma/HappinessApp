@@ -1,7 +1,7 @@
 import GroupCard from "../components/GroupCard";
 import NewGroupModal from "../components/NewGroupModal";
 import { useQuery } from "react-query";
-import { useApi } from "../components/ApiProvider";
+import { useApi } from "../contexts/ApiProvider";
 import { Spinner } from "react-bootstrap";
 
 // User Groups Page: view all the groups the user is in
