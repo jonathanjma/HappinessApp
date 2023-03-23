@@ -30,7 +30,7 @@ class UserSchema(ma.SQLAlchemySchema):
     email = ma.Email(required=True)
     password = ma.auto_field(required=True, load_only=True)
     profile_picture = ma.auto_field()
-    settings = ma.Nested(SettingsSchema, many=True, required=True, exclude=("user_id",))
+    settings = ma.Nested(SettingsSchema, many=True, required=True)
 
 class SimpleUserSchema(ma.Schema):
     class Meta:
@@ -100,7 +100,7 @@ class HappinessSchema(ma.SQLAlchemySchema):
         return data
 
 
-class HappinessPutSchema(ma.Schema):
+class HappinessEditSchema(ma.Schema):
     value = ma.Float()
     comment = ma.Str()
 

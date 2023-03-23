@@ -30,11 +30,10 @@ def basic_auth_error(status):
 
 @token_auth.verify_token
 def verify_token(session_token):
-    return User.query.filter_by(id=1).first()
-    # if session_token:
-    #     user = User.query.filter_by(session_token=session_token).first()
-    #     if user and user.verify_session_token():
-    #         return user
+    if session_token:
+        user = User.query.filter_by(session_token=session_token).first()
+        if user and user.verify_session_token():
+            return user
 
 
 @token_auth.error_handler

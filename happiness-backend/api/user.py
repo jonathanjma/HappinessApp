@@ -46,21 +46,21 @@ def create_user(req):
 @user.get('/<int:user_id>')
 @authenticate(token_auth)
 @response(UserSchema, 200)
-@other_responses({404: "Friend not found", 401: "Unauthorized: you do not share a group with this user"})
+@other_responses({404: "User not found.", 403: "You do not share a group with this user."})
 def get_user_by_id(user_id):
     """
     Get User by ID
-    This method gets user information from a user by querying the user by id. \n
-    The req json should have "id": <int: id> passed in. \n
+    This method gets user information from a user by querying the user by id.
+    User must share a group with the user they are viewing. \n
     Returns: JSON of User object containing user information
     """
     current_user = token_auth.current_user()
 
     friend_user = users_dao.get_user_by_id(user_id)
     if friend_user is None:
-        return failure_response("Friend not found")
+        return failure_response("User not found")
     if not current_user.has_mutual_group(friend_user):
-        return failure_response("Unauthorized: you do not share a group with this user", 401)
+        return failure_response("Not Allowed: you do not share a group with this user", 403)
 
     return friend_user
 
@@ -80,25 +80,23 @@ def user_groups():
 @user.delete('/')
 @authenticate(token_auth)
 @response(UserSchema)
-@other_responses({401: "Unauthorized"})
 def delete_user():
     """
     Delete User
-    Deletes the user that is currently logged in, including all user data. \n
-    Returns: A success with serialized user or failure response with the appropriate message.
+    Deletes the user that is currently logged in, including all user data.
     """
     current_user = token_auth.current_user()
     db.session.delete(current_user)
     db.session.commit()
 
-    return current_user
+    return '', 204
 
 
 @user.post('/settings/')
 @authenticate(token_auth)
 @body(SettingInfoSchema)
 @response(SettingsSchema, 201)
-@other_responses({400: "Insufficient setting information provided", 401: "Unauthorized"})
+@other_responses({400: "Insufficient information provided."})
 def add_user_setting(req):
     """
     Add Settings
@@ -132,15 +130,19 @@ def get_user_settings():
 @authenticate(token_auth)
 @body(UsernameSchema)
 @response(UserSchema)
-@other_responses({401: "Unauthorized"})
+@other_responses({400: "Provided data already exists."})
 def change_username(req):
     """
     Change Username \n
-    Changes a user's username to their newly desired username sent in request req. \n
-    Requires json to be passed with username as the key.
+    Changes a user's username to their newly desired username \n
+    Requires: Username is unique.
     """
     new_username = req.get("username")
     current_user = token_auth.current_user()
+
+    similar_user = users_dao.get_user_by_username(new_username)
+    if similar_user is not None:
+        return failure_response("Provide data already exists", 400)
 
     current_user.username = new_username
     db.session.commit()
@@ -206,11 +208,9 @@ def send_reset_password_email(req):
 @user.get('/self/')
 @authenticate(token_auth)
 @response(UserSchema)
-@other_responses({401: "Unauthorized"})
 def get_self():
     """
     Get Self
-    Returns: the user object depending on whether the session token is valid. \n
-    If the token_auth is invalid returns a 401 error.
+    Returns: the user object corresponding to the currently logged in user.
     """
     return token_auth.current_user()
