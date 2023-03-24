@@ -1,4 +1,3 @@
-from apifairy import fields
 from marshmallow import post_dump
 
 from api.app import ma
@@ -8,6 +7,7 @@ from api.models import User, Group, Happiness, Setting
 class SettingsSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Setting
+        ordered = True
 
     id = ma.auto_field(dump_only=True, required=True)
     key = ma.Str(dump_only=True, required=True)
@@ -15,17 +15,30 @@ class SettingsSchema(ma.SQLAlchemySchema):
     user_id = ma.auto_field(dump_only=True, required=True)
 
 
+class SettingInfoSchema(ma.Schema):
+    value = ma.Bool(required=True)
+    key = ma.Str(required=True)
+
+
 class UserSchema(ma.SQLAlchemySchema):
     class Meta:
         model = User
+        ordered = True
 
     id = ma.auto_field(required=True, dump_only=True)
     username = ma.auto_field(required=True)
     email = ma.Email(required=True)
     password = ma.auto_field(required=True, load_only=True)
     profile_picture = ma.auto_field()
-    settings = ma.List(ma.Nested(SettingsSchema))
+    settings = ma.Nested(SettingsSchema, many=True, required=True)
 
+class SimpleUserSchema(ma.Schema):
+    class Meta:
+        ordered = True
+
+    id = ma.Int(required=True)
+    username = ma.Str(required=True)
+    profile_picture = ma.Str(required=True)
 
 class TokenSchema(ma.Schema):
     session_token = ma.Str()
@@ -42,20 +55,11 @@ class UserEmailSchema(ma.Schema):
 class CreateUserSchema(ma.Schema):
     email = ma.Str(required=True)
     username = ma.Str(required=True)
-    password = ma.Str(required=True, load_only=True)
+    password = ma.Str(required=True)
 
 
 class GetUserByIdSchema(ma.Schema):
     id = ma.Integer()
-
-
-class SettingInfoSchema(ma.Schema):
-    value = ma.Bool(required=True)
-    key = ma.Str(required=True)
-
-
-class ManySettingsSchema(ma.Schema):
-    settings = SettingsSchema(many=True)
 
 
 class GroupSchema(ma.SQLAlchemySchema):
@@ -65,7 +69,7 @@ class GroupSchema(ma.SQLAlchemySchema):
 
     id = ma.auto_field(required=True)
     name = ma.auto_field(required=True)
-    users = ma.Nested(UserSchema, many=True, required=True)
+    users = ma.Nested(SimpleUserSchema, many=True, required=True)
 
 
 class CreateGroupSchema(ma.Schema):
@@ -74,15 +78,14 @@ class CreateGroupSchema(ma.Schema):
 
 class EditGroupSchema(ma.Schema):
     new_name = ma.Str()
-    # Add users and remove users only uses an array of usernames, not full user objects.
-    # We represent these as a list of mappings: [{"username": "u1"}, {"username": "u2"}]
-    add_users = ma.List(ma.Mapping())
-    remove_users = ma.List(ma.Mapping())
+    add_users = ma.List(ma.Str(), many=True)
+    remove_users = ma.List(ma.Str(), many=True)
 
 
 class HappinessSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Happiness
+        ordered = True
 
     id = ma.auto_field(dump_only=True)
     user_id = ma.auto_field(dump_only=True)
@@ -97,7 +100,7 @@ class HappinessSchema(ma.SQLAlchemySchema):
         return data
 
 
-class HappinessPutSchema(ma.Schema):
+class HappinessEditSchema(ma.Schema):
     value = ma.Float()
     comment = ma.Str()
 

@@ -29,21 +29,6 @@ def init_client():
 
         yield client, [user1.get_token(), user2.get_token(), user3.get_token()]
 
-
-def test_create_user(init_client):
-    client, tokens = init_client
-    response = client.post('/api/user/', json={
-        'email': 'test@example.com',
-        'username': 'test',
-        'password': 'test'
-    })
-    assert response.status_code == 201
-    user = get_user_by_id(4)
-
-    assert user.email == 'test@example.com'
-    assert user.username == 'test'
-
-
 def test_create_happiness(init_client):
     client, tokens = init_client
     user_create_response = client.post('/api/user/', json={
@@ -113,7 +98,7 @@ def test_edit_delete_happiness(init_client):
     happiness_set_response = client.put('/api/happiness/2', json={
         'value': 6,
     }, headers={"Authorization": f"Bearer {bearer_token}"})
-    # assert happiness_set_response.status_code == 200
+    assert happiness_set_response.status_code == 200
     happiness3 = get_happiness_by_id(2)
     assert happiness3.value == 6
     assert happiness3.comment == 'bad day'
@@ -143,7 +128,7 @@ def test_edit_delete_happiness(init_client):
 
 def test_get_happiness(init_client):
     client, tokens = init_client
-    user_create_response = client.post('/api/user/', json={
+    client.post('/api/user/', json={
         'email': 'test@example.com',
         'username': 'test',
         'password': 'test',
@@ -196,7 +181,7 @@ def test_get_happiness(init_client):
         'timestamp': '2023-01-14'
     },  headers={"Authorization": f"Bearer {tokens[0]}"})
 
-    happiness_get_response = client.get('/api/happiness/', json={
+    happiness_get_response = client.get('/api/happiness/', query_string={
         'start': '2023-01-03',
         'end': '2023-01-13',
     }, headers={"Authorization": f"Bearer {bearer_token}"})
@@ -210,7 +195,7 @@ def test_get_happiness(init_client):
     ]
     assert happiness_get_response.status_code == 200
 
-    happiness_get_response2 = client.get('/api/happiness/', json={
+    happiness_get_response2 = client.get('/api/happiness/', query_string={
         'start': '2023-01-13',
         'id': 4,
     }, headers={"Authorization": f"Bearer {bearer_token}"})
@@ -242,7 +227,7 @@ def test_get_happiness(init_client):
             'timestamp': '2023-01-29', 'user_id': 4, 'value': 9.5}]
     assert happiness_get_response3.status_code == 200
 
-    bad_happiness_get_other_response = client.get('/api/happiness/', json={
+    bad_happiness_get_other_response = client.get('/api/happiness/', query_string={
         'start': '2023-01-02',
         'end': '2023-01-30',
         'id': 0
@@ -253,10 +238,7 @@ def test_get_happiness(init_client):
                      headers={"Authorization": f"Bearer {tokens[0]}"})
     assert bd.status_code == 201
     bda = client.put('/api/group/1', json={
-        'add_users': [
-            {'username': 'user2'},
-            {'username': 'test'}
-        ]
+        'add_users': ['user2', 'test']
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert bda.status_code == 200
 
@@ -264,7 +246,7 @@ def test_get_happiness(init_client):
     id = 4
     assert my_user_obj.has_mutual_group(get_user_by_id(id))
 
-    happiness_get_other_response = client.get('/api/happiness/', json={
+    happiness_get_other_response = client.get('/api/happiness/', query_string={
         'start': '2023-01-02',
         'end': '2023-01-30',
         'id': 1
@@ -278,7 +260,7 @@ def test_get_happiness(init_client):
         'value': 3.0
     }]
 
-    happiness_get_count_response = client.get('/api/happiness/count', json={
+    happiness_get_count_response = client.get('/api/happiness/count', query_string={
         'count': 5,
         'id': 4,
     }, headers={"Authorization": f"Bearer {tokens[1]}"})
@@ -296,8 +278,8 @@ def test_get_happiness(init_client):
             'user_id': 4, 'value': 9.0},
     ]
 
-    happiness_get_count_response2 = client.get('/api/happiness/count', json={
-    }, headers={"Authorization": f"Bearer {bearer_token}"})
+    happiness_get_count_response2 = client.get('/api/happiness/count',
+                                               headers={"Authorization": f"Bearer {bearer_token}"})
     assert happiness_get_count_response2.status_code == 200
     assert happiness_get_count_response2.json == [
         {'comment': 'happiest', 'id': 6,
@@ -314,7 +296,7 @@ def test_get_happiness(init_client):
             'timestamp': '2023-01-11', 'user_id': 4, 'value': 4.0},
     ]
 
-    happiness_get_count_response3 = client.get('/api/happiness/count', json={
+    happiness_get_count_response3 = client.get('/api/happiness/count', query_string={
         'count': 3,
         'page': 2,
         'id': 4
@@ -329,7 +311,7 @@ def test_get_happiness(init_client):
             'timestamp': '2023-01-11', 'user_id': 4, 'value': 4.0},
     ]
 
-    happiness_get_count_response4 = client.get('/api/happiness/count', json={
+    happiness_get_count_response4 = client.get('/api/happiness/count', query_string={
         'count': 10,
         'page': 2,
         'id': 4
@@ -337,7 +319,7 @@ def test_get_happiness(init_client):
     assert happiness_get_count_response4.status_code == 200
     assert happiness_get_count_response4.json == []
 
-    bad_happiness_get_count = client.get('/api/happiness/count', json={
+    bad_happiness_get_count = client.get('/api/happiness/count', query_string={
         'count': 3,
         'page': 2,
         'id': 4

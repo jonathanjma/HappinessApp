@@ -1,10 +1,9 @@
-import os.path
-
 from apifairy import APIFairy
 from flask import Flask, redirect, url_for
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 import api.email_methods as email_methods
 
 from config import Config
@@ -13,6 +12,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 ma = Marshmallow()
 apifairy = APIFairy()
+cors = CORS()
 
 # noinspection PyUnresolvedReferences
 
@@ -29,6 +29,7 @@ def create_app(config=Config):
     ma.init_app(app)
     apifairy.init_app(app)
     email_methods.init_app(app)
+    cors.init_app(app)
 
     from api.user import user
     app.register_blueprint(user, url_prefix='/api/user')

@@ -50,8 +50,12 @@ class User(db.Model):
         self.password = bcrypt.hashpw(kwargs.get("password").encode("utf8"),
                                       bcrypt.gensalt(rounds=13))
         self.username = kwargs.get("username")
-        self.profile_picture = kwargs.get("profile_picture", "default")
+        self.profile_picture = kwargs.get("profile_picture", self.avatar_url())
         self.get_token()
+
+    def avatar_url(self):
+        digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+        return f'https://www.gravatar.com/avatar/{digest}?d=identicon'
 
     def serialize(self):
         """
@@ -165,7 +169,7 @@ class Group(db.Model):
         """
         for username in new_users:
             user = User.query.filter(User.username == username).first()
-            if user not in self.users:
+            if user is not None and user not in self.users:
                 self.users.append(user)
 
     def remove_users(self, users_to_remove):
@@ -175,7 +179,7 @@ class Group(db.Model):
         """
         for username in users_to_remove:
             user = User.query.filter(User.username == username).first()
-            if user in self.users:
+            if user is not None and user in self.users:
                 self.users.remove(user)
 
     def serialize(self):
