@@ -115,11 +115,16 @@ export default function MonthView(props) {
           </table>
         </div>
         <div className="w-full flex flex-wrap justify-center max-w-[550px] lg:w-1/3 lg:mx-6 -mt-4">
-            <OldHistoryCard id={1} data={Users(1).data[3]} shown={true} useDate={true} />
-            <div className="w-full justify-center my-4 hidden lg:flex flex-wrap">
-              <Stat id={1} val={0} />
-              <Stat id={1} val={1} />
-            </div>
+          <OldHistoryCard
+            id={1}
+            data={Users(1).data[3]}
+            shown={true}
+            useDate={true}
+          />
+          <div className="w-full justify-center my-4 hidden lg:flex">
+            <Stat id={1} val={0} />
+            <Stat id={1} val={1} />
+          </div>
         </div>
       </div>
     </>
