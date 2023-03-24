@@ -1,4 +1,4 @@
-import { Keys } from "../../keys"
+import { Keys } from "../keys"
 /**
  * The user state represents the state of loading the current user from the backend.
  * A success state represents when the user is logged in and returns the user object.

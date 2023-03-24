@@ -4,7 +4,7 @@ import ChartPreview from "./ChartPreview";
 import LineChart from "./LineChart";
 import DayPreview from "./DayPreview";
 
-function IndexData(ids) {
+function IndexData(data, names) {
   // constructs array of data values based on given indices for the LineChart
   let colors = [
     "blue",
@@ -24,10 +24,10 @@ function IndexData(ids) {
     "indigo",
   ];
   var selectedData = [];
-  ids.map((i, t) => {
+  data.map((i, t) => {
     selectedData.push({
-      label: Users(i).name,
-      data: Users(i).data.map((e) => e.level),
+      label: names[t],
+      data: i.map((e) => e.level),
       tension: 0.4,
       borderColor: colors[t % 15],
     });
@@ -41,9 +41,9 @@ export default function Graph(props) {
   const [chartData, setChartData] = useState({
     name: props.name,
     time: props.time,
-    ids: props.index,
-    labels: Users(props.id).data.map((e) => e.date),
-    datasets: IndexData(props.index),
+    ids: props.data.map((e) => e.user_id),
+    labels: props.data[0].timestamp.map((e) => e.slice(5).split("-").join("/")),
+    datasets: IndexData(props.data, props.names),
   });
   const [cShow, setCShow] = useState(false);
   const [dShow, setDShow] = useState(false);
