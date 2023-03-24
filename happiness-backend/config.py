@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 load_dotenv()
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-
 class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
                               'sqlite:///' + os.path.join(basedir, 'app.db')
@@ -26,7 +25,6 @@ class Config:
     MAIL_USE_SSL = True
     MAIL_USERNAME = "cu.happiness.app@gmail.com"
     MAIL_PASSWORD = os.environ.get("SECRET_APP_PASSWORD")
-    SERVER_NAME = "localhost:5000"
 
 class TestConfig:
     TESTING = True

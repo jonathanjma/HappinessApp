@@ -1,4 +1,4 @@
-from apifairy import authenticate, response
+from apifairy import authenticate, response, body, other_responses
 from flask import Blueprint
 from flask import json, request
 
@@ -7,7 +7,8 @@ from api import email_methods
 from api.app import db
 from api.models import User, Setting
 from api.responses import success_response, failure_response
-from api.schema import GroupSchema
+from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
+    UsernameSchema, UserEmailSchema
 from api.token import token_auth
 
 import threading
@@ -16,53 +17,52 @@ user = Blueprint('user', __name__)
 
 
 @user.post('/')
-def create_user():
+@body(CreateUserSchema)
+@response(UserSchema, 201)
+@other_responses({400: "Provided data already exists."})
+def create_user(req):
     """
     Create User
-    Registers a new user given an email, username, and password \n
-    Requires: email and username are unique
+    Registers a new user given an email, username, and password. \n
+    Requires: Email and username are unique. \n
+    Returns: JSON representation of User object.
     """
-    body = json.loads(request.data)
-    email, username, password = body.get(
-        "email"), body.get("username"), body.get("password")
-    if username is None or email is None or password is None:
-        return failure_response("Insufficient information", 400)
+    email, username, password = req.get(
+        "email"), req.get("username"), req.get("password")
 
     similar_user = users_dao.get_user_by_email(email)
     if similar_user is not None:
-        return failure_response("An account has already been made with this email.", 400)
+        return failure_response("Provided data already exists", 400)
     similar_user = users_dao.get_user_by_username(username)
     if similar_user is not None:
-        return failure_response("Username is already taken.", 400)
+        return failure_response("Provide data already exists", 400)
     current_user = User(email=email, password=password, username=username)
     db.session.add(current_user)
     db.session.commit()
 
-    return success_response({"user": current_user.serialize()}, 201)
+    return current_user
 
 
 @user.get('/<int:user_id>')
 @authenticate(token_auth)
+@response(UserSchema, 200)
+@other_responses({404: "User not found.", 403: "You do not share a group with this user."})
 def get_user_by_id(user_id):
     """
-    Get by ID
-    This method gets user information from a user by querying the user by id. \n
-    The body json should have "id": <int: id> passed in. \n
+    Get User by ID
+    This method gets user information from a user by querying the user by id.
+    User must share a group with the user they are viewing. \n
     Returns: JSON of User object containing user information
     """
     current_user = token_auth.current_user()
 
     friend_user = users_dao.get_user_by_id(user_id)
     if friend_user is None:
-        return failure_response("Friend not found")
+        return failure_response("User not found")
     if not current_user.has_mutual_group(friend_user):
-        return failure_response("Unauthorized: you do not share a group with this user", 401)
+        return failure_response("Not Allowed: you do not share a group with this user", 403)
 
-    return success_response({
-        "id": user_id,
-        "username": friend_user.username,
-        "profile_picture": friend_user.profile_picture,
-    })
+    return friend_user
 
 
 @user.get('/groups')
@@ -79,41 +79,42 @@ def user_groups():
 
 @user.delete('/')
 @authenticate(token_auth)
+@response(UserSchema)
 def delete_user():
     """
     Delete User
-    Deletes the user that is currently logged in, including all user data. \n
-    Returns: A success with serialized user or failure response with the appropriate message.
+    Deletes the user that is currently logged in, including all user data.
     """
     current_user = token_auth.current_user()
     db.session.delete(current_user)
     db.session.commit()
 
-    return success_response(current_user.serialize(), 200)
+    return '', 204
 
 
 @user.post('/settings/')
 @authenticate(token_auth)
-def add_user_setting():
+@body(SettingInfoSchema)
+@response(SettingsSchema, 201)
+@other_responses({400: "Insufficient information provided."})
+def add_user_setting(req):
     """
     Add Settings
     Adds a setting to the current user's property bag. \n
     Returns: A JSON success response that contains the added setting, or a failure response.
     """
-    body = json.loads(request.data)
     current_user = token_auth.current_user()
-    key, value = body.get("key"), body.get("value")
-    if key is None or value is None:
-        return failure_response("Insufficient setting information provided", 400)
+    key, value = req.get("key"), req.get("value")
     setting = Setting(key=key, value=value, user_id=current_user.id)
     db.session.add(setting)
     db.session.commit()
 
-    return success_response(setting.serialize(), 201)
+    return setting
 
 
 @user.get('/settings/')
 @authenticate(token_auth)
+@response(SettingsSchema(many=True))
 def get_user_settings():
     """
     Get Settings
@@ -122,41 +123,44 @@ def get_user_settings():
     """
     current_user = token_auth.current_user()
     settings = Setting.query.filter(Setting.user_id == current_user.id).all()
-    return success_response({
-        "settings": [(s.key, s.value) for s in settings]
-    })
+    return settings
 
 
 @user.post('/username/')
-@token_auth.login_required()
-def change_username():
+@authenticate(token_auth)
+@body(UsernameSchema)
+@response(UserSchema)
+@other_responses({400: "Provided data already exists."})
+def change_username(req):
     """
-    Changes a user's username to their newly desired username sent in request body.
-    Requires json to be passed with username as the key.
+    Change Username \n
+    Changes a user's username to their newly desired username \n
+    Requires: Username is unique.
     """
-    body = json.loads(request.data)
-    new_username = body.get("username")
+    new_username = req.get("username")
     current_user = token_auth.current_user()
-    if new_username is None:
-        return failure_response("New username not provided", 400)
+
+    similar_user = users_dao.get_user_by_username(new_username)
+    if similar_user is not None:
+        return failure_response("Provide data already exists", 400)
+
     current_user.username = new_username
     db.session.commit()
-    return success_response({
-        "username": current_user.username
-    })
+    return current_user
 
 
 @user.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     """
+    Reset Password from Token
     IMPORTANT:
-    This function was written under the assumption that when the user receives a verify password email,
-    they would be redirected to a page where they are prompted to enter a new password. Then from this page they
-    make a post request to the backend with their new intended password. For a get request, the route currently
-    shows a basic success response. This will be replaced with the front-end page to reset your password.
+    This function was written under the assumption that when the user receives a verify password email, \n
+    they would be redirected to a page where they are prompted to enter a new password. Then from this page they \n
+    make a post request to the backend with their new intended password. For a get request, the route currently \n
+    shows a basic success response. This will be replaced with the front-end page to reset your password. \n \n
 
-    This route is not included in testing as it is very difficult to automate since it uses emails. However it has
-    been tested using Postman and should work properly.
+    This route is not included in testing as it is very difficult to automate since it uses emails. \n
+    However, it has been tested using Postman and should work properly.
     """
     if request.method == "POST":
         # Reset password to desired password
@@ -173,7 +177,7 @@ def reset_password(token):
             db.session.commit()
             return success_response({
                 "user": current_user.serialize(),
-                "password hash": str(current_user.password_digest)
+                "password hash": str(current_user.password)
             })
     else:
         # Display password reset page, this allows user to post new password to this request.
@@ -184,19 +188,29 @@ def reset_password(token):
 
 
 @user.post('/initiate_password_reset/')
-def send_reset_password_email():
+@body(UserEmailSchema)
+@response(UserSchema)
+@other_responses({404: "User associated with email address not found"})
+def send_reset_password_email(req):
     """
-    Sends a password reset request email to email sent in the body of the JSON request.
-    :return: a success response or failure response depending on the result of the operation
+    Send Reset Password Email
+    Sends a password reset request email to email sent in the req of the JSON request. \n
+    Returns: a success response or failure response depending on the result of the operation
     """
-    body = json.loads(request.data)
-    email = body.get("email")
-    if email is None:
-        return failure_response("Need an email to send password reset link.", 400)
+    email = req.get("email")
     user_by_email = users_dao.get_user_by_email(email)
     if user_by_email is None:
-        return failure_response("User associated email not found")
+        return failure_response("User associated with email address not found")
     threading.Thread(target=email_methods.send_password_reset_email, args=(user_by_email,)).start()
-    return success_response({
-        "user": user_by_email.serialize()
-    })
+    return user_by_email
+
+
+@user.get('/self/')
+@authenticate(token_auth)
+@response(UserSchema)
+def get_self():
+    """
+    Get Self
+    Returns: the user object corresponding to the currently logged in user.
+    """
+    return token_auth.current_user()

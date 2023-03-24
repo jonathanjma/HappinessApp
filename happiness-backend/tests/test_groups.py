@@ -74,10 +74,7 @@ def test_edit_group(init_client):
     assert name_edit.json['name'] == get_group_by_id(1).name == 'successful'
 
     add_users = client.put('/api/group/1', json={
-        'add_users': [
-            {'username': 'user2'},
-            {'username': 'user3'}
-        ]
+        'add_users': ['user2', 'user3']
     }, headers=auth_header(tokens[0]))
     assert add_users.status_code == 200
     assert len(add_users.json['users']) == len(get_group_by_id(1).users) == 3
@@ -85,10 +82,7 @@ def test_edit_group(init_client):
     assert in_group_json('user3', add_users.json) and in_group_modal('user3', get_group_by_id(1))
 
     remove_users = client.put('/api/group/1', json={
-        'remove_users': [
-            {'username': 'user1'},
-            {'username': 'user2'}
-        ]
+        'remove_users': ['user1', 'user2']
     }, headers=auth_header(tokens[0]))
     assert remove_users.status_code == 200
     assert len(remove_users.json['users']) == len(get_group_by_id(1).users) == 1
@@ -98,9 +92,7 @@ def test_edit_group(init_client):
                                                                                 get_group_by_id(1))
 
     remove_last_user = client.put('/api/group/1', json={
-        'remove_users': [
-            {'username': 'user3'},
-        ]
+        'remove_users': ['user3']
     }, headers=auth_header(tokens[2]))
     assert remove_last_user.status_code == 200
     assert get_group_by_id(1) is None
@@ -111,7 +103,7 @@ def test_group_info(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': ':-)'}, headers=auth_header(tokens[0]))
     client.put('/api/group/1', json={
-        'add_users': [{'username': 'user2'}]
+        'add_users': ['user2']
     }, headers=auth_header(tokens[0]))
 
     bad_view = client.get('/api/group/1', headers=auth_header(tokens[2]))
@@ -127,7 +119,7 @@ def test_group_delete(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': ':-)'}, headers=auth_header(tokens[0]))
     client.put('/api/group/1', json={
-        'add_users': [{'username': 'user2'}]
+        'add_users': ['user2']
     }, headers=auth_header(tokens[0]))
     assert in_user_modal(1, get_user_by_id(1)) and in_user_modal(1, get_user_by_id(2))
 
@@ -144,7 +136,7 @@ def test_group_happiness(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': ':-)'}, headers=auth_header(tokens[0]))
     client.put('/api/group/1', json={
-        'add_users': [{'username': 'user2'}]
+        'add_users': ['user2']
     }, headers=auth_header(tokens[0]))
 
     happiness_in = []
@@ -156,19 +148,19 @@ def test_group_happiness(init_client):
     db.session.add_all(happiness_in)
     db.session.commit()
 
-    get_group_happiness = client.get('/api/group/1/happiness', json={
+    get_group_happiness = client.get('/api/group/1/happiness', query_string={
         'count': 30
     }, headers=auth_header(tokens[0]))
     assert get_group_happiness.status_code == 200
     assert len(get_group_happiness.json) == 14
 
-    get_group_happiness_paginate = client.get('/api/group/1/happiness', json={
+    get_group_happiness_paginate = client.get('/api/group/1/happiness', query_string={
         'count': 10,
         'page': 1
     }, headers=auth_header(tokens[0]))
     assert len(get_group_happiness_paginate.json) == 10
 
-    get_group_happiness_paginate2 = client.get('/api/group/1/happiness', json={
+    get_group_happiness_paginate2 = client.get('/api/group/1/happiness', query_string={
         'count': 10,
         'page': 2
     }, headers=auth_header(tokens[0]))

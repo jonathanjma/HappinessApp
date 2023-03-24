@@ -26,7 +26,7 @@ class User(db.Model):
     # User information
     email = db.Column(db.String, nullable=False, unique=True)
     username = db.Column(db.String, nullable=False, unique=True)
-    password_digest = db.Column(db.String, nullable=False)
+    password = db.Column(db.String, nullable=False)
     # Will represent an AWS URL
     profile_picture = db.Column(db.String, nullable=False)
     # If the user has not yet set a profile picture the field gets set to "default"
@@ -47,11 +47,15 @@ class User(db.Model):
         self.email = kwargs.get("email")
 
         # Convert raw password into encrypted string that can still be decrypted, but we cannot decrypt it.
-        self.password_digest = bcrypt.hashpw(kwargs.get("password").encode("utf8"),
-                                             bcrypt.gensalt(rounds=13))
+        self.password = bcrypt.hashpw(kwargs.get("password").encode("utf8"),
+                                      bcrypt.gensalt(rounds=13))
         self.username = kwargs.get("username")
-        self.profile_picture = kwargs.get("profile_picture", "default")
+        self.profile_picture = kwargs.get("profile_picture", self.avatar_url())
         self.get_token()
+
+    def avatar_url(self):
+        digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+        return f'https://www.gravatar.com/avatar/{digest}?d=identicon'
 
     def serialize(self):
         """
@@ -69,7 +73,7 @@ class User(db.Model):
         """
         Verifies the password of a user
         """
-        return bcrypt.checkpw(password.encode("utf8"), self.password_digest)
+        return bcrypt.checkpw(password.encode("utf8"), self.password)
 
     def _urlsafe_base_64(self):
         """
@@ -165,7 +169,7 @@ class Group(db.Model):
         """
         for username in new_users:
             user = User.query.filter(User.username == username).first()
-            if user not in self.users:
+            if user is not None and user not in self.users:
                 self.users.append(user)
 
     def remove_users(self, users_to_remove):
@@ -175,7 +179,7 @@ class Group(db.Model):
         """
         for username in users_to_remove:
             user = User.query.filter(User.username == username).first()
-            if user in self.users:
+            if user is not None and user in self.users:
                 self.users.remove(user)
 
     def serialize(self):

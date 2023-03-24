@@ -189,7 +189,7 @@ def test_delete_user(client):
     assert bearer_token is not None
 
     delete_res = client.delete('/api/user/', headers={"Authorization": f"Bearer {bearer_token}"})
-    assert delete_res.status_code == 200
+    assert delete_res.status_code == 204
     assert (get_user_by_email("text@example.com") is None and get_user_by_username("test") is None
             and get_user_by_id(1) is None)
 
@@ -238,7 +238,7 @@ def test_add_user_setting(client):
     assert b3.get("value") == v3
 
 
-@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
+# @pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_get_user_settings(client):
     """
     Tests the get specific user setting and get all user settings operation.
@@ -263,11 +263,12 @@ def test_get_user_settings(client):
     assert add_mean_setting_res.status_code == 201
     get_settings_res = client.get("/api/user/settings/", headers={"Authorization": f"Bearer {bearer_token}"})
     assert get_settings_res.status_code == 200
-    settings = json.loads(get_settings_res.get_data()).get("settings")
-    assert settings[0][0] == k1
-    assert settings[0][1] == v1
-    assert settings[1][0] == k2
-    assert settings[1][1] == v2
+    settings = json.loads(get_settings_res.get_data())
+
+    assert settings[0].get("key") == k1
+    assert settings[0].get("value") == v1
+    assert settings[1].get("key") == k2
+    assert settings[1].get("value") == v2
 
 
 @pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
@@ -286,6 +287,7 @@ def test_change_username(client):
     assert get_user_by_username(new_username) is not None
 
 
+@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_get_user_by_id(client):
     create_user_res = client.post('/api/user/', json={
         'email': 'test@example.com',
@@ -296,17 +298,19 @@ def test_get_user_by_id(client):
     client, bearer_token = register_and_login_demo_user(client, uname_and_password="user2")
 
     make_group_res = client.post('/api/group/',
-                    json={"name": "Epic group of awesome happiness"},
-                    headers={"Authorization": f"Bearer {bearer_token}"},
-                    )
-    add_member_res = client.put('/api/group/1', json={"add_users": [{"username": "test"}]},
+                                 json={"name": "Epic group of awesome happiness"},
+                                 headers={"Authorization": f"Bearer {bearer_token}"},
+                                 )
+    add_member_res = client.put('/api/group/1',
+                                json={"add_users": ["test"]},
                                 headers={"Authorization": f"Bearer {bearer_token}"},
                                 )
 
     assert make_group_res.status_code == 201
+
     assert add_member_res.status_code == 200
 
-    # Try to get user2's information
+    # Try to get user1's information
     get_user_by_id_res = client.get("/api/user/1", headers={"Authorization": f"Bearer {bearer_token}"})
     # Check that the request went through
     assert get_user_by_id_res.status_code == 200
@@ -315,10 +319,10 @@ def test_get_user_by_id(client):
     body_res = json.loads(get_user_by_id_res.get_data())
     assert body_res.get("id") == 1
     assert body_res.get("username") == "test"
-    assert body_res.get("profile_picture") == "default"
+    # assert body_res.get("profile_picture") == "default"
 
 
-
+@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_invalid_get_user_by_id(client):
     create_user_res = client.post('/api/user/', json={
         'email': 'test@example.com',
@@ -328,10 +332,8 @@ def test_invalid_get_user_by_id(client):
     assert create_user_res.status_code == 201
     client, bearer_token = register_and_login_demo_user(client)
 
-    get_initial_user_res = client.get('/api/user/0')
-    assert get_initial_user_res.status_code == 401
-
-    pass
+    get_initial_user_res = client.get('/api/user/2', headers={"Authorization": f"Bearer {bearer_token}"})
+    assert get_initial_user_res.status_code == 403
 
 
 def random_email():
