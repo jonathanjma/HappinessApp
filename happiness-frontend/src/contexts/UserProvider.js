@@ -1,11 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
-import { useApi } from "../components/ApiProvider";
+import { createContext, useContext, useState, useEffect } from "react";
+import { useApi } from "./ApiProvider";
 import { Keys } from "../keys";
 import { useQuery } from "react-query";
 import { UserState } from "../models/UserState";
@@ -22,35 +16,27 @@ const UserContext = createContext();
 export default function UserProvider({ children }) {
   const [user, setUser] = useState(UserState.loading());
   const api = useApi();
-  const authorizationHeader = {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem(Keys.TOKEN)}`,
-    },
-  };
+
   const loginHeader = (username, password) => {
     return {
       headers: {
-        Authorization: `Basic ${Buffer.from(`${username}:${password}`).toString(
-          "base64"
-        )}`,
+        Authorization: "Basic " + btoa(`${username}:${password}`),
       },
     };
   };
 
-  // This works only **theoretically**
   // On initialization:
   useEffect(() => {
-    (async () => {
-      if (localStorage.getItem(Keys.TOKEN) != null) {
-        getUserFromToken();
-      }
-    })();
+    if (localStorage.getItem(Keys.TOKEN) == null) {
+      GetUserFromToken();
+    }
   }, [api]);
 
   /**
    * Precondition: the user is logged in.
    */
-  const logout = useCallback(async () => {
+  function Logout() {
+    // TODO: broken
     const { isLoading, error, data } = useQuery(
       `${localStorage.getItem(Keys.TOKEN)} logout`,
       () => api.delete("/token/").then((res) => res)
@@ -64,51 +50,38 @@ export default function UserProvider({ children }) {
     }
     localStorage.setItem(Keys.TOKEN, "");
     setUser(UserState.error());
-  }, [api]);
+  }
 
-  const login = (username, password) => {
-    const { isLoading, error, data } = useQuery(
-      `${localStorage.getItem(Keys.TOKEN)} login`,
-      () =>
-        api
-          .get("/token/", loginHeader(username, password))
-          .then((res) => res.data)
-    );
+  function Login(username, password) {
+    setUser(UserState.loading());
+    console.log("trying login");
 
-    if (error) {
-      setUser(UserState.error());
-      return;
-    }
-    if (isLoading) {
-      setUser(UserState.loading());
-      return;
-    }
-    localStorage.setItem(Keys.TOKEN, data);
-    getUserFromToken();
-  };
+    api
+      .post("/token/", {}, loginHeader(username, password))
+      .then((res) => {
+        setUser(UserState.success(res.data));
+        localStorage.setItem(Keys.TOKEN, res.data["session_token"]);
+        GetUserFromToken();
+      })
+      .catch((err) => setUser(UserState.error()));
+  }
 
   /**
    * Precondition: the lcoal storage must have a valid token.
    * Postcondition: the user object is either null, or has data.
    */
-  const getUserFromToken = () => {
-    const { isLoading, error, data } = useQuery(
-      `${localStorage.getItem(Keys.TOKEN)}`,
-      () => api.get("/user/self/", authorizationHeader).then((res) => res.data)
-    );
+  function GetUserFromToken() {
+    setUser(UserState.loading());
+    console.log("checking token");
 
-    if (error) {
-      setUser(UserState.error());
-      return;
-    }
-    if (isLoading) {
-      setUser(UserState.loading());
-      return;
-    }
-    setUser(UserState.success(data));
-  };
+    api
+      .get("/user/self/")
+      .then((res) => setUser(UserState.success(res.data)))
+      .catch((err) => setUser(UserState.error()));
+  }
 
-  const createUser = (email, username, password) => {
+  function CreateUser(email, username, password) {
+    // TODO: broken
     const { isLoading, error, data } = useQuery(`${username} CREATE`, () =>
       api
         .post("/user/", {
@@ -126,13 +99,14 @@ export default function UserProvider({ children }) {
       setUser(UserState.error());
     }
     localStorage.setItem(Keys.TOKEN, data);
-    login(username, password);
-  };
+    Login(username, password);
+  }
 
-  const deleteUser = () => {
+  function DeleteUser() {
+    // TODO: broken
     const { isLoading, error, data } = useQuery(
       `${localStorage.getItem(Keys.TOKEN)} DELETE`,
-      api.delete("/user/", authorizationHeader).then((res) => res.data)
+      api.delete("/user/").then((res) => res.data)
     );
 
     if (error) {
@@ -149,10 +123,10 @@ export default function UserProvider({ children }) {
     if (data === user) {
       setUser(UserState.error());
     }
-  };
+  }
 
   return (
-    <UserContext.Provider value={{ user, setUser, login, logout }}>
+    <UserContext.Provider value={{ user, setUser, Login, Logout }}>
       {children}
     </UserContext.Provider>
   );

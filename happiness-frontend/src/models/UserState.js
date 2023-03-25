@@ -1,4 +1,4 @@
-import { Keys } from "../keys"
+import { Keys } from "../keys";
 /**
  * The user state represents the state of loading the current user from the backend.
  * A success state represents when the user is logged in and returns the user object.
@@ -7,12 +7,12 @@ import { Keys } from "../keys"
  */
 export class UserState {
   static success(user) {
-    return { type: Keys.SUCCESS, user: user }
+    return { type: Keys.SUCCESS, user: user };
   }
   static error() {
-    return { type: Keys.ERROR }
+    return { type: Keys.ERROR };
   }
   static loading() {
-    return { type: Keys.LOADING }
+    return { type: Keys.LOADING };
   }
 }
