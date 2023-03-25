@@ -16,34 +16,27 @@ const UserContext = createContext();
 export default function UserProvider({ children }) {
   const [user, setUser] = useState(UserState.loading());
   const api = useApi();
-  const authorizationHeader = {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem(Keys.TOKEN)}`,
-    },
-  };
+
   const loginHeader = (username, password) => {
     return {
       headers: {
-        Authorization:
-          "Basic" + Buffer.from(`${username}:${password}`).toString("base64"),
+        Authorization: "Basic " + btoa(`${username}:${password}`),
       },
     };
   };
 
-  // This works only **theoretically**
   // On initialization:
   useEffect(() => {
-    (async () => {
-      if (localStorage.getItem(Keys.TOKEN) != null) {
-        GetUserFromToken();
-      }
-    })();
+    if (localStorage.getItem(Keys.TOKEN) == null) {
+      GetUserFromToken();
+    }
   }, [api]);
 
   /**
    * Precondition: the user is logged in.
    */
   function Logout() {
+    // TODO: broken
     const { isLoading, error, data } = useQuery(
       `${localStorage.getItem(Keys.TOKEN)} logout`,
       () => api.delete("/token/").then((res) => res)
@@ -60,24 +53,17 @@ export default function UserProvider({ children }) {
   }
 
   function Login(username, password) {
-    const { isLoading, error, data } = useQuery(
-      `${localStorage.getItem(Keys.TOKEN)} login`,
-      () =>
-        api
-          .get("/token/", loginHeader(username, password))
-          .then((res) => res.data)
-    );
+    setUser(UserState.loading());
+    console.log("trying login");
 
-    if (error) {
-      setUser(UserState.error());
-      return;
-    }
-    if (isLoading) {
-      setUser(UserState.loading());
-      return;
-    }
-    localStorage.setItem(Keys.TOKEN, data);
-    GetUserFromToken();
+    api
+      .post("/token/", {}, loginHeader(username, password))
+      .then((res) => {
+        setUser(UserState.success(res.data));
+        localStorage.setItem(Keys.TOKEN, res.data["session_token"]);
+        GetUserFromToken();
+      })
+      .catch((err) => setUser(UserState.error()));
   }
 
   /**
@@ -85,23 +71,17 @@ export default function UserProvider({ children }) {
    * Postcondition: the user object is either null, or has data.
    */
   function GetUserFromToken() {
-    const { isLoading, error, data } = useQuery(
-      `${localStorage.getItem(Keys.TOKEN)}`,
-      () => api.get("/user/self/", authorizationHeader).then((res) => res.data)
-    );
+    setUser(UserState.loading());
+    console.log("checking token");
 
-    if (error) {
-      setUser(UserState.error());
-      return;
-    }
-    if (isLoading) {
-      setUser(UserState.loading());
-      return;
-    }
-    setUser(UserState.success(data));
+    api
+      .get("/user/self/")
+      .then((res) => setUser(UserState.success(res.data)))
+      .catch((err) => setUser(UserState.error()));
   }
 
   function CreateUser(email, username, password) {
+    // TODO: broken
     const { isLoading, error, data } = useQuery(`${username} CREATE`, () =>
       api
         .post("/user/", {
@@ -123,9 +103,10 @@ export default function UserProvider({ children }) {
   }
 
   function DeleteUser() {
+    // TODO: broken
     const { isLoading, error, data } = useQuery(
       `${localStorage.getItem(Keys.TOKEN)} DELETE`,
-      api.delete("/user/", authorizationHeader).then((res) => res.data)
+      api.delete("/user/").then((res) => res.data)
     );
 
     if (error) {
