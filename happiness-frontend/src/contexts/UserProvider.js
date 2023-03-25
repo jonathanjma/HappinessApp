@@ -29,7 +29,7 @@ export default function UserProvider({ children }) {
   useEffect(() => {
     if (localStorage.getItem(Keys.TOKEN) == null) {
       GetUserFromToken();
-    }
+    } else console.log("hi");
   }, [api]);
 
   /**

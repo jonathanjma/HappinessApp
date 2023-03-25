@@ -10,28 +10,49 @@ import { Spinner } from "react-bootstrap";
 import { useUser } from "../contexts/UserProvider";
 
 export default function Statistics(props) {
+  const { user: userState } = useUser();
+  console.log("me");
+  const me = userState.user;
+  console.log(userState);
+  console.log(me);
+
   const lastWk = new Date();
   lastWk.setDate(lastWk.getDate() - 7);
+
+  lastWk.setDate(21);
+  lastWk.setMonth(11);
+  lastWk.setFullYear(2022);
+  lastWk.toISOString().substring(0, 10);
+
   const lastMt = new Date();
   lastMt.setMonth(lastMt.getMonth() - 1);
 
+  lastMt.setDate(10);
+  lastMt.setMonth(10);
+  lastMt.setFullYear(2022);
+
   const api = useApi();
-  const weekData = {
-    start: lastWk.toISOString().substring(0, 10),
-    id: props.id,
-  };
-  const monthData = {
-    start: lastMt.toISOString().substring(0, 10),
-    id: props.id,
-  };
-  const { isLoadingH, isErrorH, dataH, errorH } = useQuery(
-    "stats happiness data",
-    () => api.get("/happiness/", weekData).then((res) => res.body)
+  const weekData = lastWk.toISOString().substring(0, 10);
+  const monthData = lastMt.toISOString().substring(0, 10);
+  const {
+    isLoading: isLoadingH,
+    data: dataH,
+    error: errorH,
+  } = useQuery("stats happiness data", () =>
+    api
+      .get("/happiness/?id=" + 1 + "&start=" + weekData + "&end=2022-12-31")
+      .then((res) => res.data)
   );
-  const { isLoadingHM, isErrorHM, dataHM, errorHM } = useQuery(
-    "stats monthly happiness data",
-    () => api.get("/happiness/", monthData).then((res) => res.body())
+  const {
+    isLoading: isLoadingHM,
+    data: dataHM,
+    error: errorHM,
+  } = useQuery("stats monthly happiness data", () =>
+    api
+      .get("/happiness/?id=" + 1 + "&start=" + monthData + "&end=2022-12-10")
+      .then((res) => res.data)
   );
+
   // const { isLoadingU, isErrorU, dataU, errorU } = useQuery(
   //   "stats user data",
   //   () => api.get("/user/" + props.id).then((res) => res.body)
@@ -55,11 +76,10 @@ export default function Statistics(props) {
     { value: true, key: 3 },
     { value: true, key: 4 },
     { value: true, key: 5 },
-    { value: false, key: 6 },
-    { value: false, key: 7 },
-    { value: false, key: 8 },
+    { value: true, key: 6 },
+    { value: true, key: 7 },
+    { value: true, key: 8 },
   ];
-  const me = useUser();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const names = [me.username];
 
@@ -118,7 +138,7 @@ export default function Statistics(props) {
                         ) : (
                           <Graph
                             data={dataH}
-                            names={names}
+                            names={[me.username]}
                             time="Weekly"
                             id={me.id}
                           />
@@ -148,7 +168,7 @@ export default function Statistics(props) {
                             if (e.value) {
                               return (
                                 <Stat
-                                  data={dataH.map((e) => e.map((f) => f.value))}
+                                  data={dataH.map((e) => e.value)}
                                   key={e.key}
                                   val={e.key}
                                 />
@@ -184,7 +204,7 @@ export default function Statistics(props) {
                         ) : (
                           <Graph
                             data={dataHM}
-                            names={names}
+                            names={[me.username]}
                             time="Monthly"
                             id={me.id}
                           />
@@ -214,9 +234,7 @@ export default function Statistics(props) {
                             if (e.value) {
                               return (
                                 <Stat
-                                  data={dataHM.map((e) =>
-                                    e.map((f) => f.value)
-                                  )}
+                                  data={dataHM.map((e) => e.value)}
                                   key={e.key}
                                   val={e.key}
                                 />

@@ -25,9 +25,11 @@ function IndexData(data, names) {
   ];
   var selectedData = [];
   data.map((i, t) => {
+    console.log("forming data");
+    console.log(i);
     selectedData.push({
       label: names[t],
-      data: i.map((e) => e.level),
+      data: i.map((e) => e.value),
       tension: 0.4,
       borderColor: colors[t % 15],
     });
@@ -38,12 +40,37 @@ function IndexData(data, names) {
 
 // exports graph element with embedded chart and title
 export default function Graph(props) {
+  let datas = props.data;
+  // console.log("checking sort");
+  // console.log(datas);
+  datas.sort((a, b) => a.timestamp - b.timestamp);
+  // console.log(datas);
+  datas.sort((a, b) => a.user_id - b.user_id);
+  // console.log(datas);
+  const formatted = Array();
+  let seen = [];
+  let ctr = -1;
+  for (let k = 0; k < datas.length; k++) {
+    if (!seen.includes(datas[k].user_id)) {
+      ctr++;
+      formatted.push([datas[k]]);
+      seen.push(datas[k].user_id);
+    } else {
+      formatted[ctr].push(datas[k]);
+    }
+  }
+  console.log("time");
+  console.log(props.time);
+  console.log(formatted[0]);
+  console.log(
+    formatted[0].map((e) => e.timestamp.slice(5).split("-").join("/"))
+  );
   const [chartData, setChartData] = useState({
-    name: props.name,
+    name: props.names,
     time: props.time,
-    ids: props.data.map((e) => e.user_id),
-    labels: props.data[0].timestamp.map((e) => e.slice(5).split("-").join("/")),
-    datasets: IndexData(props.data, props.names),
+    ids: formatted.map((e) => e.user_id),
+    labels: formatted[0].map((e) => e.timestamp.slice(5).split("-").join("/")),
+    datasets: IndexData(formatted, props.names),
   });
   const [cShow, setCShow] = useState(false);
   const [dShow, setDShow] = useState(false);
@@ -53,15 +80,21 @@ export default function Graph(props) {
   const chartPreview = (
     <ChartPreview chartData={chartData} open={cShow} setOpen={setCShow} />
   );
-  const ids = props.index.map((e) => {
-    if (selUser.includes(e)) {
-      return e;
+  const ids = formatted.map((e) => {
+    if (selUser.includes(e[0].id)) {
+      return e[0].id;
     } else {
       return 0;
     }
   });
+  console.log(ids);
   const dayPreview = (
-    <DayPreview open={dShow} setOpen={setDShow} ids_list={ids} day={day} />
+    <DayPreview
+      open={dShow}
+      setOpen={setDShow}
+      data={ids.map((e, t) => formatted[e][day[t]])}
+      name={props.names}
+    />
   );
   return (
     <>

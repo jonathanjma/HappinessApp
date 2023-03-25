@@ -38,10 +38,7 @@ if create_users_groups:
     add_members = requests.put('http://localhost:5000/api/group/1',
                                headers={"Authorization": f"Bearer {token}"},
                                json={
-                                   "add_users": [
-                                       {"username": "jonathan"},
-                                       {"username": "zach"}
-                                   ]
+                                   "add_users": ["jonathan", "zach"]
                                })
     assert new_group.status_code == 201 and add_members.status_code == 200
     print('group created')

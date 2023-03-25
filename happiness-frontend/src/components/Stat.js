@@ -13,32 +13,36 @@ export default function Stat(props) {
     q3: "3rd Quartile",
     max: "Maximum Value",
   };
-  // console.log(props.val);
 
   function getSortedVals(data) {
     const vals = [];
-    data.map((e) => e.map((f) => vals.push(f)));
+    data.map((e) => {
+      if (e !== undefined) {
+        vals.push(e);
+      }
+    });
     vals.sort();
     return vals;
   }
+  const vals = getSortedVals(props.data);
 
-  function mean(data) {
-    let vals = getSortedVals(data);
+  function mean(vals) {
     let a = 0;
     vals.map((d) => (a = d + a));
-    return Math.round((a / vals.length) * 10) / 10;
+    return Math.round((a / vals.length) * 100) / 100;
   }
 
-  function median(data) {
-    let vals = getSortedVals(data);
-    if (vals.length % 2 === 0) {
-      return vals[vals.length / 2 - 1] + vals[vals.length / 2] / 2;
+  function median(vals) {
+    if (vals.length % 2 !== 0) {
+      return (
+        (vals[Math.round(vals.length / 2) - 1] +
+          vals[Math.round(vals.length / 2)]) /
+        2
+      );
     }
     return vals[vals.length / 2];
   }
-  function mode(data) {
-    let vals = getSortedVals(data);
-
+  function mode(vals) {
     let max = 0,
       count = 0,
       val = -1;
@@ -48,45 +52,51 @@ export default function Stat(props) {
       } else count++;
       if (count > max) {
         max = count;
+        val = vals[m];
       }
     }
-    return max;
+    return val;
   }
-  function range(data) {
-    let vals = getSortedVals(data);
+  function range(vals) {
     return vals[vals.length - 1] - vals[0];
   }
-  function stdev(data) {
-    let vals = getSortedVals(data);
+  function stdev(vals) {
     const n = vals.length;
     const mean = vals.reduce((a, b) => a + b) / n;
-    return Math.sqrt(
+    const a = Math.sqrt(
       vals.map((x) => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n
     );
+    return Math.round(a * 100) / 100;
   }
-  function min(data) {
-    let vals = getSortedVals(data);
+  function min(vals) {
     return vals[0];
   }
-  function q1(data) {
-    let vals = getSortedVals(data);
+  function q1(vals) {
     let med = vals.length / 2;
-    return median(data.slice(0, med));
+    return median(vals.slice(0, med));
   }
-  function q3(data) {
-    let vals = getSortedVals(data);
-    let med = vals.length / 2;
-    if (vals.length / 2 === 0) {
-      return median(data.slice(med));
+  function q3(vals) {
+    let med = Math.floor(vals.length / 2);
+    if (med % 2 === 0) {
+      return median(vals.slice(med));
     }
-    return median(data.slice(med) + 1);
+    return median(vals.slice(med + 1));
   }
-  function max(data) {
-    let vals = getSortedVals(data);
+  function max(vals) {
     return vals[vals.length - 1];
   }
 
-  let calcs = [mean, median, mode, range, stdev, min, q1, q3, max];
+  let calcs = {
+    mean: mean(vals),
+    median: median(vals),
+    mode: mode(vals),
+    range: range(vals),
+    stdev: stdev(vals),
+    min: min(vals),
+    q1: q1(vals),
+    q3: q3(vals),
+    max: max(vals),
+  };
 
   let val = Object.keys(trans)[props.val];
   return (
@@ -96,7 +106,7 @@ export default function Stat(props) {
           {trans[val]}
         </p>
         <p className="text-2xl md:text-3xl text-rhythm-500 font-medium text-center">
-          {calcs[val](props.data)}
+          {calcs[val]}
         </p>
       </div>
     </div>
