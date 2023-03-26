@@ -39,6 +39,9 @@ function IndexData(data, names) {
   return selectedData;
 }
 
+// props.data: List of objects of all data objects (can be in any time order or user_id order)
+//
+
 // Requires: The list props.names is sorted by corresponding id in ascending order.
 // exports graph element with embedded chart and title
 export default function Graph(props) {
@@ -81,7 +84,7 @@ export default function Graph(props) {
   const [cShow, setCShow] = useState(false);
   const [dShow, setDShow] = useState(false);
   const [day, setDay] = useState(0);
-  const [selUser, setSelUser] = useState([props.id]);
+  const [selUser, setSelUser] = useState([0]);
 
   const chartPreview = (
     <ChartPreview

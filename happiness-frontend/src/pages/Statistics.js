@@ -75,12 +75,12 @@ export default function Statistics(props) {
   const datavals = [
     { value: true, key: 0 },
     { value: true, key: 1 },
-    { value: true, key: 2 },
+    { value: false, key: 2 },
     { value: true, key: 3 },
     { value: true, key: 4 },
     { value: true, key: 5 },
-    { value: true, key: 6 },
-    { value: true, key: 7 },
+    { value: false, key: 6 },
+    { value: false, key: 7 },
     { value: true, key: 8 },
   ];
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -143,7 +143,6 @@ export default function Statistics(props) {
                             data={dataH}
                             names={[me.username]}
                             time="Weekly"
-                            id={me.id}
                           />
                         )}
                       </>
@@ -209,7 +208,6 @@ export default function Statistics(props) {
                             data={dataHM}
                             names={[me.username]}
                             time="Monthly"
-                            id={me.id}
                           />
                         )}
                       </>
