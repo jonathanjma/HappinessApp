@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useUser } from "../contexts/UserProvider";
 
 export default function LSUForm(props) {
   const [username, setUsername] = useState("");
@@ -10,6 +11,7 @@ export default function LSUForm(props) {
   const [hasConfirmError, setHasConfirmError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [beforeEdit, setBeforeEdit] = useState(true);
+  const { Login } = useUser();
 
   // Password validation effects:
   useEffect(() => {
@@ -59,7 +61,11 @@ export default function LSUForm(props) {
     if (hasError) {
       console.log("has error");
       toast(`You cannot login. ${errorMessage}`); //FIXME toast message not showing
-    } else console.log("You're signing in."); //TODO implement with backend
+    } else {
+      console.log("You're signing in.");
+      Login(username, password)
+      setTimeout(() => {console.log("Code executed"); window.location.reload()}, 500)
+    }
   };
 
   return (
