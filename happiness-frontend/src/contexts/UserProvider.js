@@ -50,24 +50,19 @@ export default function UserProvider({ children }) {
   function Login(username, password) {
     // TODO reroute user
     console.log("Login: trying login");
-    if (
-      localStorage.getItem(Keys.TOKEN) !== null &&
-      localStorage.getItem(Keys.TOKEN) !== ""
-    ) {
-      setUser(UserState.loading());
+    setUser(UserState.loading());
 
-      api
-        .post("/token/", {}, loginHeader(username, password))
-        .then((res) => {
-          console.log("Login: success");
-          localStorage.setItem(Keys.TOKEN, res.data["session_token"]);
-          GetUserFromToken();
-        })
-        .catch((err) => {
-          console.log(`Login: error ${err}`);
-          setUser(UserState.error());
-        });
-    }
+    api
+      .post("/token/", {}, loginHeader(username, password))
+      .then((res) => {
+        console.log("Login: success");
+        localStorage.setItem(Keys.TOKEN, res.data["session_token"]);
+        GetUserFromToken();
+      })
+      .catch((err) => {
+        console.log(`Login: error ${err}`);
+        setUser(UserState.error());
+      });
   }
 
   /**
