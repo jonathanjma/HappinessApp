@@ -87,20 +87,22 @@ export default function UserProvider({ children }) {
   }
 
   // TODO implement and test
-  function CreateUser(email, username, password) {
-    api
+  async function CreateUser(email, username, password) {
+    await api
         .post("/user/", {
-          email: email,
-          username: username,
-          password: password,
+            username: username,
+            password: password,
+            email: email,
         })
-        .then((res) => {
+        .then(async (res) => {
+          console.log("CreateUser: Got data")
           const data = res.data
-          localStorage.setItem(Keys.TOKEN, data);
-          GetUserFromToken()
+          console.log(`CreateUser: token ${JSON.stringify(data)}`)
+          console.log(`CreateUser: username ${data.username}, password ${data.password}`)
+          await Login(username, password)
         }).catch((err) => {
-          setUser(UserState.error());
           console.log(`CreateUser: user error: ${err}`)
+          setUser(UserState.error());
     })
   }
 
@@ -128,7 +130,7 @@ export default function UserProvider({ children }) {
   }
 
   return (
-    <UserContext.Provider value={{ user, setUser, Login, Logout, GetUserFromToken}}>
+    <UserContext.Provider value={{ user, setUser, Login, Logout, GetUserFromToken, CreateUser, DeleteUser}}>
       {children}
     </UserContext.Provider>
   );
