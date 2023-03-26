@@ -35,9 +35,11 @@ function IndexData(data, names) {
     });
     return selectedData;
   });
+  console.log(selectedData);
   return selectedData;
 }
 
+// Requires: The list props.names is sorted by corresponding id in ascending order.
 // exports graph element with embedded chart and title
 export default function Graph(props) {
   let datas = props.data;
@@ -49,8 +51,12 @@ export default function Graph(props) {
   // console.log(datas);
   const formatted = Array();
   let seen = [];
+  let uniq = [];
   let ctr = -1;
   for (let k = 0; k < datas.length; k++) {
+    if (!uniq.includes(datas[k].timestamp)) {
+      uniq.push(datas[k].timestamp);
+    }
     if (!seen.includes(datas[k].user_id)) {
       ctr++;
       formatted.push([datas[k]]);
@@ -68,8 +74,8 @@ export default function Graph(props) {
   const [chartData, setChartData] = useState({
     name: props.names,
     time: props.time,
-    ids: formatted.map((e) => e.user_id),
-    labels: formatted[0].map((e) => e.timestamp.slice(5).split("-").join("/")),
+    ids: formatted.map((e) => e[0].user_id),
+    labels: uniq.map((e) => e.slice(5).split("-").join("/")),
     datasets: IndexData(formatted, props.names),
   });
   const [cShow, setCShow] = useState(false);
@@ -78,16 +84,24 @@ export default function Graph(props) {
   const [selUser, setSelUser] = useState([props.id]);
 
   const chartPreview = (
-    <ChartPreview chartData={chartData} open={cShow} setOpen={setCShow} />
+    <ChartPreview
+      chartData={chartData}
+      open={cShow}
+      setOpen={setCShow}
+      name={props.names}
+      idsList={seen}
+      dayData={formatted}
+    />
   );
-  const ids = formatted.map((e) => {
-    if (selUser.includes(e[0].id)) {
-      return e[0].id;
+  const ids = seen.map((e, t) => {
+    if (selUser.includes(e)) {
+      return t;
     } else {
       return 0;
     }
   });
   console.log(ids);
+  console.log(formatted);
   const dayPreview = (
     <DayPreview
       open={dShow}

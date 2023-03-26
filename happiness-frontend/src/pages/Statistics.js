@@ -19,17 +19,17 @@ export default function Statistics(props) {
   const lastWk = new Date();
   lastWk.setDate(lastWk.getDate() - 7);
 
-  lastWk.setDate(21);
-  lastWk.setMonth(11);
-  lastWk.setFullYear(2022);
+  // lastWk.setDate(21);
+  // lastWk.setMonth(11);
+  // lastWk.setFullYear(2022);
   lastWk.toISOString().substring(0, 10);
 
   const lastMt = new Date();
   lastMt.setMonth(lastMt.getMonth() - 1);
 
-  lastMt.setDate(10);
-  lastMt.setMonth(10);
-  lastMt.setFullYear(2022);
+  // lastMt.setDate(10);
+  // lastMt.setMonth(8);
+  // lastMt.setFullYear(2022);
 
   const api = useApi();
   const weekData = lastWk.toISOString().substring(0, 10);
@@ -40,16 +40,19 @@ export default function Statistics(props) {
     error: errorH,
   } = useQuery("stats happiness data", () =>
     api
-      .get("/happiness/?id=" + 1 + "&start=" + weekData + "&end=2022-12-31")
+      .get("/happiness/?id=" + me.id + "&start=" + weekData)
       .then((res) => res.data)
   );
+  console.log(dataH);
   const {
     isLoading: isLoadingHM,
     data: dataHM,
     error: errorHM,
   } = useQuery("stats monthly happiness data", () =>
     api
-      .get("/happiness/?id=" + 1 + "&start=" + monthData + "&end=2022-12-10")
+      .get(
+        "/happiness/?id=" + me.id + "&start=" + monthData + "&end=2023-12-31"
+      )
       .then((res) => res.data)
   );
 
@@ -148,7 +151,7 @@ export default function Statistics(props) {
                   </>
                 )}
               </div>
-              <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2 lg:my-4">
+              <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2 @container">
                 {isLoadingH ? (
                   <Spinner animation="border" />
                 ) : (
@@ -214,7 +217,7 @@ export default function Statistics(props) {
                   </>
                 )}
               </div>
-              <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2 lg:my-4">
+              <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2 @container">
                 {isLoadingHM ? (
                   <Spinner animation="border" />
                 ) : (
