@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 import { useApi } from "./ApiProvider";
 import { Keys } from "../keys";
 import { useQuery } from "react-query";
@@ -13,6 +13,7 @@ const UserContext = createContext();
  * has functionality for the core user methods, such as logging in,
  * deleting the user, logging out, and registering a user.
  */
+
 export default function UserProvider({ children }) {
   const [user, setUser] = useState(UserState.loading());
   const api = useApi();
@@ -25,45 +26,43 @@ export default function UserProvider({ children }) {
     };
   };
 
-  // On initialization:
-  useEffect(() => {
-    if (localStorage.getItem(Keys.TOKEN) == null) {
-      GetUserFromToken();
+  const authHeader = {
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem(Keys.TOKEN)
     }
-  }, [api]);
+  }
+
+  /**
+   * Attempts to get the current user and update the user object.
+   */
 
   /**
    * Precondition: the user is logged in.
    */
   function Logout() {
-    // TODO: broken
-    const { isLoading, error, data } = useQuery(
-      `${localStorage.getItem(Keys.TOKEN)} logout`,
-      () => api.delete("/token/").then((res) => res)
-    );
-    if (error) {
-      return;
-    }
-    if (isLoading) {
-      setUser(UserState.loading());
-      return;
-    }
-    localStorage.setItem(Keys.TOKEN, "");
-    setUser(UserState.error());
+    console.log("Logout has begun.")
+    api
+        .delete("/token/", authHeader).then((res) => {
+      localStorage.setItem(Keys.TOKEN, null);
+      setUser(UserState.error());
+    })
   }
 
   function Login(username, password) {
-    setUser(UserState.loading());
-    console.log("trying login");
+    // TODO reroute user
+    console.log("Login: trying login");
+    if (localStorage.getItem(Keys.TOKEN) !== null && localStorage.getItem(Keys.TOKEN) !== "") {
+      setUser(UserState.loading());
 
-    api
-      .post("/token/", {}, loginHeader(username, password))
-      .then((res) => {
-        setUser(UserState.success(res.data));
-        localStorage.setItem(Keys.TOKEN, res.data["session_token"]);
-        GetUserFromToken();
-      })
-      .catch((err) => setUser(UserState.error()));
+      api
+          .post("/token/", {}, loginHeader(username, password))
+          .then((res) => {
+            console.log("Login: success")
+            localStorage.setItem(Keys.TOKEN, res.data["session_token"]);
+            GetUserFromToken();
+          })
+          .catch((err) => {console.log(`Login: error ${err}`); setUser(UserState.error())});
+    }
   }
 
   /**
@@ -72,12 +71,22 @@ export default function UserProvider({ children }) {
    */
   function GetUserFromToken() {
     setUser(UserState.loading());
-    console.log("checking token");
 
-    api
-      .get("/user/self/")
-      .then((res) => setUser(UserState.success(res.data)))
-      .catch((err) => setUser(UserState.error()));
+    if (localStorage.getItem(Keys.TOKEN) !== null) {
+      api
+          .get("/user/self/", {}, authHeader)
+          .then((res) => {
+            setUser(UserState.success(res.data));
+            console.log("GetUserFromToken: User found")
+          })
+          .catch((err) => {
+            console.log(`GetUserFromToken: error ${err}`);
+            console.log(`GetUserFromToken: current token ${localStorage.getItem(Keys.TOKEN)}`)
+            setUser(UserState.error());
+          });
+    } else {
+      setUser(UserState.error())
+    }
   }
 
   function CreateUser(email, username, password) {
@@ -126,7 +135,7 @@ export default function UserProvider({ children }) {
   }
 
   return (
-    <UserContext.Provider value={{ user, setUser, Login, Logout }}>
+    <UserContext.Provider value={{ user, setUser, Login, Logout, GetUserFromToken}}>
       {children}
     </UserContext.Provider>
   );

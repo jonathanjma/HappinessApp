@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Keys } from "./keys";
 
-const BASE_API_URL = process.env.REACT_APP_BASE_API_URL;
+const BASE_API_URL = "http://127.0.0.1:5000"; // TODO fix
 
 export default class ApiClient {
   async request(options) {

@@ -63,7 +63,8 @@ export default function LSUForm(props) {
       toast(`You cannot login. ${errorMessage}`); //FIXME toast message not showing
     } else {
       console.log("You're signing in.");
-      Login(username, password);
+      Login(username, password)
+      setTimeout(() => {console.log("Code executed"); window.location.reload()}, 500)
     } //TODO implement with backend
   };
 
