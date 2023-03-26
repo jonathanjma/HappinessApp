@@ -41,10 +41,7 @@ export default function App() {
                     <PrivateRoute>
                       <Routes>
                         <Route path="/home" element={<SubmitHappiness />} />
-                        <Route
-                          path="/statistics"
-                          element={<Statistics id={id} />}
-                        />
+                        <Route path="/statistics" element={<Statistics />} />
                         <Route path="/profile" element={<Profile id={id} />} />
                         <Route
                           path="/groups"

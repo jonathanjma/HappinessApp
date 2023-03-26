@@ -25,8 +25,6 @@ function IndexData(data, names) {
   ];
   var selectedData = [];
   data.map((i, t) => {
-    console.log("forming data");
-    console.log(i);
     selectedData.push({
       label: names[t],
       data: i.map((e) => e.value),
@@ -35,7 +33,6 @@ function IndexData(data, names) {
     });
     return selectedData;
   });
-  console.log(selectedData);
   return selectedData;
 }
 
@@ -68,12 +65,6 @@ export default function Graph(props) {
       formatted[ctr].push(datas[k]);
     }
   }
-  console.log("time");
-  console.log(props.time);
-  console.log(formatted[0]);
-  console.log(
-    formatted[0].map((e) => e.timestamp.slice(5).split("-").join("/"))
-  );
   const [chartData, setChartData] = useState({
     name: props.names,
     time: props.time,

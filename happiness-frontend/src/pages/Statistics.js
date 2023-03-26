@@ -8,41 +8,19 @@ import { Keys } from "../keys";
 import { useApi } from "../contexts/ApiProvider";
 import { Spinner } from "react-bootstrap";
 import { useUser } from "../contexts/UserProvider";
+import PrevWeekData from "../components/PrevWeekData";
 
-export default function Statistics(props) {
+export default function Statistics() {
   const { user: userState } = useUser();
-  console.log("me");
   const me = userState.user;
-  console.log(userState);
-  console.log(me);
-
-  const lastWk = new Date();
-  lastWk.setDate(lastWk.getDate() - 7);
-
-  // lastWk.setDate(21);
-  // lastWk.setMonth(11);
-  // lastWk.setFullYear(2022);
-  lastWk.toISOString().substring(0, 10);
 
   const lastMt = new Date();
   lastMt.setMonth(lastMt.getMonth() - 1);
 
-  // lastMt.setDate(10);
-  // lastMt.setMonth(8);
-  // lastMt.setFullYear(2022);
-
   const api = useApi();
-  const weekData = lastWk.toISOString().substring(0, 10);
   const monthData = lastMt.toISOString().substring(0, 10);
-  const {
-    isLoading: isLoadingH,
-    data: dataH,
-    error: errorH,
-  } = useQuery("stats happiness data", () =>
-    api
-      .get("/happiness/?id=" + me.id + "&start=" + weekData)
-      .then((res) => res.data)
-  );
+
+  const [isLoadingH, dataH, errorH] = PrevWeekData();
   console.log(dataH);
   const {
     isLoading: isLoadingHM,
@@ -150,7 +128,7 @@ export default function Statistics(props) {
                   </>
                 )}
               </div>
-              <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2 @container">
+              <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
                 {isLoadingH ? (
                   <Spinner animation="border" />
                 ) : (
@@ -187,7 +165,7 @@ export default function Statistics(props) {
             </div>
           </Tab.Panel>
           <Tab.Panel className="w-full lg:flex lg:flex-wrap justify-center">
-            <div className="mt-4 -lg:mt-4 w-full lg:flex lg:flex-wrap justify-center items-start @container">
+            <div className="mt-4 -lg:mt-4 w-full lg:flex lg:flex-wrap justify-center items-star @containert">
               <div className="lg:w-1/2 lg:mt-4">
                 {isLoadingHM ? (
                   <Spinner animation="border" />
@@ -215,7 +193,7 @@ export default function Statistics(props) {
                   </>
                 )}
               </div>
-              <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2 @container">
+              <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
                 {isLoadingHM ? (
                   <Spinner animation="border" />
                 ) : (

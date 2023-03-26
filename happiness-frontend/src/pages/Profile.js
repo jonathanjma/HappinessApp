@@ -4,17 +4,31 @@ import Graph from "../components/Graph";
 import Histories from "../components/Histories";
 import DayPreview from "../components/DayPreview";
 import { useState } from "react";
+import { useUser } from "../contexts/UserProvider";
+import { Spinner } from "react-bootstrap";
+import PrevWeekData from "../components/PrevWeekData";
+import { useApi } from "../contexts/ApiProvider";
 
 export default function Profile(props) {
+  const { user: userState } = useUser();
+  const me = userState.user;
+  const today = new Date();
+  const todayString = today.toISOString().substring(0, 10);
+  const api = useApi();
+
+  const [isLoadingH, dataH, errorH] = PrevWeekData();
+  console.log(dataH);
+
   const [dShow, setDShow] = useState(false);
-  const dayPreview = (
-    <DayPreview
-      open={dShow}
-      setOpen={setDShow}
-      ids_list={[props.id]}
-      data={Users(props.id).data[Users(props.id).data.length - 1]}
-    />
-  );
+  // const dayPreview = (
+  //   <DayPreview
+  //     open={dShow}
+  //     setOpen={setDShow}
+  //     ids_list={[me.id]}
+  //     name={[me.username]}
+  //   />
+  // );
+
   return (
     <>
       <div className="flex flex-wrap justify-center">
@@ -30,13 +44,13 @@ export default function Profile(props) {
                 <div className="absolute -sm:absolute sm:relative left-4 top-4 sm:flex items-center md:px-4 md:w-1/3 sm:mx-4">
                   <img
                     className="mb-4 justify-center max-w-[65px] max-h-[65px] sm:min-h-[125px] sm:max-h-[125px] sm:min-w-[125px] sm:max-w-[125px] block mx-auto rounded-full sm:mx-0 sm:shrink-0"
-                    src={Users(props.id).img}
+                    src={me.profile_picture}
                     alt="profile"
                   />
                 </div>
                 <div className="w-full justify-end sm:w-1/2 py-2 px-4">
                   <p className="text-center text-2xl font-medium m-2 text-raisin-600">
-                    {Users(props.id).name}
+                    {me.username}
                   </p>
                   <p className="text-center text-raisin-600">
                     Member since 1/5/22
@@ -68,10 +82,34 @@ export default function Profile(props) {
                       Today's Happiness
                     </p>
                     <p className="text-2xl text-rhythm-500 font-medium text-center">
-                      {
-                        Users(props.id).data[Users(props.id).data.length - 1]
-                          .level
-                      }
+                      {isLoadingH ? (
+                        <Spinner animation="border" />
+                      ) : (
+                        <>
+                          {errorH ? (
+                            <p className="text-xl font-medium text-raisin-600 m-3">
+                              Error: Could not load happiness.
+                            </p>
+                          ) : (
+                            <>
+                              {dataH.length === 0 ? (
+                                <p className="text-xl font-medium text-raisin-600 m-3">
+                                  Data not available for selected period.
+                                </p>
+                              ) : (
+                                <>
+                                  {todayString.substring(0, 10) ===
+                                  dataH[dataH.length - 1].timestamp ? (
+                                    <p>Yes</p>
+                                  ) : (
+                                    <p>{dataH[dataH.length - 1].value}</p>
+                                  )}
+                                </>
+                              )}
+                            </>
+                          )}
+                        </>
+                      )}
                     </p>
                   </div>
                 ) : (
@@ -92,7 +130,7 @@ export default function Profile(props) {
                           .pubComment
                       }
                     </p>
-                    {dayPreview}
+                    {/* {dayPreview} */}
                   </div>
                 ) : (
                   <></>
@@ -101,11 +139,36 @@ export default function Profile(props) {
             </div>
             <div className="flex flex-wrap justify-center items-center">
               <div className="flex flex-wrap justify-center items-center m-4 md:ml-4 max-w-[400px] max-h-[400px]">
-                <Graph index={[props.id]} time="My Weekly" id={props.id} />
+                {isLoadingH ? (
+                  <Spinner animation="border" />
+                ) : (
+                  <>
+                    {errorH ? (
+                      <p className="text-xl font-medium text-raisin-600 m-3">
+                        Error: Could not load happiness.
+                      </p>
+                    ) : (
+                      <>
+                        {dataH.length === 0 ? (
+                          <p className="text-xl font-medium text-raisin-600 m-3">
+                            Data not available for selected period.
+                          </p>
+                        ) : (
+                          <Graph
+                            data={dataH}
+                            names={[me.username]}
+                            time="Weekly"
+                          />
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+                {/* <Graph index={[props.id]} time="My Weekly" id={props.id} /> */}
               </div>
               <div className="flex flex-wrap justify-center items-center md:max-w-[205px] sm:max-w-[400px] mr-2">
-                <Stat val={0} id={props.id} />
-                <Stat val={1} id={props.id} />
+                <Stat data={dataH.map((f) => f.value)} key={0} val={0} />
+                <Stat data={dataH.map((f) => f.value)} key={1} val={1} />
               </div>
             </div>
           </div>
