@@ -49,7 +49,6 @@ export default function UserProvider({ children }) {
   }
 
   function Login(username, password) {
-    // TODO reroute user
     console.log("Login: trying login");
     setUser(UserState.loading());
 
