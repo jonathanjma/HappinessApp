@@ -65,6 +65,7 @@ export default function LSUForm(props) {
     } else {
       if (props.isLoggingIn) {
         console.log("You're signing in.");
+        // TODO try to see if login failed and show message if it did.
         Login(username, password).then(() => {
           window.location.reload();
         })

@@ -106,27 +106,11 @@ export default function UserProvider({ children }) {
     })
   }
 
-  function DeleteUser() {
-    // TODO: broken
-    const { isLoading, error, data } = useQuery(
-      `${localStorage.getItem(Keys.TOKEN)} DELETE`,
-      api.delete("/user/").then((res) => res.data)
-    );
-
-    if (error) {
-      return;
-    }
-
-    if (isLoading) {
-      setUser(UserState.loading());
-    }
-
-    // This if statement should ensure that the user was properly deleted
-    // But this comparison is very precarious.
-    // TODO test this!
-    if (data === user) {
-      setUser(UserState.error());
-    }
+  async function DeleteUser() {
+    await api.delete("/user/", authHeader).then(() => {
+      setUser(UserState.error())
+      localStorage.setItem(Keys.TOKEN, null)
+    })
   }
 
   return (
