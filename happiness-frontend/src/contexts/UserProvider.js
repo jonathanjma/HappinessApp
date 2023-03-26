@@ -48,11 +48,11 @@ export default function UserProvider({ children }) {
     })
   }
 
-  function Login(username, password) {
+  async function Login(username, password) {
     console.log("Login: trying login");
     setUser(UserState.loading());
 
-    api
+    await api
         .post("/token/", {}, loginHeader(username, password))
         .then((res) => {
           console.log("Login: success")
@@ -63,8 +63,8 @@ export default function UserProvider({ children }) {
   }
 
   /**
-   * Precondition: the lcoal storage must have a valid token.
-   * Postcondition: the user object is either null, or has data.
+   * Precondition: the local storage must have a valid token.
+   * Postcondition: the user object is either in the error or success state.
    */
   function GetUserFromToken() {
     setUser(UserState.loading());
