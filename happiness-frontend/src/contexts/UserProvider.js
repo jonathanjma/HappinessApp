@@ -51,18 +51,16 @@ export default function UserProvider({ children }) {
   function Login(username, password) {
     // TODO reroute user
     console.log("Login: trying login");
-    if (localStorage.getItem(Keys.TOKEN) !== null && localStorage.getItem(Keys.TOKEN) !== "") {
-      setUser(UserState.loading());
+    setUser(UserState.loading());
 
-      api
-          .post("/token/", {}, loginHeader(username, password))
-          .then((res) => {
-            console.log("Login: success")
-            localStorage.setItem(Keys.TOKEN, res.data["session_token"]);
-            GetUserFromToken();
-          })
-          .catch((err) => {console.log(`Login: error ${err}`); setUser(UserState.error())});
-    }
+    api
+        .post("/token/", {}, loginHeader(username, password))
+        .then((res) => {
+          console.log("Login: success")
+          localStorage.setItem(Keys.TOKEN, res.data["session_token"]);
+          GetUserFromToken();
+        })
+        .catch((err) => {console.log(`Login: error ${err}`); setUser(UserState.error())});
   }
 
   /**
@@ -89,26 +87,22 @@ export default function UserProvider({ children }) {
     }
   }
 
+  // TODO implement and test
   function CreateUser(email, username, password) {
-    // TODO: broken
-    const { isLoading, error, data } = useQuery(`${username} CREATE`, () =>
-      api
+    api
         .post("/user/", {
           email: email,
           username: username,
           password: password,
         })
-        .then((res) => res.data)
-    );
-    if (isLoading) {
-      setUser(UserState.loading());
-      return;
-    }
-    if (error) {
-      setUser(UserState.error());
-    }
-    localStorage.setItem(Keys.TOKEN, data);
-    Login(username, password);
+        .then((res) => {
+          const data = res.data
+          localStorage.setItem(Keys.TOKEN, data);
+          GetUserFromToken()
+        }).catch((err) => {
+          setUser(UserState.error());
+          console.log(`CreateUser: user error: ${err}`)
+    })
   }
 
   function DeleteUser() {
