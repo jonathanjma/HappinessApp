@@ -11,7 +11,7 @@ Requires: max # of cards; id of current user
 
 // TODO: Integrate backend and COMPLETELY REWRITE WITH BETTER CODE!!
 
-export default function Histories({ id, max, division }) {
+export default function Histories({ id, max, byCount }) {
   const tiles = [];
   const button = [];
   const userData = Users(id).data;
@@ -22,20 +22,7 @@ export default function Histories({ id, max, division }) {
     if (len - i < 1) {
       break;
     }
-    if ((len - i) % 7 === 0 && division) {
-      if (len - i === len - 1) {
-        tiles.push(
-          <>
-            <div className="relative flex flex-wrap items-center justify-center w-full text-center pt-2">
-              <button className="absolute px-3 py-2 my-2 left-2 w-[50px] rounded-lg text-cultured-50 bg-raisin-600 text-2xl">&lt;</button>
-              <h3 className="w-full">Week of 12/29</h3>
-              <button className="absolute px-3 py-2 my-2 right-2 w-[50px] rounded-lg text-cultured-50 bg-raisin-600 text-2xl">&gt;</button>
-            </div>
-          </>
-        );
-      }
-    }
-    if (userData[len - i].level !== null && !division) {
+    if (userData[len - i].level !== null && byCount) {
       tiles.push(<HistoryCard key={i} id={id} data={userData[len - i]} />);
       count++;
     } else {
@@ -43,7 +30,7 @@ export default function Histories({ id, max, division }) {
     }
     i++;
   }
-  if (!division) {
+  if (byCount) {
     button.push(
       <>
         <div className="m-3">

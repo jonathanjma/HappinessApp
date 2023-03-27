@@ -44,6 +44,15 @@ export default function History(props) {
         </Tab.List>
         <Tab.Panels className="flex w-full justify-center">
           <Tab.Panel className="w-full justify-center">
+            <div className="relative flex flex-wrap items-center justify-center w-full text-center pt-2">
+              <button className="absolute px-3 py-2 my-2 left-2 w-[50px] rounded-lg text-cultured-50 bg-raisin-600 text-2xl">
+                &lt;
+              </button>
+              <h3 className="w-full">Week of 12/29</h3>
+              <button className="absolute px-3 py-2 my-2 right-2 w-[50px] rounded-lg text-cultured-50 bg-raisin-600 text-2xl">
+                &gt;
+              </button>
+            </div>
             <Histories
               id={props.id}
               max={Users(props.id).data.length}

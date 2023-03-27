@@ -15,16 +15,11 @@ export default function DayPreview({ open, setOpen, data = undefined, name }) {
   console.log(data);
 
   const tiles = [];
-  if (name !== undefined) {
+  if (name !== undefined && data !== undefined) {
     for (let i = 0; i < name.length; i++) {
       tiles.push(
         name[i] === 0 ? (
-          <OldHistoryCard
-            id={1}
-            data={Users(1).data[0]}
-            name={"Alex"}
-            shown={false}
-          />
+          <OldHistoryCard id={1} data={data[0]} name={"Alex"} shown={false} />
         ) : (
           <OldHistoryCard data={data[i]} name={name[i]} shown={true} />
         )

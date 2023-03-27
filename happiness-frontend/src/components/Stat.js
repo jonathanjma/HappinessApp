@@ -33,29 +33,31 @@ export default function Stat(props) {
   }
 
   function median(vals) {
-    if (vals.length % 2 !== 0) {
+    if (vals.length % 2 === 0) {
       return (
         (vals[Math.round(vals.length / 2) - 1] +
           vals[Math.round(vals.length / 2)]) /
         2
       );
     }
-    return vals[vals.length / 2];
+    return vals[Math.round(vals.length / 2) - 1];
   }
   function mode(vals) {
     let max = 0,
       count = 0,
-      val = -1;
+      val = -1,
+      maxNum = 0;
     for (let m = 0; m < vals.length; m++) {
       if (vals[m] !== val) {
         count = 1;
+        val = vals[m];
       } else count++;
       if (count > max) {
         max = count;
-        val = vals[m];
+        maxNum = val;
       }
     }
-    return val;
+    return maxNum;
   }
   function range(vals) {
     return vals[vals.length - 1] - vals[0];

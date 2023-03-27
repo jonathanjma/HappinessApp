@@ -8,36 +8,16 @@ import { Keys } from "../keys";
 import { useApi } from "../contexts/ApiProvider";
 import { Spinner } from "react-bootstrap";
 import { useUser } from "../contexts/UserProvider";
-import PrevWeekData from "../components/PrevWeekData";
+import { PrevWeekData, PrevMonthData } from "../components/GetHappinessData";
 
 export default function Statistics() {
   const { user: userState } = useUser();
   const me = userState.user;
 
-  const lastMt = new Date();
-  lastMt.setMonth(lastMt.getMonth() - 1);
-
-  const api = useApi();
-  const monthData = lastMt.toISOString().substring(0, 10);
-
-  const [isLoadingH, dataH, errorH] = PrevWeekData();
+  const [isLoadingH, dataH, errorH] = PrevWeekData(me);
   console.log(dataH);
-  const {
-    isLoading: isLoadingHM,
-    data: dataHM,
-    error: errorHM,
-  } = useQuery("stats monthly happiness data", () =>
-    api
-      .get(
-        "/happiness/?id=" + me.id + "&start=" + monthData + "&end=2023-12-31"
-      )
-      .then((res) => res.data)
-  );
+  const [isLoadingHM, dataHM, errorHM] = PrevMonthData(me);
 
-  // const { isLoadingU, isErrorU, dataU, errorU } = useQuery(
-  //   "stats user data",
-  //   () => api.get("/user/" + props.id).then((res) => res.body)
-  // );
   /*
       0 = mean
       1 = median
@@ -101,132 +81,96 @@ export default function Statistics() {
         <Tab.Panels>
           <Tab.Panel className="w-full lg:flex lg:flex-wrap justify-center">
             <div className="mt-4 -lg:mt-4 w-full lg:flex lg:flex-wrap justify-center items-start @container">
-              <div className="lg:w-1/2 lg:mt-4">
-                {isLoadingH ? (
-                  <Spinner animation="border" />
-                ) : (
-                  <>
-                    {errorH ? (
-                      <p className="text-xl font-medium text-raisin-600 m-3">
-                        Error: Could not load happiness.
-                      </p>
-                    ) : (
-                      <>
-                        {dataH.length === 0 ? (
-                          <p className="text-xl font-medium text-raisin-600 m-3">
-                            Data not available for selected period.
-                          </p>
-                        ) : (
-                          <Graph
-                            data={dataH}
-                            names={[me.username]}
-                            time="Weekly"
-                          />
-                        )}
-                      </>
-                    )}
-                  </>
-                )}
-              </div>
-              <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
-                {isLoadingH ? (
-                  <Spinner animation="border" />
-                ) : (
-                  <>
-                    {errorH ? (
-                      <p className="text-xl font-medium text-raisin-600 m-3">
-                        Error: Could not load happiness.
-                      </p>
-                    ) : (
-                      <>
-                        {dataH.length === 0 ? (
-                          <p className="text-xl font-medium text-raisin-600 m-3">
-                            Data not available for selected period.
-                          </p>
-                        ) : (
-                          datavals.map((e) => {
-                            if (e.value) {
-                              return (
-                                <Stat
-                                  data={dataH.map((e) => e.value)}
-                                  key={e.key}
-                                  val={e.key}
-                                />
-                              );
-                            }
-                            return null;
-                          })
-                        )}
-                      </>
-                    )}
-                  </>
-                )}
-              </div>
+              {isLoadingH ? (
+                <Spinner animation="border" />
+              ) : (
+                <>
+                  {errorH ? (
+                    <p className="text-xl font-medium text-raisin-600 m-3">
+                      Error: Could not load happiness.
+                    </p>
+                  ) : (
+                    <>
+                      {dataH.length === 0 ? (
+                        <p className="text-xl font-medium text-raisin-600 m-3">
+                          Data not available for selected period.
+                        </p>
+                      ) : (
+                        <>
+                          <div className="lg:w-1/2 lg:mt-4">
+                            <Graph
+                              data={dataH}
+                              names={[me.username]}
+                              time="Weekly"
+                            />
+                          </div>
+                          <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
+                            {datavals.map((e) => {
+                              if (e.value) {
+                                return (
+                                  <Stat
+                                    data={dataH.map((e) => e.value)}
+                                    key={e.key}
+                                    val={e.key}
+                                  />
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
             </div>
           </Tab.Panel>
           <Tab.Panel className="w-full lg:flex lg:flex-wrap justify-center">
-            <div className="mt-4 -lg:mt-4 w-full lg:flex lg:flex-wrap justify-center items-star @containert">
-              <div className="lg:w-1/2 lg:mt-4">
-                {isLoadingHM ? (
-                  <Spinner animation="border" />
-                ) : (
-                  <>
-                    {errorHM ? (
-                      <p className="text-xl font-medium text-raisin-600 m-3">
-                        Error: Could not load happiness.
-                      </p>
-                    ) : (
-                      <>
-                        {dataHM.length === 0 ? (
-                          <p className="text-xl font-medium text-raisin-600 m-3">
-                            Data not available for selected period.
-                          </p>
-                        ) : (
-                          <Graph
-                            data={dataHM}
-                            names={[me.username]}
-                            time="Monthly"
-                          />
-                        )}
-                      </>
-                    )}
-                  </>
-                )}
-              </div>
-              <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
-                {isLoadingHM ? (
-                  <Spinner animation="border" />
-                ) : (
-                  <>
-                    {errorHM ? (
-                      <p className="text-xl font-medium text-raisin-600 m-3">
-                        Error: Could not load happiness.
-                      </p>
-                    ) : (
-                      <>
-                        {dataHM.length === 0 ? (
-                          <p className="text-xl font-medium text-raisin-600 m-3">
-                            Data not available for selected period.
-                          </p>
-                        ) : (
-                          datavals.map((e) => {
-                            if (e.value) {
-                              return (
-                                <Stat
-                                  data={dataHM.map((e) => e.value)}
-                                  key={e.key}
-                                  val={e.key}
-                                />
-                              );
-                            }
-                            return null;
-                          })
-                        )}
-                      </>
-                    )}
-                  </>
-                )}
-              </div>
+            <div className="mt-4 -lg:mt-4 w-full lg:flex lg:flex-wrap justify-center items-start @container">
+              {isLoadingHM ? (
+                <Spinner animation="border" />
+              ) : (
+                <>
+                  {errorHM ? (
+                    <p className="text-xl font-medium text-raisin-600 m-3">
+                      Error: Could not load happiness.
+                    </p>
+                  ) : (
+                    <>
+                      {dataHM.length === 0 ? (
+                        <p className="text-xl font-medium text-raisin-600 m-3">
+                          Data not available for selected period.
+                        </p>
+                      ) : (
+                        <>
+                          <div className="lg:w-1/2 lg:mt-4">
+                            <Graph
+                              data={dataHM}
+                              names={[me.username]}
+                              time="Monthly"
+                            />
+                          </div>
+                          <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
+                            {datavals.map((e) => {
+                              if (e.value) {
+                                return (
+                                  <Stat
+                                    data={dataHM.map((e) => e.value)}
+                                    key={e.key}
+                                    val={e.key}
+                                  />
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
             </div>
           </Tab.Panel>
         </Tab.Panels>

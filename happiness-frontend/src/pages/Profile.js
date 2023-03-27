@@ -6,7 +6,7 @@ import DayPreview from "../components/DayPreview";
 import { useState } from "react";
 import { useUser } from "../contexts/UserProvider";
 import { Spinner } from "react-bootstrap";
-import PrevWeekData from "../components/PrevWeekData";
+import { PrevWeekData } from "../components/GetHappinessData";
 import { useApi } from "../contexts/ApiProvider";
 
 export default function Profile(props) {
@@ -16,18 +16,10 @@ export default function Profile(props) {
   const todayString = today.toISOString().substring(0, 10);
   const api = useApi();
 
-  const [isLoadingH, dataH, errorH] = PrevWeekData();
+  const [isLoadingH, dataH, errorH] = PrevWeekData(me);
   console.log(dataH);
 
   const [dShow, setDShow] = useState(false);
-  // const dayPreview = (
-  //   <DayPreview
-  //     open={dShow}
-  //     setOpen={setDShow}
-  //     ids_list={[me.id]}
-  //     name={[me.username]}
-  //   />
-  // );
 
   return (
     <>
@@ -58,10 +50,10 @@ export default function Profile(props) {
                   <div className="flex flex-wrap justify-center items-center @container">
                     <div className="justify-center">
                       <p className="text-center text-raisin-600 text-md font-medium m-2 sm:w-1/3">
-                        Friends
+                        Groups
                       </p>
                       <p className="text-lg text-center text-raisin-600 m-2">
-                        {Users(props.id).friends.length}
+                        3 {/* TODO: Implement group count */}
                       </p>
                     </div>
                     <div className="w-3/8">
@@ -70,106 +62,115 @@ export default function Profile(props) {
                       </p>
                       <p className="text-lg text-raisin-600 text-center m-2">
                         {5.75}
+                        {/* TODO: Replace with something else */}
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="flex m-4">
-                {Users(props.id).data[Users(props.id).data.length - 1].level ? (
-                  <div className="space-y-2 px-2 md:px-4">
-                    <p className="text-md text-raisin-600 font-semibold text-center">
-                      Today's Happiness
-                    </p>
-                    <p className="text-2xl text-rhythm-500 font-medium text-center">
-                      {isLoadingH ? (
-                        <Spinner animation="border" />
-                      ) : (
-                        <>
-                          {errorH ? (
-                            <p className="text-xl font-medium text-raisin-600 m-3">
-                              Error: Could not load happiness.
-                            </p>
-                          ) : (
-                            <>
-                              {dataH.length === 0 ? (
-                                <p className="text-xl font-medium text-raisin-600 m-3">
-                                  Data not available for selected period.
-                                </p>
-                              ) : (
-                                <>
-                                  {todayString.substring(0, 10) ===
-                                  dataH[dataH.length - 1].timestamp ? (
-                                    <p>Yes</p>
-                                  ) : (
-                                    <p>{dataH[dataH.length - 1].value}</p>
-                                  )}
-                                </>
-                              )}
-                            </>
-                          )}
-                        </>
-                      )}
-                    </p>
-                  </div>
-                ) : (
-                  <></>
-                )}
-                {Users(props.id).data[Users(props.id).data.length - 1]
-                  .pubComment ? (
-                  <div
-                    className="space-y-2 px-2 md:px-4 md:mx-4"
-                    onClick={() => setDShow(true)}
-                  >
-                    <p className="text-md text-raisin-600 font-semibold text-center">
-                      Comment
-                    </p>
-                    <p className="line-clamp-3 -md:line-clamp-3 text-md text-rhythm-500 font-medium text-center">
-                      {
-                        Users(props.id).data[Users(props.id).data.length - 1]
-                          .pubComment
-                      }
-                    </p>
-                    {/* {dayPreview} */}
-                  </div>
-                ) : (
-                  <></>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-wrap justify-center items-center">
-              <div className="flex flex-wrap justify-center items-center m-4 md:ml-4 max-w-[400px] max-h-[400px]">
                 {isLoadingH ? (
                   <Spinner animation="border" />
                 ) : (
                   <>
                     {errorH ? (
-                      <p className="text-xl font-medium text-raisin-600 m-3">
+                      <p className="text-md font-medium text-raisin-600 m-3">
                         Error: Could not load happiness.
                       </p>
                     ) : (
                       <>
                         {dataH.length === 0 ? (
-                          <p className="text-xl font-medium text-raisin-600 m-3">
+                          <p className="text-md font-medium text-raisin-600 m-3">
                             Data not available for selected period.
                           </p>
                         ) : (
-                          <Graph
-                            data={dataH}
-                            names={[me.username]}
-                            time="Weekly"
-                          />
+                          <>
+                            <div className="space-y-2 px-2 md:px-4">
+                              {todayString.substring(0, 10) ===
+                              dataH[dataH.length - 1].timestamp ? (
+                                <p className="text-md text-raisin-600 font-semibold text-center">
+                                  Today's Happiness
+                                </p>
+                              ) : (
+                                <p className="text-md text-raisin-600 font-semibold text-center">
+                                  Recent Happiness
+                                </p>
+                              )}
+                              <p className="text-2xl text-rhythm-500 font-medium text-center">
+                                {dataH[dataH.length - 1].value}
+                              </p>
+                            </div>
+                            {dataH[dataH.length - 1].comment ? (
+                              <div
+                                className="space-y-2 px-2 md:px-4 md:mx-4"
+                                onClick={() => setDShow(true)}
+                              >
+                                <p className="text-md text-raisin-600 font-semibold text-center">
+                                  Comment
+                                </p>
+                                <p className="line-clamp-3 -md:line-clamp-3 text-md text-rhythm-500 font-medium text-center">
+                                  {dataH[dataH.length - 1].comment}
+                                </p>
+                                <DayPreview
+                                  open={dShow}
+                                  setOpen={setDShow}
+                                  data={[dataH[dataH.length - 1]]}
+                                  name={[me.username]}
+                                />
+                              </div>
+                            ) : (
+                              <></>
+                            )}
+                          </>
                         )}
                       </>
                     )}
                   </>
                 )}
-                {/* <Graph index={[props.id]} time="My Weekly" id={props.id} /> */}
               </div>
-              <div className="flex flex-wrap justify-center items-center md:max-w-[205px] sm:max-w-[400px] mr-2">
-                <Stat data={dataH.map((f) => f.value)} key={0} val={0} />
-                <Stat data={dataH.map((f) => f.value)} key={1} val={1} />
-              </div>
+            </div>
+            <div className="flex flex-wrap justify-center items-center">
+              {isLoadingH ? (
+                <Spinner animation="border" />
+              ) : (
+                <>
+                  {errorH ? (
+                    <p className="text-xl font-medium text-raisin-600 m-3">
+                      Error: Could not load happiness.
+                    </p>
+                  ) : (
+                    <>
+                      {dataH.length === 0 ? (
+                        <p className="text-xl font-medium text-raisin-600 m-3">
+                          Data not available for selected period.
+                        </p>
+                      ) : (
+                        <>
+                          <div className="flex flex-wrap justify-center items-center m-4 md:ml-4 max-w-[400px] max-h-[400px]">
+                            <Graph
+                              data={dataH}
+                              names={[me.username]}
+                              time="Weekly"
+                            />
+                          </div>
+                          <div className="flex flex-wrap justify-center items-center md:max-w-[205px] sm:max-w-[400px] mr-2">
+                            <Stat
+                              data={dataH.map((f) => f.value)}
+                              key={0}
+                              val={0}
+                            />
+                            <Stat
+                              data={dataH.map((f) => f.value)}
+                              key={1}
+                              val={1}
+                            />
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -179,7 +180,7 @@ export default function Profile(props) {
               History
             </p>
           </div>
-          <Histories id={props.id} max={4} division={false} />
+          <Histories id={props.id} max={4} byCount={true} />
         </div>
       </div>
     </>
