@@ -1,6 +1,7 @@
 // TODO: Rewrite with date code once backend integrated
 import { useState } from "react";
 import Users from "./Users";
+import Stat from "./Stat";
 
 import OldHistoryCard from "./OldHistoryCard";
 
@@ -95,8 +96,8 @@ export default function MonthView(props) {
   }
   return (
     <>
-      <div className="flex flex-wrap w-full justify-center items-center mt-3">
-        <div className="flex flex-wrap justify-center border-solid w-full max-w-[550px]">
+      <div className="flex flex-wrap w-full justify-center mt-3">
+        <div className="flex flex-wrap justify-center border-solid w-full max-w-[550px] lg:w-2/3">
           <div className="font-medium relative w-full text-center text-2xl py-2 my-0 bg-buff-200 h-[60px]">
             <button className="absolute top-3 left-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl">
               &lt;
@@ -113,8 +114,17 @@ export default function MonthView(props) {
             <tbody>{tiles}</tbody>
           </table>
         </div>
-        <div className="w-full flex justify-center">
-            <OldHistoryCard id={1} data={Users(1).data[3]} shown={true} useDate={true} />
+        <div className="w-full flex flex-wrap justify-center max-w-[550px] lg:w-1/3 lg:mx-6 -mt-4">
+          <OldHistoryCard
+            id={1}
+            data={Users(1).data[3]}
+            shown={true}
+            useDate={true}
+          />
+          <div className="w-full justify-center my-4 hidden lg:flex">
+            <Stat id={1} val={0} />
+            <Stat id={1} val={1} />
+          </div>
         </div>
       </div>
     </>

@@ -28,9 +28,9 @@ export default function UserProvider({ children }) {
 
   const authHeader = {
     headers: {
-      Authorization: "Bearer " + localStorage.getItem(Keys.TOKEN)
-    }
-  }
+      Authorization: "Bearer " + localStorage.getItem(Keys.TOKEN),
+    },
+  };
 
   /**
    * Attempts to get the current user and update the user object.
@@ -40,12 +40,11 @@ export default function UserProvider({ children }) {
    * Precondition: the user is logged in.
    */
   function Logout() {
-    console.log("Logout has begun.")
-    api
-        .delete("/token/", authHeader).then((res) => {
+    console.log("Logout has begun.");
+    api.delete("/token/", authHeader).then((res) => {
       localStorage.setItem(Keys.TOKEN, null);
       setUser(UserState.error());
-    })
+    });
   }
 
   async function Login(username, password) {
@@ -71,18 +70,22 @@ export default function UserProvider({ children }) {
 
     if (localStorage.getItem(Keys.TOKEN) !== null) {
       api
-          .get("/user/self/", {}, authHeader)
-          .then((res) => {
-            setUser(UserState.success(res.data));
-            console.log("GetUserFromToken: User found")
-          })
-          .catch((err) => {
-            console.log(`GetUserFromToken: error ${err}`);
-            console.log(`GetUserFromToken: current token ${localStorage.getItem(Keys.TOKEN)}`)
-            setUser(UserState.error());
-          });
+        .get("/user/self/", {}, authHeader)
+        .then((res) => {
+          setUser(UserState.success(res.data));
+          console.log("GetUserFromToken: User found");
+        })
+        .catch((err) => {
+          console.log(`GetUserFromToken: error ${err}`);
+          console.log(
+            `GetUserFromToken: current token ${localStorage.getItem(
+              Keys.TOKEN
+            )}`
+          );
+          setUser(UserState.error());
+        });
     } else {
-      setUser(UserState.error())
+      setUser(UserState.error());
     }
   }
 

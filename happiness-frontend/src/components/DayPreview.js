@@ -8,28 +8,20 @@ Things to implement:
 - Arrows on either side of comment to show previous/next day's comment and happiness
 */
 
-export default function DayPreview({
-  open,
-  setOpen,
-  ids_list,
-  day = 0,
-  data = undefined,
-}) {
+export default function DayPreview({ open, setOpen, data = undefined, name }) {
   const cancelButtonRef = useRef(null);
   const handleShow = () => setOpen(true);
+  console.log("test test");
+  console.log(data);
 
   const tiles = [];
-  if (ids_list !== undefined) {
-    for (let i = 0; i < ids_list.length; i++) {
+  if (name !== undefined && data !== undefined) {
+    for (let i = 0; i < name.length; i++) {
       tiles.push(
-        ids_list[i] === 0 ? (
-          <OldHistoryCard id={1} data={Users(1).data[day]} shown={false} />
+        name[i] === 0 ? (
+          <OldHistoryCard id={1} data={data[0]} name={"Alex"} shown={false} />
         ) : (
-          <OldHistoryCard
-            id={ids_list[i]}
-            data={data === undefined ? Users(ids_list[i]).data[day] : data}
-            shown={true}
-          />
+          <OldHistoryCard data={data[i]} name={name[i]} shown={true} />
         )
       );
     }

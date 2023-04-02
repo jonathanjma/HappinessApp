@@ -2,7 +2,7 @@ import pickle
 
 import requests
 
-create_users_groups = True
+create_users_groups = False
 
 if create_users_groups:
     new_user1 = requests.post('http://localhost:5000/api/user/',
@@ -38,15 +38,12 @@ if create_users_groups:
     add_members = requests.put('http://localhost:5000/api/group/1',
                                headers={"Authorization": f"Bearer {token}"},
                                json={
-                                   "add_users": [
-                                       {"username": "jonathan"},
-                                       {"username": "zach"}
-                                   ]
+                                   "add_users": ["jonathan", "zach"]
                                })
     assert new_group.status_code == 201 and add_members.status_code == 200
     print('group created')
 
-with open('happiness_import.pick', 'rb') as f:
+with open('happiness_import_23.pick', 'rb') as f:
     all_user_data = pickle.load(f)
 
 import_data = requests.post('http://localhost:5000/api/happiness/import',
