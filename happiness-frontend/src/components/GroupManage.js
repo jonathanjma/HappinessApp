@@ -30,7 +30,7 @@ export default function GroupManage({ groupID, groupData }) {
     api
       .put("/group/" + groupID, { new_name: groupName })
       .then(() => window.location.reload());
-    // .error()
+    // TODO: .error()
   };
 
   // Input validation for adding users (user is added locally only)
@@ -52,11 +52,7 @@ export default function GroupManage({ groupID, groupData }) {
           setUserAddError();
           addUserField.current.value = "";
         })
-        .catch((e) =>
-          e.response.status === 404
-            ? setUserAddError("User does not exist.")
-            : ""
-        );
+        .catch(() => setUserAddError("User does not exist."));
     }
   };
 
@@ -85,7 +81,7 @@ export default function GroupManage({ groupID, groupData }) {
         remove_users: removedUsers,
       })
       .then(() => window.location.reload());
-    // .error()
+    // TODO: .error()
   };
 
   return (

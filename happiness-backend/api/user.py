@@ -180,7 +180,7 @@ def reset_password(token):
         # Reset password to desired password
         current_user = User.verify_reset_password(token)
         if not current_user:
-            return failure_response("Password reset token verification failed, token may be expired")
+            return failure_response("Password reset token verification failed, token may be expired", 401)
 
         body = json.loads(request.data)
         pwd = body.get("password")
@@ -214,7 +214,7 @@ def send_reset_password_email(req):
     email = req.get("email")
     user_by_email = users_dao.get_user_by_email(email)
     if user_by_email is None:
-        return failure_response("User associated with email address not found")
+        return failure_response("User associated with email address not found", 400)
     threading.Thread(target=email_methods.send_password_reset_email, args=(user_by_email,)).start()
     return user_by_email
 
