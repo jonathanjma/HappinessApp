@@ -8,7 +8,7 @@ from api.app import db
 from api.models import User, Setting
 from api.responses import success_response, failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
-    UsernameSchema, UserEmailSchema
+    UsernameSchema, UserEmailSchema, SimpleUserSchema
 from api.token import token_auth
 
 import threading
@@ -45,7 +45,7 @@ def create_user(req):
 
 @user.get('/<int:user_id>')
 @authenticate(token_auth)
-@response(UserSchema, 200)
+@response(UserSchema)
 @other_responses({404: "User not found.", 403: "You do not share a group with this user."})
 def get_user_by_id(user_id):
     """
@@ -58,12 +58,26 @@ def get_user_by_id(user_id):
 
     friend_user = users_dao.get_user_by_id(user_id)
     if friend_user is None:
-        return failure_response("User not found")
+        return failure_response("User not found", 404)
     if not current_user.has_mutual_group(friend_user):
         return failure_response("Not Allowed: you do not share a group with this user", 403)
 
     return friend_user
 
+@user.get('/username/<username>')
+@authenticate(token_auth)
+@response(SimpleUserSchema)
+@other_responses({404: "User not found"})
+def get_user_by_username(username):
+    """
+    Get User by Username
+    Returns the basic information (id, username, profile picture) about a user by querying by username.
+    Returns 404 if no such user exists.
+    """
+    user_lookup = users_dao.get_user_by_username(username)
+    if user_lookup is None:
+        return failure_response("User not found", 404)
+    return user_lookup
 
 @user.get('/groups')
 @authenticate(token_auth)
