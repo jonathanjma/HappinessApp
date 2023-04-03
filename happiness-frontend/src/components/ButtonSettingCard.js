@@ -1,7 +1,10 @@
 import { confirmAlert } from "react-confirm-alert";
-import "react-confirm-alert/src/react-confirm-alert.css"; // Import css
+import "react-confirm-alert/src/react-confirm-alert.css";
+import {useUser} from "../contexts/UserProvider"; // Import css
 
 export default function ButtonSettingCard(props) {
+  const { Logout, DeleteUser } = useUser();
+
   /*
       props.id: setting id
       props.icon: setting icon
@@ -9,7 +12,15 @@ export default function ButtonSettingCard(props) {
       props.isSensitive: tells whether a confirmation should come up before the setting is changed.
       */
   const doAction = () => {
-    //TODO implement backend.
+    switch (props.id) {
+      case 7:
+        Logout().then(() => {window.location.reload()})
+        break
+      case 8:
+        DeleteUser().then(() => {window.location.reload()})
+        break
+
+    }
   };
   const clicked = () => {
     console.log("Clicked");
