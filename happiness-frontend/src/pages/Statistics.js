@@ -1,22 +1,29 @@
 import Stat from "../components/Stat";
 import Graph from "../components/Graph";
-import Users from "../components/Users";
 import { Tab } from "@headlessui/react";
 import { useState, Fragment } from "react";
-import { useQuery } from "react-query";
-import { Keys } from "../keys";
-import { useApi } from "../contexts/ApiProvider";
 import { Spinner } from "react-bootstrap";
 import { useUser } from "../contexts/UserProvider";
 import { PrevWeekData, PrevMonthData } from "../components/GetHappinessData";
 
-export default function Statistics() {
+export default function Statistics({ groupData }) {
   const { user: userState } = useUser();
   const me = userState.user;
+  const userMode = groupData === undefined;
 
-  const [isLoadingH, dataH, errorH] = PrevWeekData(me);
+  const [isLoadingH, dataH, errorH] = PrevWeekData(
+    userMode,
+    userMode ? me.id : groupData.id
+  );
   console.log(dataH);
-  const [isLoadingHM, dataHM, errorHM] = PrevMonthData(me);
+  const [isLoadingHM, dataHM, errorHM] = PrevMonthData(
+    userMode,
+    userMode ? me.id : groupData.id
+  );
+
+  const names = userMode
+    ? [me.username]
+    : groupData.users.sort((u1, u2) => u1.id - u2.id).map((u) => u.username);
 
   /*
       0 = mean
@@ -42,7 +49,6 @@ export default function Statistics() {
     { value: true, key: 8 },
   ];
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const names = [me.username];
 
   return (
     <>
@@ -98,11 +104,7 @@ export default function Statistics() {
                       ) : (
                         <>
                           <div className="lg:w-1/2 lg:mt-4">
-                            <Graph
-                              data={dataH}
-                              names={[me.username]}
-                              time="Weekly"
-                            />
+                            <Graph data={dataH} names={names} time="Weekly" />
                           </div>
                           <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
                             {datavals.map((e) => {
@@ -145,11 +147,7 @@ export default function Statistics() {
                       ) : (
                         <>
                           <div className="lg:w-1/2 lg:mt-4">
-                            <Graph
-                              data={dataHM}
-                              names={[me.username]}
-                              time="Monthly"
-                            />
+                            <Graph data={dataHM} names={names} time="Monthly" />
                           </div>
                           <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
                             {datavals.map((e) => {

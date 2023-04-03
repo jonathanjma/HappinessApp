@@ -1,13 +1,15 @@
+from datetime import datetime
+
 from apifairy import authenticate, body, arguments, response, other_responses
 from flask import Blueprint
 
 from api.app import db
 from api.groups_dao import get_group_by_id
-from api.happiness_dao import get_happiness_by_group
+from api.happiness_dao import get_happiness_by_group_timestamp
 from api.models import Group
 from api.responses import failure_response
 from api.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
-    HappinessGetCount
+    HappinessGetTime
 from api.token import token_auth
 
 group = Blueprint('group', __name__)
@@ -64,26 +66,30 @@ def group_info(group_id):
 
 @group.get('/<int:group_id>/happiness')
 @authenticate(token_auth)
-@arguments(HappinessGetCount)
+@arguments(HappinessGetTime)
 @response(HappinessSchema(many=True))
 @other_responses({404: 'Invalid Group', 403: 'Not Allowed'})
 def group_happiness(req, group_id):
     """
     Get Group Happiness
-    Gets the happiness information in reverse order for a group.
+    Gets the happiness of values of a group between a specified start and end date.
     User must be a member of the group they are viewing. \n
-    Pagination: Paginated based on page number and happiness entries per page. Defaults to page=1 and count=10. \n
-    Requires: valid group ID \n
-    Returns: Specified number of happiness entries in reverse order.
+    Requires: valid group ID, the time represented by start date comes before the end date (which defaults to today) \n
+    Returns: List of all happiness entries from users in the group between start and end date in sequential order
     """
 
     # Return 404 if invalid group or 403 if user is not in group
     cur_group = get_group_by_id(group_id)
     check_group(cur_group)
 
-    page, count = req.get('page', 1), req.get('count', 10)
+    today = datetime.strftime(datetime.today(), "%Y-%m-%d")
+    start_date = datetime.strptime(req.get("start"), "%Y-%m-%d")
+    end_data = datetime.strptime(req.get("end", today), "%Y-%m-%d")
 
-    return get_happiness_by_group(list(map(lambda x: x.id, cur_group.users)), page, count)
+    # page, count = req.get('page', 1), req.get('count', 10)
+    # return get_happiness_by_group_count(list(map(lambda x: x.id, cur_group.users)), page, count)
+
+    return get_happiness_by_group_timestamp(list(map(lambda x: x.id, cur_group.users)), start_date, end_data)
 
 @group.put('/<int:group_id>')
 @authenticate(token_auth)

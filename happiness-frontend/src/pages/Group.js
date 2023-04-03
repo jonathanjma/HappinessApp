@@ -11,6 +11,7 @@ import GroupManage from "../components/GroupManage";
 import { useApi } from "../contexts/ApiProvider";
 import { useQuery } from "react-query";
 import { Spinner } from "react-bootstrap";
+import Statistics from "./Statistics";
 
 function TabButton({ text }) {
   return (
@@ -119,6 +120,11 @@ export default function Group() {
               {/*    <Stat id={id} key={e} val={e} />*/}
               {/*  ))}*/}
               {/*</div>*/}
+              {isLoadingGI ? (
+                <Spinner animation="border" />
+              ) : (
+                <Statistics groupData={dataGI} />
+              )}
             </Tab.Panel>
             <Tab.Panel>
               <p className="text-center text-3xl font-medium m-3 text-raisin-600">

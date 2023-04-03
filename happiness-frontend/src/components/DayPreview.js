@@ -1,7 +1,6 @@
 import OldHistoryCard from "./OldHistoryCard";
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import Users from "./Users";
 
 /* 
 Things to implement:
@@ -18,11 +17,7 @@ export default function DayPreview({ open, setOpen, data = undefined, name }) {
   if (name !== undefined && data !== undefined) {
     for (let i = 0; i < name.length; i++) {
       tiles.push(
-        name[i] === 0 ? (
-          <OldHistoryCard id={1} data={data[0]} name={"Alex"} shown={false} />
-        ) : (
-          <OldHistoryCard data={data[i]} name={name[i]} shown={true} />
-        )
+        <OldHistoryCard key={i} data={data[i]} name={name[i]} shown={true} />
       );
     }
   }

@@ -1,39 +1,40 @@
 import { useApi } from "../contexts/ApiProvider";
-import { useUser } from "../contexts/UserProvider";
 import { useQuery } from "react-query";
 
 // Gets list of Happiness objects for given user (from the past 7 days)
-export function PrevWeekData(user) {
+export function PrevWeekData(userMode, id) {
   const api = useApi();
   const lastWk = new Date();
   lastWk.setDate(lastWk.getDate() - 7);
   const weekData = lastWk.toISOString().substring(0, 10);
+  const get_url =
+    (userMode ? `/happiness/?id=${id}&` : `/group/${id}/happiness?`) +
+    `start=${weekData}`;
   const {
     isLoading: isLoadingH,
     data: dataH,
     error: errorH,
-  } = useQuery("stats happiness data", () =>
-    api
-      .get("/happiness/?id=" + user.id + "&start=" + weekData)
-      .then((res) => res.data)
+  } = useQuery("weekly happiness data " + get_url, () =>
+    api.get(get_url).then((res) => res.data)
   );
   return [isLoadingH, dataH, errorH];
 }
 // Gets list of Happiness objects for given user (from the past month)
-export function PrevMonthData(user) {
+export function PrevMonthData(userMode, id) {
   const lastMt = new Date();
   lastMt.setMonth(lastMt.getMonth() - 1);
 
   const api = useApi();
   const monthData = lastMt.toISOString().substring(0, 10);
+  const get_url =
+    (userMode ? `/happiness/?id=${id}&` : `/group/${id}/happiness?`) +
+    `start=${monthData}`;
   const {
     isLoading: isLoadingHM,
     data: dataHM,
     error: errorHM,
-  } = useQuery("stats monthly happiness data", () =>
-    api
-      .get("/happiness/?id=" + user.id + "&start=" + monthData)
-      .then((res) => res.data)
+  } = useQuery("monthly happiness data " + get_url, () =>
+    api.get(get_url).then((res) => res.data)
   );
   return [isLoadingHM, dataHM, errorHM];
 }
