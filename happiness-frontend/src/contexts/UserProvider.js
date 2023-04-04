@@ -26,9 +26,12 @@ export default function UserProvider({ children }) {
     };
   };
 
-  const authHeader = {
-    headers: {
-      Authorization: "Bearer " + localStorage.getItem(Keys.TOKEN)
+  const authHeader = () => {
+    const token = localStorage.getItem(Keys.TOKEN)
+    return {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     }
   }
 
@@ -42,7 +45,7 @@ export default function UserProvider({ children }) {
   function Logout() {
     console.log("Logout has begun.")
     api
-        .delete("/token/", authHeader).then((res) => {
+        .delete("/token/", authHeader()).then((res) => {
       localStorage.setItem(Keys.TOKEN, null);
       setUser(UserState.error());
     })
@@ -54,12 +57,12 @@ export default function UserProvider({ children }) {
 
     await api
         .post("/token/", {}, loginHeader(username, password))
-        .then((res) => {
+        .then(async (res) => {
           console.log("Login: success")
           localStorage.setItem(Keys.TOKEN, res.data["session_token"]);
-          GetUserFromToken();
+          await GetUserFromToken()
         })
-        .catch((err) => {console.log(`Login: error ${err}`); setUser(UserState.error())});
+        .catch((err) => {console.log(`REAL LOGIN: error ${err}`); setUser(UserState.error());});
   }
 
   /**
@@ -68,10 +71,10 @@ export default function UserProvider({ children }) {
    */
   function GetUserFromToken() {
     setUser(UserState.loading());
-
+    console.log(`Auth header: ${JSON.stringify(authHeader())}`)
     if (localStorage.getItem(Keys.TOKEN) !== null) {
       api
-          .get("/user/self/", {}, authHeader)
+          .get("/user/self/", {}, authHeader())
           .then((res) => {
             setUser(UserState.success(res.data));
             console.log("GetUserFromToken: User found")
@@ -86,7 +89,6 @@ export default function UserProvider({ children }) {
     }
   }
 
-  // TODO implement and test
   async function CreateUser(email, username, password) {
     await api
         .post("/user/", {
@@ -95,19 +97,19 @@ export default function UserProvider({ children }) {
             email: email,
         })
         .then(async (res) => {
-          console.log("CreateUser: Got data")
-          const data = res.data
-          console.log(`CreateUser: token ${JSON.stringify(data)}`)
-          console.log(`CreateUser: username ${data.username}, password ${data.password}`)
-          await Login(username, password)
+          console.log("CreateUser: Got data");
+          const data = res.data;
+          console.log(`CreateUser: token ${JSON.stringify(data)}`);
+          console.log(`CreateUser: username ${data.username}, password ${data.password}`);
+          await Login(username, password);
         }).catch((err) => {
-          console.log(`CreateUser: user error: ${err}`)
+          console.log(`CreateUser: user error: ${err}`);
           setUser(UserState.error());
     })
   }
 
   async function DeleteUser() {
-    await api.delete("/user/", authHeader).then(() => {
+    await api.delete("/user/", authHeader()).then(() => {
       setUser(UserState.error())
       localStorage.setItem(Keys.TOKEN, null)
     })

@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useUser } from "../contexts/UserProvider";
+import {Keys} from "../keys";
+import {useNavigate} from "react-router-dom";
 
 export default function LSUForm(props) {
-  const email = `${(Math.random() + 1).toString(36).substring(7)}@gmail.com` // TODO implement email textbox
+  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [hasError, setHasError] = useState(false);
-  const [hasConfirmError, setHasConfirmError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [beforeEdit, setBeforeEdit] = useState(true);
-  const { Login, CreateUser } = useUser();
+  const { Login, CreateUser, user } = useUser();
 
-  // Password validation effects:
+  // Input validation effects:
   useEffect(() => {
     if (props.isLoggingIn) {
       setHasError(false);
@@ -28,6 +28,7 @@ export default function LSUForm(props) {
 
     const upperCaseRegex = new RegExp("^(?=.*[A-Z])");
     const digitRegex = new RegExp("^(?=.*[0-9])");
+    const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
     if (password.length < 8) {
       setHasError(true);
@@ -46,44 +47,78 @@ export default function LSUForm(props) {
     }
     if (password !== confirmPassword) {
       setHasError(true);
-      setHasConfirmError(true);
       setErrorMessage("The password fields do not match.");
       return;
-    } else {
-      setHasConfirmError(false);
+    }
+    if (username.trim().length === 0) {
+      setHasError(true);
+      setErrorMessage("Username is empty");
+      return;
+    }
+    // Tests email
+    if (!emailRegex.test(email)) {
+      setHasError(true);
+      setErrorMessage("Email is invalid");
+      return;
     }
 
     setHasError(false);
     setErrorMessage("");
-  }, [password, confirmPassword, props.isLoggingIn]);
+  }, [password, confirmPassword, props.isLoggingIn, username, email]);
 
   // Sign in effect:
-  const signIn = () => {
-    if (hasError) {
-      console.log("has error");
-      toast(`You cannot login. ${errorMessage}`); //FIXME toast message not showing
-    } else {
-      if (props.isLoggingIn) {
+  async function signIn () {
+    if (!hasError && props.isLoggingIn) {
         console.log("You're signing in.");
-        // TODO try to see if login failed and show message if it did.
-        Login(username, password).then(() => {
-          window.location.reload();
-        })
-      } else {
-        console.log("You're signing up")
-        CreateUser(email, username, password).then(() => {
-          console.log("Create user complete")
-          window.location.reload();
-        })
-      }
 
+        // TODO WHY DOES THE PAGE KEEP REFRESHING 😭😭😭😭😭😭
+        await Login(email, password)
+        if (user.type !== Keys.SUCCESS) {
+          console.log("Login error")
+        } else {
+          console.log("RELOADING:")
+          window.location.reload();
+        }
+    } else if (!hasError) {
+      await CreateUser(email, username, password)
+
+      if (user.type !== Keys.SUCCESS) {
+        console.log("Sign up error")
+        setErrorMessage("Username or email already taken.")
+      } else {
+        console.log("RELOADING:")
+        window.location.reload();
+      }
     }
-  };
+  }
 
   return (
     <>
       <form className="w-full max-w-sm">
-        {/*Username*/}
+        {/* Username */}
+        <div className={`md:flex md:items-center mb-6 ${props.isLoggingIn ? "collapse" : ""}`}>
+          <div className="md:w-1/3">
+            <label
+                className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4"
+                htmlFor="inline-full-name"
+            >
+              Username
+            </label>
+          </div>
+          <div className="md:w-2/3">
+            <input
+                className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                id="inline-full-name"
+                type="text"
+                value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                }}
+                placeholder="Fiddle01"
+            />
+          </div>
+        </div>
+        {/* Email */}
         <div className="md:flex md:items-center mb-6">
           <div className="md:w-1/3">
             <label
@@ -98,15 +133,15 @@ export default function LSUForm(props) {
               className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
               id="inline-full-name"
               type="text"
-              value={username}
+              value={email}
               onChange={(e) => {
-                setUsername(e.target.value);
+                setEmail(e.target.value);
               }}
               placeholder="JahnDoe@example.com"
             />
           </div>
         </div>
-        {/*Password*/}
+        {/* Password */}
         <div className="md:flex md:items-center mb-6">
           <div className="md:w-1/3">
             <label
@@ -129,10 +164,9 @@ export default function LSUForm(props) {
               }}
               placeholder="***************"
             />
-            <p className="text-red-500">{errorMessage}</p>
           </div>
         </div>
-        {/*Confirm password*/}
+        {/* Confirm password */}
         <div
           className={`md:flex md:items-center mb-6 ${
             props.isLoggingIn ? "collapse" : ""
@@ -149,7 +183,7 @@ export default function LSUForm(props) {
           <div className="md:w-2/3">
             <input
               className={`bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white ${
-                hasConfirmError ? "border-red-500" : "focus:border-blue-500"
+                hasError ? "border-red-500" : "focus:border-blue-500"
               }`}
               id="inline-confirm-password"
               type="password"
@@ -164,6 +198,7 @@ export default function LSUForm(props) {
         <div className="md:flex md:items-center">
           <div className="md:w-1/3"></div>
           <div className="md:w-2/3">
+            <p className="text-red-500">{errorMessage}</p>
             <button
               className="shadow bg-tangerine-500 hover:bg-tangerine-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
               type="button"
