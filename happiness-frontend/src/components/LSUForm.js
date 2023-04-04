@@ -72,7 +72,7 @@ export default function LSUForm(props) {
         console.log("You're signing in.");
 
         // TODO WHY DOES THE PAGE KEEP REFRESHING 😭😭😭😭😭😭
-        await Login(email, password)
+        await Login(username, password)
         if (user.type !== Keys.SUCCESS) {
           console.log("Login error")
         } else {
@@ -96,7 +96,7 @@ export default function LSUForm(props) {
     <>
       <form className="w-full max-w-sm">
         {/* Username */}
-        <div className={`md:flex md:items-center mb-6 ${props.isLoggingIn ? "collapse" : ""}`}>
+        <div className={`md:flex md:items-center mb-6`}>
           <div className="md:w-1/3">
             <label
                 className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4"
@@ -119,7 +119,7 @@ export default function LSUForm(props) {
           </div>
         </div>
         {/* Email */}
-        <div className="md:flex md:items-center mb-6">
+        <div className={`md:flex md:items-center mb-6 ${props.isLoggingIn ? "collapse" : ""}`}>
           <div className="md:w-1/3">
             <label
               className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4"
