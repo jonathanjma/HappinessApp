@@ -6,24 +6,15 @@ import { Spinner } from "react-bootstrap";
 import { useUser } from "../contexts/UserProvider";
 import { PrevWeekData, PrevMonthData } from "../components/GetHappinessData";
 
-export default function Statistics({ groupData }) {
+export default function Statistics() {
   const { user: userState } = useUser();
   const me = userState.user;
-  const userMode = groupData === undefined;
 
-  const [isLoadingH, dataH, errorH] = PrevWeekData(
-    userMode,
-    userMode ? me.id : groupData.id
-  );
+  const [isLoadingH, dataH, errorH] = PrevWeekData(true, me.id);
   console.log(dataH);
-  const [isLoadingHM, dataHM, errorHM] = PrevMonthData(
-    userMode,
-    userMode ? me.id : groupData.id
-  );
+  const [isLoadingHM, dataHM, errorHM] = PrevMonthData(true, me.id);
 
-  const names = userMode
-    ? [me.username]
-    : groupData.users.sort((u1, u2) => u1.id - u2.id).map((u) => u.username);
+  const names = [me.username];
 
   /*
       0 = mean
