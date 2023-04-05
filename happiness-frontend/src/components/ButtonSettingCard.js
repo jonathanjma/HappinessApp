@@ -19,7 +19,6 @@ export default function ButtonSettingCard(props) {
       case 8:
         DeleteUser().then(() => {window.location.reload()})
         break
-
     }
   };
   const clicked = () => {
