@@ -69,19 +69,18 @@ export default function LSUForm(props) {
   // Sign in effect:
   async function signIn () {
     if (!hasError && props.isLoggingIn) {
-        console.log("You're signing in.");
+        // console.log("You're signing in.");
 
-        // TODO WHY DOES THE PAGE KEEP REFRESHING 😭😭😭😭😭😭
         await Login(username, password)
         if (user.type !== Keys.SUCCESS) {
           console.log("Login error")
+          setErrorMessage("Username password combination not found.");
         } else {
           console.log("RELOADING:")
           window.location.reload();
         }
     } else if (!hasError) {
       await CreateUser(email, username, password)
-
       if (user.type !== Keys.SUCCESS) {
         console.log("Sign up error")
         setErrorMessage("Username or email already taken.")

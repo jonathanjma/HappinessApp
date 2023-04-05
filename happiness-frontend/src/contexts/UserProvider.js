@@ -53,7 +53,6 @@ export default function UserProvider({ children }) {
 
   async function Login(username, password) {
     console.log("Login: trying login");
-    setUser(UserState.loading());
 
     await api
         .post("/token/", {}, loginHeader(username, password))
