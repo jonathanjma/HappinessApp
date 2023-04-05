@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import { useUser } from "../contexts/UserProvider";
 import {Keys} from "../keys";
+import Warning from "../media/red-alert-icon.svg"
 import {useNavigate} from "react-router-dom";
 
 export default function LSUForm(props) {
@@ -23,6 +24,8 @@ export default function LSUForm(props) {
     }
     if (beforeEdit) {
       setBeforeEdit(false);
+      setErrorMessage("");
+      setHasError(true);
       return;
     }
 
@@ -32,22 +35,22 @@ export default function LSUForm(props) {
 
     if (password.length < 8) {
       setHasError(true);
-      setErrorMessage("The password must be at least 8 characters long.");
+      setErrorMessage("The password must be at least 8 characters long");
       return;
     }
     if (!upperCaseRegex.test(password)) {
       setHasError(true);
-      setErrorMessage("The password must contain at least 1 uppercase letter.");
+      setErrorMessage("The password must contain at least 1 uppercase letter");
       return;
     }
     if (!digitRegex.test(password)) {
       setHasError(true);
-      setErrorMessage("The password must contain at least 1 digit.");
+      setErrorMessage("The password must contain at least 1 digit");
       return;
     }
     if (password !== confirmPassword) {
       setHasError(true);
-      setErrorMessage("The password fields do not match.");
+      setErrorMessage("The password fields do not match");
       return;
     }
     if (username.trim().length === 0) {
@@ -66,15 +69,14 @@ export default function LSUForm(props) {
     setErrorMessage("");
   }, [password, confirmPassword, props.isLoggingIn, username, email]);
 
+
   // Sign in effect:
   async function signIn () {
     if (!hasError && props.isLoggingIn) {
-        // console.log("You're signing in.");
-
         await Login(username, password)
         if (user.type !== Keys.SUCCESS) {
           console.log("Login error")
-          setErrorMessage("Username password combination not found.");
+          setErrorMessage("Username password combination not found");
         } else {
           console.log("RELOADING:")
           window.location.reload();
@@ -83,7 +85,7 @@ export default function LSUForm(props) {
       await CreateUser(email, username, password)
       if (user.type !== Keys.SUCCESS) {
         console.log("Sign up error")
-        setErrorMessage("Username or email already taken.")
+        setErrorMessage("Username or email already taken")
       } else {
         console.log("RELOADING:")
         window.location.reload();
@@ -152,9 +154,7 @@ export default function LSUForm(props) {
           </div>
           <div className="md:w-2/3">
             <input
-              className={`bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white  ${
-                hasError ? "border-red-500" : "focus:border-blue-500"
-              }`}
+              className={`bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500`}
               id="inline-password"
               type="password"
               value={password}
@@ -181,9 +181,7 @@ export default function LSUForm(props) {
           </div>
           <div className="md:w-2/3">
             <input
-              className={`bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white ${
-                hasError ? "border-red-500" : "focus:border-blue-500"
-              }`}
+              className={`bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500`}
               id="inline-confirm-password"
               type="password"
               value={confirmPassword}
@@ -197,7 +195,12 @@ export default function LSUForm(props) {
         <div className="md:flex md:items-center">
           <div className="md:w-1/3"></div>
           <div className="md:w-2/3">
-            <p className="text-red-500">{errorMessage}</p>
+            {/* Error text */}
+            <div className={`bg-gray-100 rounded-xl p-1 shadow-md mb-8 ${errorMessage.length === 0 ? "collapse" : ""} flex-row flex`}>
+              <img src={Warning} className="w-5 h-5 ml-2 mt-auto mb-auto"/>
+              <p className={"text-red-500 leading-normal mt-3 ml-4 "}>{errorMessage}</p>
+            </div>
+            {/* Sign in button */}
             <button
               className="shadow bg-tangerine-500 hover:bg-tangerine-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
               type="button"
