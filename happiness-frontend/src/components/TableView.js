@@ -1,6 +1,6 @@
 import { Table } from "react-bootstrap";
 import { useState } from "react";
-import OldHistoryCard from "./OldHistoryCard";
+import BigHistoryCard from "./BigHistoryCard";
 
 // Color table cell based on happiness value
 const cellColor = (level) => {
@@ -181,7 +181,7 @@ export default function TableView({ groupData, happinessData, selected }) {
         </tbody>
       </Table>
       {/* Show comment for selected happiness entry */}
-      {card && <OldHistoryCard data={card} shown={true} />}
+      {card && <BigHistoryCard data={card} shown={true} />}
     </div>
   );
 }

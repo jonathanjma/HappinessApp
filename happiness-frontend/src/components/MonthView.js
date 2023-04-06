@@ -29,105 +29,116 @@ function ReturnColor(level) {
   }
 }
 
-function MonthItem(props) {
-  const [dShow, setDShow] = useState(false);
+function MonthItem({ day, value }) {
   return (
     <>
       <div className="w-full flex flex-wrap justify-center h-[60px] md:h-[100px] bg-cultured-50 rounded-sm">
         <div className="hidden md:block w-full md:h-1/4 justify-center">
           <p className="text-center text-sm sm:text-md md:text-lg font-medium lg:text-raisin-600">
-            {props.day}
+            {day}
           </p>
         </div>
         {/* The color for the box below can change depending on happiness value */}
-        <div
-          className={
-            ReturnColor(props.value) +
-            " flex w-full justify-center items-center h-full md:h-3/4"
-          }
-        >
-          <p className="md:hidden text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600">
-            {props.day}
-          </p>
-          <p className="hidden md:block text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600">
-            {props.value}
-          </p>
-        </div>
+        {value !== undefined ? (
+          <>
+            <div
+              className={
+                ReturnColor(value) +
+                " flex w-full justify-center items-center h-full md:h-3/4"
+              }
+            >
+              <p className="md:hidden text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600">
+                {day}
+              </p>
+              <p className="hidden md:block text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600">
+                {value}
+              </p>
+            </div>
+          </>
+        ) : (
+          <div className="bg-buff-50 flex w-full justify-center items-center h-full md:h-3/4" />
+        )}
       </div>
     </>
   );
 }
 
-function WeekItem(props) {
-  const tiles = [];
-  let i = props.start;
-  let limit = Math.min(i + 7, 31);
-  for (let b = 0; b < props.day; b++) {
-    tiles.push(<th></th>);
+export default function MonthView({ happinessData, startday, endday }) {
+  function findData(begin, end, data, ind) {
+    let t = [];
+    console.log(end);
+    for (let i = begin; i < end; i++) {
+      if (ind === data.length) break;
+      console.log(i);
+      console.log(data[ind]);
+      let parts = data[ind].timestamp.split("-");
+      let a = new Date(parts[0], parts[1] - 1, parts[2]);
+      console.log(a);
+      console.log(a.getDate());
+      if (a.getDate() === i) {
+        t.push(data[ind]);
+        ind++;
+      } else t.push(undefined);
+    }
+    return [t, ind];
   }
-  for (i; i + props.day < limit; i++) {
-    tiles.push(
-      <>
-        <th className="border border-raisin-600 border-collapse">
-          <MonthItem day={i} value={Math.floor(Math.random() * 20) / 2} />
-        </th>
-      </>
-    );
+  function WeekItem({ start, day, data }) {
+    console.log(data);
+    console.log(start);
+    const tiles = [];
+    let i = start;
+    let t = 0;
+    let limit = Math.min(i + 7, 32);
+    for (let b = 0; b < day; b++) {
+      tiles.push(<th></th>);
+    }
+    for (i; i + day < limit; i++) {
+      if (data[t] !== undefined) {
+        tiles.push(
+          <>
+            <th className="border border-raisin-600 border-collapse">
+              <MonthItem day={i} value={data[t].value} />
+            </th>
+          </>
+        );
+      } else
+        tiles.push(
+          <>
+            <th className="border border-raisin-600 border-collapse">
+              <MonthItem day={i} value={undefined} />
+            </th>
+          </>
+        );
+      t++;
+    }
+    return <>{tiles}</>;
   }
-  return <>{tiles}</>;
-}
-
-export default function MonthView(props) {
   let tiles = [];
+  console.log(happinessData);
+  console.log(startday);
+  happinessData.sort((a, b) => a.timestamp - b.timestamp);
+  console.log(findData(1, 8 - startday.getDay(), happinessData, 0));
+  let [wkData, indx] = findData(1, 8 - startday.getDay(), happinessData, 0);
   tiles.push(
     <>
       <tr>
-        <WeekItem start={1} day={props.startday} />
+        <WeekItem start={1} day={startday.getDay()} data={wkData} />
       </tr>
     </>
   );
-  for (let d = 8 - props.startday; d < 32; d += 7) {
+  for (let d = 8 - startday.getDay(); d < 32; d += 7) {
+    [wkData, indx] = findData(d, d + 7, happinessData, indx);
     tiles.push(
       <>
         <tr>
-          <WeekItem start={d} day={0} />
+          <WeekItem start={d} day={0} data={wkData} />
         </tr>
       </>
     );
   }
   return (
-    <>
-      <div className="flex flex-wrap w-full justify-center mt-3">
-        <div className="flex flex-wrap justify-center border-solid w-full max-w-[550px] lg:w-2/3">
-          <div className="font-medium relative w-full text-center text-2xl py-2 my-0 bg-buff-200 h-[60px]">
-            <button className="absolute top-3 left-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl">
-              &lt;
-            </button>
-            <p className="py-2">
-              {props.month} {props.year}
-            </p>
-            <button className="absolute top-3 right-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl">
-              &gt;
-            </button>
-          </div>
-
-          <table className="table-fixed w-full rounded-sm border-collapse border border-raisin-600">
-            <tbody>{tiles}</tbody>
-          </table>
-        </div>
-        <div className="w-full flex flex-wrap justify-center max-w-[550px] lg:w-1/3 lg:mx-6 -mt-4">
-          <BigHistoryCard
-            id={1}
-            data={Users(1).data[3]}
-            shown={true}
-            useDate={true}
-          />
-          <div className="w-full justify-center my-4 hidden lg:flex">
-            <Stat id={1} val={0} />
-            <Stat id={1} val={1} />
-          </div>
-        </div>
-      </div>
-    </>
+    <table className="table-fixed w-full rounded-sm border-collapse border border-raisin-600">
+      <tbody>{tiles}</tbody>
+    </table>
   );
 }
