@@ -3,7 +3,7 @@ import GroupData from "../components/GroupData";
 import Graph from "../components/Graph";
 import Stat from "../components/Stat";
 import Users from "../components/Users";
-import OldHistoryCard from "../components/OldHistoryCard";
+import BigHistoryCard from "../components/BigHistoryCard";
 import HistoryCard from "../components/HistoryCard";
 import { Fragment, useState } from "react";
 import { Tab } from "@headlessui/react";
@@ -63,7 +63,7 @@ export default function Group({ id }) {
     }
     if (datapoint.level !== null) {
       tiles.push(
-        <OldHistoryCard
+        <BigHistoryCard
           key={i}
           id={datapoint.user}
           data={datapoint}

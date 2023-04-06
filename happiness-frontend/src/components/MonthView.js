@@ -1,9 +1,10 @@
-// TODO: Rewrite with date code once backend integrated
+// month value represents month (0-based index, Jan = 0, Feb = 1, etc)
+
 import { useState } from "react";
 import Users from "./Users";
 import Stat from "./Stat";
 
-import OldHistoryCard from "./OldHistoryCard";
+import BigHistoryCard from "./BigHistoryCard";
 
 function ReturnColor(level) {
   let happiness = level * 10;
@@ -115,7 +116,7 @@ export default function MonthView(props) {
           </table>
         </div>
         <div className="w-full flex flex-wrap justify-center max-w-[550px] lg:w-1/3 lg:mx-6 -mt-4">
-          <OldHistoryCard
+          <BigHistoryCard
             id={1}
             data={Users(1).data[3]}
             shown={true}

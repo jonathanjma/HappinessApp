@@ -1,4 +1,4 @@
-import OldHistoryCard from "./OldHistoryCard";
+import BigHistoryCard from "./BigHistoryCard";
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import Users from "./Users";
@@ -15,15 +15,19 @@ export default function DayPreview({ open, setOpen, data = undefined, name }) {
   console.log(data);
 
   const tiles = [];
-  if (name !== undefined && data !== undefined) {
+  if (name !== "" && data !== undefined) {
     for (let i = 0; i < name.length; i++) {
       tiles.push(
         name[i] === 0 ? (
-          <OldHistoryCard id={1} data={data[0]} name={"Alex"} shown={false} />
+          <BigHistoryCard id={1} data={data[0]} name={"Alex"} shown={false} />
         ) : (
-          <OldHistoryCard data={data[i]} name={name[i]} shown={true} />
+          <BigHistoryCard data={data[i]} name={name[i]} shown={true} />
         )
       );
+    }
+  } else {
+    for (let i = 0; i < data.length; i++) {
+      tiles.push(<BigHistoryCard data={data[i]} shown={true} id={i} />);
     }
   }
 

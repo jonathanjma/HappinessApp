@@ -1,4 +1,5 @@
 import Users from "./Users";
+import { useUser } from "../contexts/UserProvider";
 
 function CommentShow({ data }) {
   if (data.comment) {
@@ -17,12 +18,14 @@ function CommentShow({ data }) {
   }
 }
 
-export default function OldHistoryCard({
+export default function BigHistoryCard({
   data,
-  name,
+  name = "",
   shown = false,
   useDate = true,
 }) {
+  const { user: userState } = useUser();
+  const me = userState.user;
   const parts = data.timestamp.split("-");
   const dayString = new Date(parts[0], parts[1] - 1, parts[2]);
   console.log(dayString);
@@ -44,7 +47,7 @@ export default function OldHistoryCard({
               <div className="absolute @xl:relative @xl:w-full @xl:mt-4 right-2 top-1">
                 {/* <img
                   className="rounded-full max-h-[50px] max-w-[50px] @xl:max-w-[60px] @xl:max-h-[60px] block mx-auto sm:mx-0 sm:shrink-0"
-                  src={Users(id).img}
+                  src={me.profile_picture}
                   alt="pfp"
                 /> */}
               </div>
