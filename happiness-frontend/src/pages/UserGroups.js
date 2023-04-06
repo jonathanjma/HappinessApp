@@ -5,7 +5,7 @@ import { useApi } from "../contexts/ApiProvider";
 import { Spinner } from "react-bootstrap";
 
 // User Groups Page: view all the groups the user is in
-export default function UserGroups({ id }) {
+export default function UserGroups() {
   const api = useApi();
   const { isLoading, data, error } = useQuery("user_groups", () =>
     api.get("/user/groups").then((res) => res.data)

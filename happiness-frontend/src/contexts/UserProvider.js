@@ -47,27 +47,23 @@ export default function UserProvider({ children }) {
     });
   }
 
-  function Login(username, password) {
-    // TODO reroute user
+  async function Login(username, password) {
     console.log("Login: trying login");
     setUser(UserState.loading());
 
-    api
-      .post("/token/", {}, loginHeader(username, password))
-      .then((res) => {
-        console.log("Login: success");
-        localStorage.setItem(Keys.TOKEN, res.data["session_token"]);
-        GetUserFromToken();
-      })
-      .catch((err) => {
-        console.log(`Login: error ${err}`);
-        setUser(UserState.error());
-      });
+    await api
+        .post("/token/", {}, loginHeader(username, password))
+        .then((res) => {
+          console.log("Login: success")
+          localStorage.setItem(Keys.TOKEN, res.data["session_token"]);
+          GetUserFromToken();
+        })
+        .catch((err) => {console.log(`Login: error ${err}`); setUser(UserState.error())});
   }
 
   /**
-   * Precondition: the lcoal storage must have a valid token.
-   * Postcondition: the user object is either null, or has data.
+   * Precondition: the local storage must have a valid token.
+   * Postcondition: the user object is either in the error or success state.
    */
   function GetUserFromToken() {
     setUser(UserState.loading());
@@ -93,55 +89,35 @@ export default function UserProvider({ children }) {
     }
   }
 
-  function CreateUser(email, username, password) {
-    // TODO: broken
-    const { isLoading, error, data } = useQuery(`${username} CREATE`, () =>
-      api
+  // TODO implement and test
+  async function CreateUser(email, username, password) {
+    await api
         .post("/user/", {
-          email: email,
-          username: username,
-          password: password,
+            username: username,
+            password: password,
+            email: email,
         })
-        .then((res) => res.data)
-    );
-    if (isLoading) {
-      setUser(UserState.loading());
-      return;
-    }
-    if (error) {
-      setUser(UserState.error());
-    }
-    localStorage.setItem(Keys.TOKEN, data);
-    Login(username, password);
+        .then(async (res) => {
+          console.log("CreateUser: Got data")
+          const data = res.data
+          console.log(`CreateUser: token ${JSON.stringify(data)}`)
+          console.log(`CreateUser: username ${data.username}, password ${data.password}`)
+          await Login(username, password)
+        }).catch((err) => {
+          console.log(`CreateUser: user error: ${err}`)
+          setUser(UserState.error());
+    })
   }
 
-  function DeleteUser() {
-    // TODO: broken
-    const { isLoading, error, data } = useQuery(
-      `${localStorage.getItem(Keys.TOKEN)} DELETE`,
-      api.delete("/user/").then((res) => res.data)
-    );
-
-    if (error) {
-      return;
-    }
-
-    if (isLoading) {
-      setUser(UserState.loading());
-    }
-
-    // This if statement should ensure that the user was properly deleted
-    // But this comparison is very precarious.
-    // TODO test this!
-    if (data === user) {
-      setUser(UserState.error());
-    }
+  async function DeleteUser() {
+    await api.delete("/user/", authHeader).then(() => {
+      setUser(UserState.error())
+      localStorage.setItem(Keys.TOKEN, null)
+    })
   }
 
   return (
-    <UserContext.Provider
-      value={{ user, setUser, Login, Logout, GetUserFromToken }}
-    >
+    <UserContext.Provider value={{ user, setUser, Login, Logout, GetUserFromToken, CreateUser, DeleteUser}}>
       {children}
     </UserContext.Provider>
   );

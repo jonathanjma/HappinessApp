@@ -4,6 +4,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useUser } from "../contexts/UserProvider";
 
 export default function LSUForm(props) {
+  const email = `${(Math.random() + 1).toString(36).substring(7)}@gmail.com` // TODO implement email textbox
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -11,7 +12,7 @@ export default function LSUForm(props) {
   const [hasConfirmError, setHasConfirmError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [beforeEdit, setBeforeEdit] = useState(true);
-  const { Login } = useUser();
+  const { Login, CreateUser } = useUser();
 
   // Password validation effects:
   useEffect(() => {
@@ -62,9 +63,20 @@ export default function LSUForm(props) {
       console.log("has error");
       toast(`You cannot login. ${errorMessage}`); //FIXME toast message not showing
     } else {
-      console.log("You're signing in.");
-      Login(username, password);
-      // setTimeout(() => {console.log("Code executed"); window.location.reload()}, 500)
+      if (props.isLoggingIn) {
+        console.log("You're signing in.");
+        // TODO try to see if login failed and show message if it did.
+        Login(username, password).then(() => {
+          window.location.reload();
+        })
+      } else {
+        console.log("You're signing up")
+        CreateUser(email, username, password).then(() => {
+          console.log("Create user complete")
+          window.location.reload();
+        })
+      }
+
     }
   };
 

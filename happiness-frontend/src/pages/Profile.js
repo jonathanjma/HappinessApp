@@ -20,7 +20,7 @@ export default function Profile(props) {
   const todayString = today.toISOString().substring(0, 10);
   const api = useApi();
 
-  const [isLoadingH, dataH, errorH] = PrevWeekData(me);
+  const [isLoadingH, dataH, errorH] = PrevWeekData(true, me.id);
   const [isLoadingC, dataC, errorC] = GetCountHappiness(4, me);
   console.log(dataC);
   console.log(dataH);

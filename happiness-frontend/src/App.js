@@ -43,14 +43,8 @@ export default function App() {
                         <Route path="/home" element={<SubmitHappiness />} />
                         <Route path="/statistics" element={<Statistics />} />
                         <Route path="/profile" element={<Profile id={id} />} />
-                        <Route
-                          path="/groups"
-                          element={<UserGroups id={id} />}
-                        />
-                        <Route
-                          path="/groups/:groupID"
-                          element={<Group id={id} />}
-                        />
+                        <Route path="/groups" element={<UserGroups />} />
+                        <Route path="/groups/:groupID" element={<Group />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/history" element={<History id={id} />} />
                         <Route path="*" element={<Navigate to="/" />} />

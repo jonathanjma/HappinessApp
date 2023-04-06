@@ -1,7 +1,6 @@
 import BigHistoryCard from "./BigHistoryCard";
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import Users from "./Users";
 
 /* 
 Things to implement:
@@ -19,10 +18,18 @@ export default function DayPreview({ open, setOpen, data = undefined, name }) {
     for (let i = 0; i < name.length; i++) {
       tiles.push(
         name[i] === 0 ? (
-          <BigHistoryCard id={1} data={data[0]} name={"Alex"} shown={false} />
+          <BigHistoryCard
+            id={1}
+            data={data[0]}
+            name={"Alex"}
+            shown={false}
+            key={i}
+          />
         ) : (
-          <BigHistoryCard data={data[i]} name={name[i]} shown={true} />
+          <BigHistoryCard data={data[i]} name={name[i]} shown={true} key={i} />
         )
+        // Jonathan's change
+        // <BigHistoryCard key={i} data={data[i]} name={name[i]} shown={true} />
       );
     }
   } else {
