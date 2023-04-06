@@ -1,41 +1,31 @@
 import LSUModal from "../components/LSUModal";
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import "../App.css";
 import Journal from "../media/journal-icon.svg";
 import HappinessCommentModal from "../components/HappinessCommentModal";
 import DynamicSmile from "../components/DynamicSmile";
+import DateDropdown from "../components/DateDropdown";
 
 export default function SubmitHappiness() {
   // happiness represents how happy the user is on a scale of 0 to 10.
   // this value appears as a scale from one to ten for the user.
   // Variable invariant: This variable must be between 0 and 10, and can only be 0.5 between whole numbers.
 
+
+  // Create an empty array to store the Date objects
+  const dateList = [];
+  initializeDateList(dateList);
+
+
+
   const [happiness, setHappiness] = useState(5.0);
   const [comment, setComment] = useState("");
-  let happinessColor = (happiness) => {
-    if (happiness < 1.0) {
-      return "bg-red-700";
-    } else if (happiness < 2.0) {
-      return "bg-red-600";
-    } else if (happiness < 3.0) {
-      return "bg-yellow-500";
-    } else if (happiness < 4.0) {
-      return "bg-yellow-400";
-    } else if (happiness < 6.0) {
-      return "bg-yellow-300";
-    } else if (happiness < 7.0) {
-      return "bg-yellow-300";
-    } else if (happiness < 8.0) {
-      return "bg-green-400";
-    } else if (happiness < 10.0) {
-      return "bg-green-500";
-    } else {
-      return "bg-green-600";
-    }
-  };
+  const [date, setDate] = useState(new Date());
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-  let formatHappinessNum = (happiness) => {
-    if (happiness*10 % 10 >= 5) {
+
+  const formatHappinessNum = (happiness) => {
+    if (happiness * 10 % 10 >= 5) {
       return (Math.floor(happiness) + 0.5).toFixed(1);
     } else {
       return Math.floor(happiness).toFixed(1);
@@ -51,27 +41,22 @@ export default function SubmitHappiness() {
     }
   }, [happiness])
 
-  let getNumDay = () => {
-    const today = new Date();
-    return today.getDate();
-  };
 
-  let getWeekDay = () => {
-    const daysOfWeek = [
-      "SUN",
-      "MON",
-      "TUE",
-      "WED",
-      "THU",
-      "FRI",
-      "SAT",
-    ];
-    const today = new Date();
-    return daysOfWeek[today.getDay()];
-  }
 
   const submitHappiness = () => {
-    //TODO submit happiness with backend.
+    // const {
+    //   isLoading: isLoadingH,
+    //   data: dataH,
+    //   error: errorH,
+    // } = useQuery("stats happiness data", () =>
+    //   api
+    //     .post("/happiness/", {
+    //       "value": happiness,
+    //       "comment": comment,
+    //       "timestamp": dateList[selectedIndex]
+    //     })
+    //     .then((res) => res.data)
+    // );
   };
 
   return (
@@ -84,18 +69,7 @@ export default function SubmitHappiness() {
       {/* Items */}
       <div className="flex flex-col justify-center items-center">
         {/* Today's Date */}
-        <div className="mr-auto flex flex-col ml-3 mt-3 drop-shadow-md ">
-          <div className="h-1/2 w-full bg-red-500 p-2 rounded-t-2xl ">
-            <p className="md:text-2xl text-xl text-white text-center font-medium -mb-1">
-              {getWeekDay()}
-            </p>
-          </div>
-          <div className="h-1/2 w-full bg-white p-2 rounded-b-2xl">
-            <p className="md:text-4xl text-xl text-red text-center font-medium -mb-1 -mt-1">
-              {getNumDay()}
-            </p>
-          </div>
-        </div>
+        <DateDropdown selectedIndex={selectedIndex} setSelectedIndex={setSelectedIndex} dateList={dateList} />
 
         {/* Prompt */}
         <>
@@ -103,11 +77,6 @@ export default function SubmitHappiness() {
             <b>How are you feeling today?</b>
           </h1>
         </>
-
-
-
-
-
 
         {/* Happy Face, Slider, and Happiness Number (Desktop only) */}
         <div className="flex flex-row items-center justify-center mobile-hidden">
@@ -179,4 +148,46 @@ export default function SubmitHappiness() {
       </div>
     </div>
   );
+}
+function initializeDateList(dateList) {
+  const today = new Date();
+
+  // Loop through the past 7 days (including today)
+  for (let i = 0; i < 7; i++) {
+    // Create a new Date object representing the current day in the loop
+    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+
+    // Check if the current date is the first day of the month
+    if (date.getDate() === 1 && i !== 0) {
+      // If it is, adjust the month of the previous date in the array
+      let previousDate = dateList[i - 1];
+      while (previousDate.getMonth() !== date.getMonth()) {
+        previousDate.setMonth(previousDate.getMonth() - 1);
+      }
+    }
+
+    // Add the new Date object to the array
+    dateList.push(date);
+  }
+}
+
+function happinessColor(happiness) {
+  switch (true) {
+    case (happiness < 1.0):
+      return "bg-red-700";
+    case (happiness < 2.0):
+      return "bg-red-600";
+    case (happiness < 3.0):
+      return "bg-yellow-500";
+    case (happiness < 4.0):
+      return "bg-yellow-400";
+    case (happiness < 6.0):
+      return "bg-yellow-300";
+    case (happiness < 8.0):
+      return "bg-green-400";
+    case (happiness < 10.0):
+      return "bg-green-500";
+    default:
+      return "bg-green-600";
+  }
 }

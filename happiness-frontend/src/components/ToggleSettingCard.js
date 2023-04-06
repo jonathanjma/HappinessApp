@@ -1,16 +1,37 @@
-import { useState } from "react";
-import { useEffect } from "react";
+import {useEffect, useState} from "react";
+import { useQuery } from "react-query";
+import {useUser} from "../contexts/UserProvider";
 
 export default function ToggleSettingCard(props) {
-  /*
+    /*
       props.id: setting id
       props.icon: setting icon
       props.name: setting name
       */
-  const [isChecked, setIsChecked] = useState(false);
-  useEffect(() => {
-    //TODO update backend based on setting id
-  }, [isChecked]);
+    const [isChecked, setIsChecked] = useState(false);
+    const api = useApi();
+    const { user } = useUser();
+    const toggleSetting = () => {
+      api.post("/user/settings/", {
+          "value": isChecked,
+          "key": props.id
+      }).then(() => {
+
+      })
+    }
+
+    useEffect(() => {
+        // Load initial settings values
+        const userSettings = user.settings;
+        const givenKey = props.id;
+
+        for (let i = 0; i < userSettings.length; i++) {
+            if (userSettings[i].key === givenKey) {
+                console.log(`User has the "${givenKey}" setting with value "${userSettings[i].value}"`);
+                setIsChecked(userSettings[i].value)
+            }
+        }
+    }, [])
 
   return (
     <div className="w-[300px] h-[170px] md:h-[100px] m-2 py-8 px-8 max-w-sm rounded-xl shadow-lg space-y-2 sm:py-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-6 bg-white">
