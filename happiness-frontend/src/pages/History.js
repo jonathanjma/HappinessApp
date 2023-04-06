@@ -6,18 +6,16 @@ import MonthView from "../components/MonthView";
 import { GetRangeHappiness } from "../components/GetHappinessData";
 import { useUser } from "../contexts/UserProvider";
 import { Spinner } from "react-bootstrap";
-import { useQuery } from "react-query";
-import { useApi } from "../contexts/ApiProvider";
+import Stat from "../components/Stat";
+import BigHistoryCard from "../components/BigHistoryCard";
 
 export default function History(props) {
   const { user: userState } = useUser();
   const me = userState.user;
 
+  // initializes dates corresponding to start and end of current week
   const [start, setStart] = useState(new Date());
   const [end, setEnd] = useState(new Date());
-
-  console.log(start);
-  console.log(end);
   useEffect(
     () =>
       setStart((start) => {
@@ -34,9 +32,10 @@ export default function History(props) {
       }),
     []
   );
-  console.log(start);
-  console.log(end);
+  // console.log(start);
+  // console.log(end);
 
+  // fetches data for weekly view
   const [isLoading, data, error, refetch] = GetRangeHappiness(
     me,
     start.toISOString().substring(0, 10),
@@ -46,6 +45,7 @@ export default function History(props) {
     refetch();
   }, [start, end]);
 
+  // initializes dates corresponding to start + end of current month
   const [stMonth, setStMonth] = useState(new Date());
   const [endMonth, setEndMonth] = useState(new Date());
   useEffect(
@@ -69,6 +69,7 @@ export default function History(props) {
   console.log(stMonth);
   console.log(endMonth);
 
+  // fetches data for monthly view
   const [isLoadingM, dataM, errorM, refetchM] = GetRangeHappiness(
     me,
     stMonth.toISOString().substring(0, 10),
@@ -78,6 +79,8 @@ export default function History(props) {
     refetchM();
   }, [stMonth, endMonth]);
   console.log(dataM);
+
+  const [card, setCard] = useState();
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -182,8 +185,8 @@ export default function History(props) {
           </Tab.Panel>
           <Tab.Panel className="w-full justify-center">
             <div className="flex flex-wrap w-full justify-center mt-3">
-              <div className="flex flex-wrap justify-center border-solid w-full max-w-[550px] lg:w-2/3">
-                <div className="font-medium relative w-full text-center text-2xl py-2 my-0 bg-buff-200 h-[60px]">
+              <div className="flex flex-wrap justify-center border-solid w-full max-w-[550px] lg:w-2/3 max-h-[690px]">
+                <div className="font-medium relative w-full text-center text-2xl py-2 my-0 bg-buff-200 max-h-[60px]">
                   <button
                     className="absolute top-3 left-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
                     onClick={() => {
@@ -215,21 +218,21 @@ export default function History(props) {
                   <button
                     className="absolute top-3 right-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
                     onClick={() => {
-                      setStMonth((start) => {
-                        start.setMonth(start.getMonth() + 1);
-                        return new Date(start);
+                      setStMonth((st) => {
+                        st.setMonth(st.getMonth() + 1);
+                        return new Date(st);
                       });
-                      setEndMonth((end) => {
-                        end.setDate(1);
-                        end.setMonth(end.getMonth() + 1);
-                        end.setDate(
+                      setEndMonth((ed) => {
+                        ed.setDate(1);
+                        ed.setMonth(ed.getMonth() + 1);
+                        ed.setDate(
                           new Date(
-                            end.getFullYear(),
-                            end.getMonth() + 1,
+                            ed.getFullYear(),
+                            ed.getMonth() + 1,
                             0
                           ).getDate()
                         );
-                        return new Date(end);
+                        return new Date(ed);
                       });
                     }}
                   >
@@ -246,35 +249,57 @@ export default function History(props) {
                       </p>
                     ) : (
                       <>
-                        {dataM.length === 0 ? (
-                          <p className="text-xl font-medium text-raisin-600 m-3 text-center">
-                            Data not available for selected period.
-                          </p>
-                        ) : (
-                          <MonthView
-                            happinessData={dataM}
-                            startday={stMonth}
-                            endday={endMonth}
-                          />
-                        )}
+                        <MonthView
+                          happinessData={dataM}
+                          startDay={stMonth}
+                          endDay={endMonth}
+                          setCard={setCard}
+                        />
                       </>
                     )}
                   </>
                 )}
               </div>
-              Placeholder
-              {/* <div className="w-full flex flex-wrap justify-center max-w-[550px] lg:w-1/3 lg:mx-6 -mt-4">
-                <BigHistoryCard
-                  id={1}
-                  data={}
-                  shown={true}
-                  useDate={true}
-                />
-                <div className="w-full justify-center my-4 hidden lg:flex">
-                  <Stat id={1} val={0} />
-                  <Stat id={1} val={1} />
-                </div>
-              </div> */}
+              {isLoadingM ? (
+                <Spinner animation="border" />
+              ) : (
+                <>
+                  {errorM ? (
+                    <p className="text-xl font-medium text-raisin-600 m-3 text-center">
+                      Error: Could not load happiness.
+                    </p>
+                  ) : (
+                    <>
+                      {dataM.length === 0 ? (
+                        <p className="text-xl font-medium text-raisin-600 m-3 text-center">
+                          Error: Could not load happiness.
+                        </p>
+                      ) : (
+                        <>
+                          <div className="w-full flex flex-wrap justify-center max-w-[550px] lg:w-1/3 lg:mx-6 -mt-4">
+                            {card && (
+                              <BigHistoryCard data={card} shown={true} />
+                            )}
+
+                            <div className="w-full justify-center hidden lg:flex">
+                              <Stat
+                                data={dataM.map((e) => e.value)}
+                                val={0}
+                                key={0}
+                              />
+                              <Stat
+                                data={dataM.map((e) => e.value)}
+                                val={1}
+                                key={1}
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
             </div>
           </Tab.Panel>
         </Tab.Panels>

@@ -1,69 +1,68 @@
 // month value represents month (0-based index, Jan = 0, Feb = 1, etc)
 
-import { useState } from "react";
-import Users from "./Users";
-import Stat from "./Stat";
-
-import BigHistoryCard from "./BigHistoryCard";
-
-function ReturnColor(level) {
-  let happiness = level * 10;
-  if (happiness < 10) {
-    return "bg-red-700";
-  } else if (happiness < 20) {
-    return "bg-red-600";
-  } else if (happiness < 30) {
-    return "bg-yellow-500";
-  } else if (happiness < 40) {
-    return "bg-yellow-400";
-  } else if (happiness < 60) {
-    return "bg-yellow-300";
-  } else if (happiness < 70) {
-    return "bg-yellow-300";
-  } else if (happiness < 80) {
-    return "bg-green-400";
-  } else if (happiness < 100) {
-    return "bg-green-500";
-  } else {
-    return "bg-green-600";
+export default function MonthView({
+  happinessData,
+  startDay,
+  endDay,
+  setCard,
+}) {
+  function ReturnColor(level) {
+    let happiness = level * 10;
+    if (happiness < 10) {
+      return "bg-red-700";
+    } else if (happiness < 20) {
+      return "bg-red-600";
+    } else if (happiness < 30) {
+      return "bg-yellow-500";
+    } else if (happiness < 40) {
+      return "bg-yellow-400";
+    } else if (happiness < 60) {
+      return "bg-yellow-300";
+    } else if (happiness < 70) {
+      return "bg-yellow-300";
+    } else if (happiness < 80) {
+      return "bg-green-400";
+    } else if (happiness < 100) {
+      return "bg-green-500";
+    } else {
+      return "bg-green-600";
+    }
   }
-}
 
-function MonthItem({ day, value }) {
-  return (
-    <>
-      <div className="w-full flex flex-wrap justify-center h-[60px] md:h-[100px] bg-cultured-50 rounded-sm">
-        <div className="hidden md:block w-full md:h-1/4 justify-center">
-          <p className="text-center text-sm sm:text-md md:text-lg font-medium lg:text-raisin-600">
-            {day}
-          </p>
+  function MonthItem({ day, data }) {
+    return (
+      <>
+        <div className="w-full flex flex-wrap justify-center h-[60px] md:h-[100px] bg-cultured-50 rounded-sm">
+          <div className="hidden md:block w-full md:h-1/4 justify-center">
+            <p className="text-center text-sm sm:text-md md:text-lg font-medium lg:text-raisin-600">
+              {day}
+            </p>
+          </div>
+          {/* The color for the box below can change depending on happiness value */}
+          {data !== undefined ? (
+            <>
+              <div
+                className={
+                  ReturnColor(data.value) +
+                  " flex w-full justify-center items-center h-full md:h-3/4"
+                }
+                onClick={() => setCard(data)}
+              >
+                <p className="md:hidden text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600">
+                  {day}
+                </p>
+                <p className="hidden md:block text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600">
+                  {data.value}
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="bg-buff-50 flex w-full justify-center items-center h-full md:h-3/4" />
+          )}
         </div>
-        {/* The color for the box below can change depending on happiness value */}
-        {value !== undefined ? (
-          <>
-            <div
-              className={
-                ReturnColor(value) +
-                " flex w-full justify-center items-center h-full md:h-3/4"
-              }
-            >
-              <p className="md:hidden text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600">
-                {day}
-              </p>
-              <p className="hidden md:block text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600">
-                {value}
-              </p>
-            </div>
-          </>
-        ) : (
-          <div className="bg-buff-50 flex w-full justify-center items-center h-full md:h-3/4" />
-        )}
-      </div>
-    </>
-  );
-}
-
-export default function MonthView({ happinessData, startday, endday }) {
+      </>
+    );
+  }
   function findData(begin, end, data, ind) {
     let t = [];
     console.log(end);
@@ -88,7 +87,7 @@ export default function MonthView({ happinessData, startday, endday }) {
     const tiles = [];
     let i = start;
     let t = 0;
-    let limit = Math.min(i + 7, 32);
+    let limit = Math.min(i + 7, endDay.getDate() + 1);
     for (let b = 0; b < day; b++) {
       tiles.push(<th></th>);
     }
@@ -97,7 +96,7 @@ export default function MonthView({ happinessData, startday, endday }) {
         tiles.push(
           <>
             <th className="border border-raisin-600 border-collapse">
-              <MonthItem day={i} value={data[t].value} />
+              <MonthItem day={i} data={data[t]} />
             </th>
           </>
         );
@@ -115,18 +114,18 @@ export default function MonthView({ happinessData, startday, endday }) {
   }
   let tiles = [];
   console.log(happinessData);
-  console.log(startday);
+  console.log(startDay);
   happinessData.sort((a, b) => a.timestamp - b.timestamp);
-  console.log(findData(1, 8 - startday.getDay(), happinessData, 0));
-  let [wkData, indx] = findData(1, 8 - startday.getDay(), happinessData, 0);
+  console.log(findData(1, 8 - startDay.getDay(), happinessData, 0));
+  let [wkData, indx] = findData(1, 8 - startDay.getDay(), happinessData, 0);
   tiles.push(
     <>
       <tr>
-        <WeekItem start={1} day={startday.getDay()} data={wkData} />
+        <WeekItem start={1} day={startDay.getDay()} data={wkData} />
       </tr>
     </>
   );
-  for (let d = 8 - startday.getDay(); d < 32; d += 7) {
+  for (let d = 8 - startDay.getDay(); d < 32; d += 7) {
     [wkData, indx] = findData(d, d + 7, happinessData, indx);
     tiles.push(
       <>

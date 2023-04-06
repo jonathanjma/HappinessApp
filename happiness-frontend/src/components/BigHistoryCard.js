@@ -45,11 +45,11 @@ export default function BigHistoryCard({
                 <>{name}</>
               )}
               <div className="absolute @xl:relative @xl:w-full @xl:mt-4 right-2 top-1">
-                {/* <img
+                <img
                   className="rounded-full max-h-[50px] max-w-[50px] @xl:max-w-[60px] @xl:max-h-[60px] block mx-auto sm:mx-0 sm:shrink-0"
                   src={me.profile_picture}
                   alt="pfp"
-                /> */}
+                />
               </div>
             </div>
           </div>
