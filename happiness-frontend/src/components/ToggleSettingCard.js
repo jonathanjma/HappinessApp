@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import { useQuery } from "react-query";
+import {useApi} from "../contexts/ApiProvider";
 import {useUser} from "../contexts/UserProvider";
 
 export default function ToggleSettingCard(props) {
@@ -11,6 +12,7 @@ export default function ToggleSettingCard(props) {
     const [isChecked, setIsChecked] = useState(false);
     const api = useApi();
     const { user } = useUser();
+    // TODO test settings!!!
     const toggleSetting = () => {
       api.post("/user/settings/", {
           "value": isChecked,
