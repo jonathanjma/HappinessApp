@@ -13,7 +13,7 @@ export default function HistoryCard({ data, name = "", useDate = true }) {
         onClick={() => setDShow(true)}
       >
         <div className="flex w-full flex-wrap justify-center items-center bg-buff-300 px-2 py-3 rounded-t-xl h-2/5">
-          <p className="text-center text-sm md:text-2xl font-medium text-raisin-600">
+          <p className="text-center text-md md:text-2xl font-medium text-raisin-600">
             {useDate ? (
               <>
                 {dayString.toDateString().slice(0, 3) +

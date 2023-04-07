@@ -6,9 +6,9 @@ function CommentShow({ data }) {
     return (
       <>
         <div className="items-center justify-center px-4 pb-3">
-          <p className="text-center text-xl font-medium mt-2 text-raisin-600">
+          {/* <p className="text-center text-xl font-medium mt-2 text-raisin-600">
             Comment
-          </p>
+          </p> */}
           <p className="text-center text-rhythm-500 font-medium">
             {data.comment}
           </p>
@@ -44,7 +44,7 @@ export default function BigHistoryCard({
               ) : (
                 <>{name}</>
               )}
-              <div className="absolute @xl:relative @xl:w-full @xl:mt-4 right-2 top-1">
+              <div className="absolute @xl:relative @xl:w-full @xl:mt-4 right-2 top-0">
                 <img
                   className="rounded-full max-h-[50px] max-w-[50px] @xl:max-w-[60px] @xl:max-h-[60px] block mx-auto sm:mx-0 sm:shrink-0"
                   src={me.profile_picture}

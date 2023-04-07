@@ -206,6 +206,7 @@ export default function History(props) {
                         );
                         return new Date(end);
                       });
+                      setCard();
                     }}
                   >
                     &lt;
@@ -234,6 +235,7 @@ export default function History(props) {
                         );
                         return new Date(ed);
                       });
+                      setCard();
                     }}
                   >
                     &gt;
@@ -272,7 +274,7 @@ export default function History(props) {
                     <>
                       {dataM.length === 0 ? (
                         <p className="text-xl font-medium text-raisin-600 m-3 text-center">
-                          Error: Could not load happiness.
+                          Data not available for selected period.
                         </p>
                       ) : (
                         <>
