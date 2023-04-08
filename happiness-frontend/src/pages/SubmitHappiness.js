@@ -2,8 +2,10 @@ import LSUModal from "../components/LSUModal";
 import React, { useEffect, useState } from "react";
 
 import "../App.css";
-import Journal from "../media/journal-icon.svg";
-import HappinessCommentModal from "../components/HappinessCommentModal";
+import SubmittedHappiness from "../media/task-checkmark-icon.svg"
+import BetterCheck from "../media/betterCheckmark.svg"
+import Test from "../media/test.png"
+import SubmittedHappinessIcon from "../media/submitted-happiness-icon.svg"
 import DynamicSmile from "../components/DynamicSmile";
 import DateDropdown from "../components/DateDropdown";
 import {useApi} from "../contexts/ApiProvider";
@@ -29,6 +31,7 @@ export default function SubmitHappiness() {
   // This only stores submitted days in current session, when user refreshes the query will run again anyway.
   const [submittedDays, setSubmittedDays] = useState([]);
   const { user } = useUser()
+  console.log(JSON.stringify(user.settings) )
   const queryClient = useQueryClient()
   const api = useApi()
   const {isLoading, data, isError} = useQuery(`happiness for ${user.id}`, () => {
@@ -102,9 +105,13 @@ export default function SubmitHappiness() {
 
   if (isError) {
     return (
-          <p>
-            Error loading data (remember this is a very early beta!!!)
-          </p>
+          <span>
+            Error loading data (try to logout and log back in, or alert the devs {" "}
+            <a href={"https://forms.gle/n3aFRA9fmpM22UdEA"}>
+              here
+            </a>
+            )
+          </span>
     )
   }
 
@@ -120,7 +127,10 @@ export default function SubmitHappiness() {
         <div className="flex flex-col justify-center items-center">
           <DateDropdown selectedIndex={selectedIndex} setSelectedIndex={setSelectedIndex} dateList={dateList} />
 
-          <p>You already submitted happiness for the day.</p>
+          <h1 className="md:text-7xl text-5xl text-white md:text-stroke-4 text-stroke-2 text-center mt-3 font-roboto">
+            <b>Happiness already submitted for this day.</b>
+          </h1>
+          <img src={SubmittedHappinessIcon} className={"w-1/5 h-1/5 mt-10"} />
         </div>
       </div>)
 
@@ -205,7 +215,7 @@ export default function SubmitHappiness() {
             <>
               <button
                   onClick={ () => {
-                    happinessMutation.mutate({value: happiness, comment: comment, timestamp: formatDate(dateList[selectedIndex])})
+                  happinessMutation.mutate({value: happiness, comment: comment, timestamp: formatDate(dateList[selectedIndex])})
                     setHasSubmitted(true)
                     submittedDays.push(formatDate(dateList[selectedIndex]))
                   }}

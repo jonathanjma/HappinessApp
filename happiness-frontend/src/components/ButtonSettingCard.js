@@ -6,13 +6,13 @@ export default function ButtonSettingCard(props) {
   const { Logout, DeleteUser } = useUser();
 
   /*
-      props.id: setting id
+      props.key: setting id
       props.icon: setting icon
       props.name: setting name
       props.isSensitive: tells whether a confirmation should come up before the setting is changed.
       */
   const doAction = () => {
-    switch (props.id) {
+    switch (props.key) {
       case 7:
         Logout().then(() => {window.location.reload()})
         break
