@@ -25,7 +25,7 @@ export default function Header({ user_id }) {
           <NavDropdown
             title={
               <Image
-                src={me.profile_picture}
+                src={Users(user_id).img}
                 roundedCircle
                 className="max-w-[30px] max-h-[30px]"
                 style={{ display: "inline" }}
