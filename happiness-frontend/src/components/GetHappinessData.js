@@ -6,7 +6,7 @@ export function PrevWeekData(userMode, id) {
   const api = useApi();
   const lastWk = new Date();
   lastWk.setDate(lastWk.getDate() - 7);
-  const weekData = lastWk.toISOString().substring(0, 10);
+  const weekData = lastWk.toLocaleDateString("sv").substring(0, 10);
   const get_url =
     (userMode ? `/happiness/?id=${id}&` : `/group/${id}/happiness?`) +
     `start=${weekData}`;
@@ -25,7 +25,7 @@ export function PrevMonthData(userMode, id) {
   lastMt.setMonth(lastMt.getMonth() - 1);
 
   const api = useApi();
-  const monthData = lastMt.toISOString().substring(0, 10);
+  const monthData = lastMt.toLocaleDateString("sv").substring(0, 10);
   const get_url =
     (userMode ? `/happiness/?id=${id}&` : `/group/${id}/happiness?`) +
     `start=${monthData}`;
@@ -41,10 +41,13 @@ export function PrevMonthData(userMode, id) {
 
 export function GetCountHappiness(count, user, page = 1) {
   const api = useApi();
-  const { isLoading, data, error } = useQuery("get happiness by count", () =>
-    api
-      .get("/happiness/count", { count: count, id: user.id, page: page })
-      .then((res) => res.data)
+  const { isLoading, data, error } = useQuery(
+    "get happiness by count",
+    () =>
+      api
+        .get("/happiness/count", { count: count, id: user.id, page: page })
+        .then((res) => res.data),
+    { refetchOnWindowFocus: false }
   );
   return [isLoading, data, error];
 }
@@ -59,10 +62,13 @@ export function GetRangeHappiness(user, startData, endData) {
     data: dataH,
     error: errorH,
     refetch: refetch,
-  } = useQuery("happiness data by range", () =>
-    api
-      .get("/happiness/", { id: user.id, start: startData, end: endData })
-      .then((res) => res.data)
+  } = useQuery(
+    "happiness data by range",
+    () =>
+      api
+        .get("/happiness/", { id: user.id, start: startData, end: endData })
+        .then((res) => res.data),
+    { refetchOnWindowFocus: false }
   );
   return [isLoadingH, dataH, errorH, refetch];
 }

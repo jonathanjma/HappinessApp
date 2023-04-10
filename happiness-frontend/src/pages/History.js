@@ -38,8 +38,8 @@ export default function History(props) {
   // fetches data for weekly view
   const [isLoading, data, error, refetch] = GetRangeHappiness(
     me,
-    start.toISOString().substring(0, 10),
-    end.toISOString().substring(0, 10)
+    start.toLocaleDateString("sv").substring(0, 10),
+    end.toLocaleDateString("sv").substring(0, 10)
   );
   useEffect(() => {
     refetch();
@@ -72,8 +72,8 @@ export default function History(props) {
   // fetches data for monthly view
   const [isLoadingM, dataM, errorM, refetchM] = GetRangeHappiness(
     me,
-    stMonth.toISOString().substring(0, 10),
-    endMonth.toISOString().substring(0, 10)
+    stMonth.toLocaleDateString("sv").substring(0, 10),
+    endMonth.toLocaleDateString("sv").substring(0, 10)
   );
   useEffect(() => {
     refetchM();
@@ -141,7 +141,7 @@ export default function History(props) {
                 &lt;
               </button>
               <h3 className="w-full">
-                Week of {start.toISOString().slice(0, 10)}
+                Week of {start.toLocaleDateString("sv").substring(0, 10)}
               </h3>
               <button
                 className="absolute px-3 py-2 my-2 right-2 w-[50px] rounded-lg text-cultured-50 bg-raisin-600 text-2xl"

@@ -5,10 +5,12 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import { NavLink } from "react-router-dom";
 import Image from "react-bootstrap/Image";
 import Users from "./Users";
-import {useUser} from "../contexts/UserProvider";
+import { useUser } from "../contexts/UserProvider";
 
 export default function Header({ user_id }) {
-  const { Logout } = useUser()
+  const { user: userState } = useUser();
+  const me = userState.user;
+  const { Logout } = useUser();
   return (
     <Navbar bg="light" sticky="top">
       <Container fluid="md">
@@ -23,7 +25,7 @@ export default function Header({ user_id }) {
           <NavDropdown
             title={
               <Image
-                src={Users(user_id).img}
+                src={me.profile_picture}
                 roundedCircle
                 className="max-w-[30px] max-h-[30px]"
                 style={{ display: "inline" }}
@@ -42,7 +44,13 @@ export default function Header({ user_id }) {
               Settings
             </NavDropdown.Item>
             <NavDropdown.Divider />
-            <NavDropdown.Item as={NavLink} to="/" onClick={() => {Logout()}}>
+            <NavDropdown.Item
+              as={NavLink}
+              to="/"
+              onClick={() => {
+                Logout();
+              }}
+            >
               Logout
             </NavDropdown.Item>
           </NavDropdown>

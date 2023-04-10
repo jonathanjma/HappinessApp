@@ -65,15 +65,15 @@ export default function MonthView({
   }
   function findData(begin, end, data, ind) {
     let t = [];
-    console.log(end);
+    // console.log(end);
     for (let i = begin; i < end; i++) {
       if (ind === data.length) break;
-      console.log(i);
-      console.log(data[ind]);
+      // console.log(i);
+      // console.log(data[ind]);
       let parts = data[ind].timestamp.split("-");
       let a = new Date(parts[0], parts[1] - 1, parts[2]);
-      console.log(a);
-      console.log(a.getDate());
+      // console.log(a);
+      // console.log(a.getDate());
       if (a.getDate() === i) {
         t.push(data[ind]);
         ind++;
@@ -82,8 +82,8 @@ export default function MonthView({
     return [t, ind];
   }
   function WeekItem({ start, day, data }) {
-    console.log(data);
-    console.log(start);
+    // console.log(data);
+    // console.log(start);
     const tiles = [];
     let i = start;
     let t = 0;
@@ -113,10 +113,10 @@ export default function MonthView({
     return <>{tiles}</>;
   }
   let tiles = [];
-  console.log(happinessData);
-  console.log(startDay);
+  // console.log(happinessData);
+  // console.log(startDay);
   happinessData.sort((a, b) => a.timestamp - b.timestamp);
-  console.log(findData(1, 8 - startDay.getDay(), happinessData, 0));
+  // console.log(findData(1, 8 - startDay.getDay(), happinessData, 0));
   let [wkData, indx] = findData(1, 8 - startDay.getDay(), happinessData, 0);
   tiles.push(
     <>
