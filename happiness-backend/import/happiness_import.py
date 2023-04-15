@@ -10,23 +10,24 @@ from gspread.urls import SPREADSHEET_URL
 from gspread.utils import column_letter_to_index, ExportFormat
 
 # import data config
-# format is (app_user_id, all_data_sheet_row)
+# format is (app_user_id, (2022_data_sheet_row, 2023_data_sheet_row))
 # -------------------------------------------------------
-import_config = [(1, 4), (2, 10), (3, 8)]
+import_config = [(1, (4, 4)), (2, (10, 10)), (3, (8, 8))]
 # -------------------------------------------------------
 
 gc = gspread.oauth()
 sh = gc.open_by_key('1CC6_64uz1kWNhL1U5T6bq2zGytuP6IsBduibciriK7E')
 
-# for now only 2022 data from cornell sheet is supported
+# for now only 2022-23 data from cornell sheet is supported
 data_2022 = sh.worksheet('2022 Full Data')
+data_2023 = sh.worksheet('2023 Full Data')
 cornell_data = sh.worksheet('Input [CORNELL]')
 cornell_data_cells = cornell_data.get_all_cells()
 print('worksheets fetched')
 
 def parse_notes():
     url = SPREADSHEET_URL % (cornell_data.spreadsheet.id)
-    params = {"ranges": "'Input [CORNELL]'!A1:V95", "fields": "sheets/data/rowData/values/note"}
+    params = {"ranges": "'Input [CORNELL]'!A1:V146", "fields": "sheets/data/rowData/values/note"}
     response = cornell_data.client.request("get", url, params=params)
     response_data = response.json()['sheets'][0]['data'][0]['rowData']
 
@@ -72,11 +73,11 @@ print('comments fetched')
 
 all_user_data = []
 
-def parse_user_data(app_user_id, all_data_sheet_row):
+def parse_sheet_user_data(app_user_id, start_date, data_sheet, data_sheet_row):
     user_data = []
-    user_raw_data_row = data_2022.row_values(all_data_sheet_row, value_render_option='FORMULA')[2:]
+    user_raw_data_row = data_sheet.row_values(data_sheet_row, value_render_option='FORMULA')[2:]
 
-    date_counter = datetime.date(2022, 8, 15)
+    date_counter = start_date
     count = 0
     for raw_cell in user_raw_data_row:
         loc_info = raw_cell.split("'")
@@ -103,9 +104,21 @@ def parse_user_data(app_user_id, all_data_sheet_row):
 
     return user_data
 
-for user_id, sheet_row in import_config:
-    all_user_data.extend(parse_user_data(user_id, sheet_row))
-    print(f'user {user_id} @ row {sheet_row}: data parsed')
+def parse_user_data(app_user_id, sheet_rows):
+
+    data_sheet_row_2022, data_sheet_row_2023 = sheet_rows
+    user_data_2022 = parse_sheet_user_data(app_user_id, datetime.date(2022, 8, 15),
+                                           data_2022, data_sheet_row_2022)
+    user_data_2023 = parse_sheet_user_data(app_user_id, datetime.date(2023, 1, 2),
+                                           data_2023, data_sheet_row_2023)
+    user_data = [user_data_2022, user_data_2023]
+
+    return [element for sublist in user_data for element in sublist]
+
+for user_id, sheet_rows in import_config:
+    data = parse_user_data(user_id, sheet_rows)
+    all_user_data.extend(data)
+    print(f'user {user_id} @ row {sheet_rows}: {len(data)} data entries parsed')
 
 data = json.dumps(all_user_data)
 
