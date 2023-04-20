@@ -57,7 +57,11 @@ export default function MonthView({
               </div>
             </>
           ) : (
-            <div className="bg-buff-50 flex w-full justify-center items-center h-full md:h-3/4" />
+            <div className="bg-buff-50 flex w-full justify-center items-center h-full md:h-3/4">
+              <p className="md:hidden text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600">
+                {day}
+              </p>
+            </div>
           )}
         </div>
       </>
