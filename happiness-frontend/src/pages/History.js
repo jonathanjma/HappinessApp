@@ -184,83 +184,85 @@ export default function History(props) {
             )}
           </Tab.Panel>
           <Tab.Panel className="w-full justify-center">
-            <div className="flex flex-wrap w-full justify-center mt-3">
-              <div className="flex flex-wrap justify-center border-solid w-full max-w-[550px] lg:w-2/3 max-h-[690px]">
-                <div className="font-medium relative w-full text-center text-2xl py-2 my-0 bg-buff-200 max-h-[60px]">
-                  <button
-                    className="absolute top-3 left-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
-                    onClick={() => {
-                      setStMonth((start) => {
-                        start.setMonth(start.getMonth() - 1);
-                        return new Date(start);
-                      });
-                      setEndMonth((end) => {
-                        end.setDate(1);
-                        end.setMonth(end.getMonth() - 1);
-                        end.setDate(
-                          new Date(
-                            end.getFullYear(),
-                            end.getMonth() + 1,
-                            0
-                          ).getDate()
-                        );
-                        return new Date(end);
-                      });
-                      setCard();
-                    }}
-                  >
-                    &lt;
-                  </button>
-                  <p className="py-2">
-                    {stMonth.toLocaleString("en-US", { month: "long" }) +
-                      " " +
-                      stMonth.getFullYear()}{" "}
-                  </p>
-                  <button
-                    className="absolute top-3 right-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
-                    onClick={() => {
-                      setStMonth((st) => {
-                        st.setMonth(st.getMonth() + 1);
-                        return new Date(st);
-                      });
-                      setEndMonth((ed) => {
-                        ed.setDate(1);
-                        ed.setMonth(ed.getMonth() + 1);
-                        ed.setDate(
-                          new Date(
-                            ed.getFullYear(),
-                            ed.getMonth() + 1,
-                            0
-                          ).getDate()
-                        );
-                        return new Date(ed);
-                      });
-                      setCard();
-                    }}
-                  >
-                    &gt;
-                  </button>
+            <div className="flex flex-start flex-wrap w-full justify-center mt-3 h-full">
+              <div>
+                <div className="flex-start justify-center border-solid w-full max-w-[550px] shadow-xl">
+                  <div className="font-medium relative w-full text-center text-2xl py-2 my-0 bg-buff-200 max-h-[60px]">
+                    <button
+                      className="absolute top-3 left-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
+                      onClick={() => {
+                        setStMonth((start) => {
+                          start.setMonth(start.getMonth() - 1);
+                          return new Date(start);
+                        });
+                        setEndMonth((end) => {
+                          end.setDate(1);
+                          end.setMonth(end.getMonth() - 1);
+                          end.setDate(
+                            new Date(
+                              end.getFullYear(),
+                              end.getMonth() + 1,
+                              0
+                            ).getDate()
+                          );
+                          return new Date(end);
+                        });
+                        setCard();
+                      }}
+                    >
+                      &lt;
+                    </button>
+                    <p className="py-2">
+                      {stMonth.toLocaleString("en-US", { month: "long" }) +
+                        " " +
+                        stMonth.getFullYear()}{" "}
+                    </p>
+                    <button
+                      className="absolute top-3 right-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
+                      onClick={() => {
+                        setStMonth((st) => {
+                          st.setMonth(st.getMonth() + 1);
+                          return new Date(st);
+                        });
+                        setEndMonth((ed) => {
+                          ed.setDate(1);
+                          ed.setMonth(ed.getMonth() + 1);
+                          ed.setDate(
+                            new Date(
+                              ed.getFullYear(),
+                              ed.getMonth() + 1,
+                              0
+                            ).getDate()
+                          );
+                          return new Date(ed);
+                        });
+                        setCard();
+                      }}
+                    >
+                      &gt;
+                    </button>
+                  </div>
+                  {isLoadingM ? (
+                    <Spinner animation="border" />
+                  ) : (
+                    <>
+                      {errorM ? (
+                        <p className="text-xl font-medium text-raisin-600 m-3 text-center">
+                          Error: Could not load happiness.
+                        </p>
+                      ) : (
+                        <>
+                          <MonthView
+                            happinessData={dataM}
+                            startDay={stMonth}
+                            endDay={endMonth}
+                            setCard={setCard}
+                          />
+                        </>
+                      )}
+                    </>
+                  )}
                 </div>
-                {isLoadingM ? (
-                  <Spinner animation="border" />
-                ) : (
-                  <>
-                    {errorM ? (
-                      <p className="text-xl font-medium text-raisin-600 m-3 text-center">
-                        Error: Could not load happiness.
-                      </p>
-                    ) : (
-                      <>
-                        <MonthView
-                          happinessData={dataM}
-                          startDay={stMonth}
-                          endDay={endMonth}
-                          setCard={setCard}
-                        />
-                      </>
-                    )}
-                  </>
-                )}
               </div>
               {isLoadingM ? (
                 <Spinner animation="border" />

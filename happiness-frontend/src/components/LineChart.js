@@ -23,7 +23,7 @@ export default function LineChart({
         dayShow(true);
       } else {
         console.log(element);
-        chartShow(true);
+        if (chartShow) chartShow(true);
       }
     }
   }

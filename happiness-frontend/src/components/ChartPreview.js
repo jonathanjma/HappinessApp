@@ -7,32 +7,21 @@ export default function ChartPreview({
   chartData,
   open,
   setOpen,
-  name,
-  idsList,
-  dayData,
+  names,
+  formatted,
 }) {
   console.log(chartData);
   const cancelButtonRef = useRef(null);
   const handleShow = () => setOpen(true);
   const [dShow, setDShow] = useState(false);
-  const [day, setDay] = useState(0);
-  const [selUser, setSelUser] = useState([0]);
-
-  const ids = idsList.map((e, t) => {
-    if (selUser.includes(e)) {
-      return t;
-    } else {
-      return 0;
-    }
-  });
-  console.log(ids);
+  const [pointData, setPointData] = useState([[], 0]);
 
   const dayPreview = (
     <DayPreview
       open={dShow}
       setOpen={setDShow}
-      data={ids.map((e, t) => dayData[e][day[t]])}
-      name={name}
+      data={pointData[0].map((e) => formatted[e][pointData[1]])}
+      name={pointData[0].map((e) => names[e])}
     />
   );
 
@@ -82,8 +71,7 @@ export default function ChartPreview({
                           <LineChart
                             chartData={chartData}
                             dayShow={setDShow}
-                            daySet={setDay}
-                            userSet={setSelUser}
+                            setPointData={setPointData}
                           />
                           {dayPreview}
                         </div>

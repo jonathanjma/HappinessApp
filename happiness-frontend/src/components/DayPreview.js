@@ -3,7 +3,7 @@ import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 
 /* 
-Things to implement:
+Potential future idea:
 - Arrows on either side of comment to show previous/next day's comment and happiness
 */
 

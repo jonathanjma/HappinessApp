@@ -106,9 +106,8 @@ export default function Graph(props) {
       chartData={chartData}
       open={cShow}
       setOpen={setCShow}
-      name={props.names}
-      idsList={seen}
-      dayData={formatted}
+      names={props.names}
+      formatted={formatted}
     />
   );
   console.log(formatted);
