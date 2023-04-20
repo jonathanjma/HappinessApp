@@ -6,8 +6,7 @@ export default function LineChart({
   chartData,
   chartShow,
   dayShow,
-  daySet,
-  userSet,
+  setPointData,
 }) {
   const leg = chartData.datasets.length > 1 ? true : false;
 
@@ -15,13 +14,15 @@ export default function LineChart({
     if (dayShow) {
       if (element.length > 0) {
         console.log(element);
-        let index = element.map((e) => e.index);
-        let dataindices = element.map((e) => chartData.ids[e.datasetIndex]);
-        daySet(index);
-        userSet(dataindices);
+        let index = element[0].index;
+        let dataindices = element.map((e) => e.datasetIndex);
+        setPointData([dataindices, index]);
+        console.log(index);
+        console.log(dataindices);
         console.log("test");
         dayShow(true);
       } else {
+        console.log(element);
         chartShow(true);
       }
     }

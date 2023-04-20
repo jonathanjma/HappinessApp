@@ -10,26 +10,12 @@ Things to implement:
 export default function DayPreview({ open, setOpen, data = undefined, name }) {
   const cancelButtonRef = useRef(null);
   const handleShow = () => setOpen(true);
-  console.log("test test");
-  console.log(data);
 
   const tiles = [];
   if (name !== "" && data !== undefined) {
     for (let i = 0; i < name.length; i++) {
       tiles.push(
-        name[i] === 0 ? (
-          <BigHistoryCard
-            id={1}
-            data={data[0]}
-            name={"Alex"}
-            shown={false}
-            key={i}
-          />
-        ) : (
-          <BigHistoryCard data={data[i]} name={name[i]} shown={true} key={i} />
-        )
-        // Jonathan's change
-        // <BigHistoryCard key={i} data={data[i]} name={name[i]} shown={true} />
+        <BigHistoryCard data={data[i]} name={name[i]} shown={true} key={i} />
       );
     }
   } else {

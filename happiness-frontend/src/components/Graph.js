@@ -53,18 +53,44 @@ export default function Graph(props) {
   let seen = [];
   let uniq = [];
   let ctr = -1;
+  // loops through complete data and adds all unique dates
   for (let k = 0; k < datas.length; k++) {
     if (!uniq.includes(datas[k].timestamp)) {
       uniq.push(datas[k].timestamp);
     }
-    if (!seen.includes(datas[k].user_id)) {
+  }
+  let k = 0;
+  let q = 0;
+  while (q < datas.length) {
+    // new user that not accessed previously
+    if (!seen.includes(datas[q].user_id)) {
       ctr++;
-      formatted.push([datas[k]]);
-      seen.push(datas[k].user_id);
+      formatted.push([datas[q]]);
+      seen.push(datas[q].user_id);
+      k = 1;
+      q++;
     } else {
-      formatted[ctr].push(datas[k]);
+      // accounts for missing values
+      if (datas[q].timestamp !== uniq[k]) {
+        formatted[ctr].push({
+          comment: null,
+          id: 0,
+          timestamp: uniq[q],
+          user_id: datas[q].user_id,
+          value: Number.NaN,
+        });
+        k++;
+        // if there is existing value
+      } else {
+        formatted[ctr].push(datas[q]);
+        k++;
+        q++;
+      }
     }
   }
+  console.log(formatted);
+  const [pointData, setPointData] = useState([[], 0]);
+  // constructs chart data (passed in to LineChart.js)
   const [chartData, setChartData] = useState({
     name: props.names,
     time: props.time,
@@ -74,8 +100,6 @@ export default function Graph(props) {
   });
   const [cShow, setCShow] = useState(false);
   const [dShow, setDShow] = useState(false);
-  const [day, setDay] = useState(0);
-  const [selUser, setSelUser] = useState([0]);
 
   const chartPreview = (
     <ChartPreview
@@ -87,21 +111,13 @@ export default function Graph(props) {
       dayData={formatted}
     />
   );
-  const ids = seen.map((e, t) => {
-    if (selUser.includes(e)) {
-      return t;
-    } else {
-      return 0;
-    }
-  });
-  console.log(ids);
   console.log(formatted);
   const dayPreview = (
     <DayPreview
       open={dShow}
       setOpen={setDShow}
-      data={ids.map((e, t) => formatted[e][day[t]])}
-      name={props.names}
+      data={pointData[0].map((e) => formatted[e][pointData[1]])}
+      name={pointData[0].map((e) => props.names[e])}
     />
   );
   return (
@@ -116,8 +132,7 @@ export default function Graph(props) {
               chartData={chartData}
               chartShow={setCShow}
               dayShow={setDShow}
-              daySet={setDay}
-              userSet={setSelUser}
+              setPointData={setPointData}
             />
             {chartPreview}
             {dayPreview}
