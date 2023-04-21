@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Users from "../components/Users";
 import ChartPreview from "./ChartPreview";
 import LineChart from "./LineChart";
 import DayPreview from "./DayPreview";

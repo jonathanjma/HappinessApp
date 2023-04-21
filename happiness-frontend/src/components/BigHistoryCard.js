@@ -1,4 +1,3 @@
-import Users from "./Users";
 import { useUser } from "../contexts/UserProvider";
 
 function CommentShow({ data }) {

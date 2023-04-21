@@ -1,4 +1,3 @@
-import Users from "./Users";
 import { useState } from "react";
 import DayPreview from "./DayPreview";
 
@@ -6,11 +5,16 @@ export default function HistoryCard({ data, name = "", useDate = true }) {
   const parts = data.timestamp.split("-");
   const dayString = new Date(parts[0], parts[1] - 1, parts[2]);
   const [dShow, setDShow] = useState(false);
+  console.log(dShow);
   return (
     <>
+      <DayPreview open={dShow} setOpen={setDShow} data={[data]} name={name} />
       <div
         className="w-full justify-center min-h-[100px] max-w-[146px] md:max-w-[230px] mx-2.5 mt-4 bg-cultured-50 rounded-xl shadow-lg space-y-2"
-        onClick={() => setDShow(true)}
+        onClick={() => {
+          setDShow(true);
+          console.log("plpl");
+        }}
       >
         <div className="flex w-full flex-wrap justify-center items-center bg-buff-300 px-2 py-3 rounded-t-xl h-2/5">
           <p className="text-center text-md md:text-2xl font-medium text-raisin-600">
@@ -30,12 +34,6 @@ export default function HistoryCard({ data, name = "", useDate = true }) {
             <p className="text-center text-4xl font-medium text-raisin-600">
               {data.value}
             </p>
-            <DayPreview
-              open={dShow}
-              setOpen={setDShow}
-              data={[data]}
-              name={name}
-            />
           </div>
         </div>
       </div>

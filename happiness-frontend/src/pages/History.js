@@ -1,5 +1,4 @@
 import Histories from "../components/Histories";
-import Users from "../components/Users";
 import { Tab } from "@headlessui/react";
 import { useState, Fragment, useEffect } from "react";
 import MonthView from "../components/MonthView";
@@ -43,7 +42,7 @@ export default function History(props) {
   );
   useEffect(() => {
     refetch();
-  }, [start, end]);
+  }, [start]);
 
   // initializes dates corresponding to start + end of current month
   const [stMonth, setStMonth] = useState(new Date());
@@ -126,7 +125,8 @@ export default function History(props) {
           <Tab.Panel className="w-full justify-center">
             <div className="relative flex flex-wrap items-center justify-center w-full text-center pt-2">
               <button
-                className="absolute px-3 py-2 my-2 left-2 w-[50px] rounded-lg text-cultured-50 bg-raisin-600 text-2xl"
+                type="button"
+                className="absolute px-3 left-2 w-[50px] h-[40px] md:h-[50px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
                 onClick={() => {
                   setEnd((end) => {
                     end.setDate(end.getDate() - 7);
@@ -144,7 +144,8 @@ export default function History(props) {
                 Week of {start.toLocaleDateString("sv").substring(0, 10)}
               </h3>
               <button
-                className="absolute px-3 py-2 my-2 right-2 w-[50px] rounded-lg text-cultured-50 bg-raisin-600 text-2xl"
+                type="button"
+                className="absolute px-3 right-2 w-[50px] h-[40px] md:h-[50px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
                 onClick={(_) => {
                   setEnd((end) => {
                     end.setDate(end.getDate() + 7);
@@ -189,6 +190,7 @@ export default function History(props) {
                 <div className="flex-start justify-center border-solid w-full max-w-[550px] shadow-xl">
                   <div className="font-medium relative w-full text-center text-2xl py-2 my-0 bg-buff-200 max-h-[60px]">
                     <button
+                      type="button"
                       className="absolute top-3 left-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
                       onClick={() => {
                         setStMonth((start) => {
@@ -218,6 +220,7 @@ export default function History(props) {
                         stMonth.getFullYear()}{" "}
                     </p>
                     <button
+                      type="button"
                       className="absolute top-3 right-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
                       onClick={() => {
                         setStMonth((st) => {
@@ -275,8 +278,8 @@ export default function History(props) {
                   ) : (
                     <>
                       {dataM.length === 0 ? (
-                        <p className="text-xl font-medium text-raisin-600 m-3 text-center">
-                          Data not available for selected period.
+                        <p className="text-xl font-medium text-raisin-600 m-3 text-center hidden lg:flex">
+                          Statistics not available for selected period.
                         </p>
                       ) : (
                         <>

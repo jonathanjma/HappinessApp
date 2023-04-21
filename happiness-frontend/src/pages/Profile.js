@@ -1,5 +1,4 @@
 import Stat from "../components/Stat";
-import Users from "../components/Users";
 import Graph from "../components/Graph";
 import Histories from "../components/Histories";
 import DayPreview from "../components/DayPreview";
@@ -26,7 +25,6 @@ export default function Profile(props) {
   console.log(dataH);
 
   const [dShow, setDShow] = useState(false);
-
   return (
     <>
       <div className="flex flex-wrap justify-center">
@@ -106,23 +104,25 @@ export default function Profile(props) {
                               </p>
                             </div>
                             {dataC[0].comment ? (
-                              <div
-                                className="space-y-2 px-2 md:px-4 md:mx-4"
-                                onClick={() => setDShow(true)}
-                              >
-                                <p className="text-md text-raisin-600 font-semibold text-center">
-                                  Comment
-                                </p>
-                                <p className="line-clamp-3 -md:line-clamp-3 text-md text-rhythm-500 font-medium text-center">
-                                  {dataC[0].comment}
-                                </p>
+                              <>
                                 <DayPreview
                                   open={dShow}
                                   setOpen={setDShow}
                                   data={[dataC[0]]}
                                   name={[me.username]}
                                 />
-                              </div>
+                                <div
+                                  className="space-y-2 px-2 md:px-4 md:mx-4"
+                                  onClick={() => setDShow(true)}
+                                >
+                                  <p className="text-md text-raisin-600 font-semibold text-center">
+                                    Comment
+                                  </p>
+                                  <p className="line-clamp-3 -md:line-clamp-3 text-md text-rhythm-500 font-medium text-center">
+                                    {dataC[0].comment}
+                                  </p>
+                                </div>
+                              </>
                             ) : (
                               <></>
                             )}
