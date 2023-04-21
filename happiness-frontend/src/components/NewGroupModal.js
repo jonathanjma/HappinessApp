@@ -3,26 +3,31 @@ import Form from "react-bootstrap/Form";
 import InputField from "../components/InputField";
 import React, { useRef, useState } from "react";
 import Modal from "react-bootstrap/Modal";
+import { useApi } from "../contexts/ApiProvider";
 
 export default function NewGroupModal() {
   const [show, setShow] = useState(false);
-  const [formErrors, setFormErrors] = useState({});
+  const [nameError, setNameError] = useState("");
   const nameField = useRef();
+  const api = useApi();
 
   const onSubmit = (ev) => {
     ev.preventDefault();
     const groupName = nameField.current.value;
 
-    const errors = {};
     if (!groupName) {
-      errors.name = "Group Name must not be empty.";
+      setNameError("Group Name must not be empty.");
+      return;
     }
-    setFormErrors(errors);
-    if (Object.keys(errors).length > 0) return;
 
-    // do an api call
-
-    setShow(false);
+    api
+      .post("/group/", {
+        name: groupName,
+      })
+      .then(() => {
+        // setShow(false);
+        window.location.reload();
+      });
   };
 
   return (
@@ -41,7 +46,7 @@ export default function NewGroupModal() {
               name="text"
               label="Group Name"
               placeholder="Enter a group name"
-              error={formErrors.name}
+              error={nameError}
               fieldRef={nameField}
             />
             <Button type="submit" className="mt-3">
