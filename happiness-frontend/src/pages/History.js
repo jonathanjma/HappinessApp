@@ -284,12 +284,7 @@ export default function History(props) {
                       ) : (
                         <>
                           <div className="w-full flex flex-wrap justify-center max-w-[550px] lg:w-1/3 lg:mx-6 -mt-4">
-                            {card && (
-                              <BigHistoryCard
-                                data={card}
-                                pfp={me.profile_picture}
-                              />
-                            )}
+                            {card && <BigHistoryCard data={card} user={me} />}
 
                             <div className="w-full justify-center hidden lg:flex">
                               <Stat

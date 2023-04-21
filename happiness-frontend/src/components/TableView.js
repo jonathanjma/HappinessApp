@@ -181,7 +181,12 @@ export default function TableView({ groupData, happinessData, selected }) {
         </tbody>
       </Table>
       {/* Show comment for selected happiness entry */}
-      {card && <BigHistoryCard data={card} shown={true} />}
+      {card && (
+        <BigHistoryCard
+          data={card}
+          user={groupUsers.find((e) => e.id === card.user_id)}
+        />
+      )}
     </div>
   );
 }
