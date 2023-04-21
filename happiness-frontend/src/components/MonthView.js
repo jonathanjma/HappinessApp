@@ -1,34 +1,34 @@
 // month value represents month (0-based index, Jan = 0, Feb = 1, etc)
 
+export function ReturnColor(level) {
+  let happiness = level * 10;
+  if (happiness < 10) {
+    return "bg-red-700";
+  } else if (happiness < 20) {
+    return "bg-red-600";
+  } else if (happiness < 30) {
+    return "bg-yellow-500";
+  } else if (happiness < 40) {
+    return "bg-yellow-400";
+  } else if (happiness < 60) {
+    return "bg-yellow-300";
+  } else if (happiness < 70) {
+    return "bg-yellow-300";
+  } else if (happiness < 80) {
+    return "bg-green-400";
+  } else if (happiness < 100) {
+    return "bg-green-500";
+  } else {
+    return "bg-green-600";
+  }
+}
+
 export default function MonthView({
   happinessData,
   startDay,
   endDay,
   setCard,
 }) {
-  function ReturnColor(level) {
-    let happiness = level * 10;
-    if (happiness < 10) {
-      return "bg-red-700";
-    } else if (happiness < 20) {
-      return "bg-red-600";
-    } else if (happiness < 30) {
-      return "bg-yellow-500";
-    } else if (happiness < 40) {
-      return "bg-yellow-400";
-    } else if (happiness < 60) {
-      return "bg-yellow-300";
-    } else if (happiness < 70) {
-      return "bg-yellow-300";
-    } else if (happiness < 80) {
-      return "bg-green-400";
-    } else if (happiness < 100) {
-      return "bg-green-500";
-    } else {
-      return "bg-green-600";
-    }
-  }
-
   function MonthItem({ day, data }) {
     return (
       <>
