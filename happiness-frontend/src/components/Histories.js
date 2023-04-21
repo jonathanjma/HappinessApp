@@ -4,24 +4,12 @@ import Users from "./Users";
 
 /* 
 Returns: Multiple HistoryCard elements
-Requires: each name must correspond to the element at the same index of dataList
-If names is empty, useDate is true.
+Requires: each user must correspond to the element at the same index of dataList
 */
-export default function Histories({ dataList, names = [], useDate = true }) {
+export default function Histories({ dataList, userList }) {
   const tiles = [];
   for (let i = 0; i < dataList.length; i++) {
-    if (names.length !== 0) {
-      tiles.push(
-        <HistoryCard
-          data={dataList[i]}
-          name={names[i]}
-          useDate={useDate}
-          key={i}
-        />
-      );
-    } else {
-      tiles.push(<HistoryCard data={dataList[i]} useDate={true} key={i} />);
-    }
+    tiles.push(<HistoryCard data={dataList[i]} user={userList} key={i} />);
   }
 
   return (

@@ -176,7 +176,7 @@ export default function History(props) {
                       </p>
                     ) : (
                       <>
-                        <Histories dataList={data} />
+                        <Histories dataList={data} userList={[me]} />
                       </>
                     )}
                   </>
@@ -285,7 +285,10 @@ export default function History(props) {
                         <>
                           <div className="w-full flex flex-wrap justify-center max-w-[550px] lg:w-1/3 lg:mx-6 -mt-4">
                             {card && (
-                              <BigHistoryCard data={card} shown={true} />
+                              <BigHistoryCard
+                                data={card}
+                                pfp={me.profile_picture}
+                              />
                             )}
 
                             <div className="w-full justify-center hidden lg:flex">

@@ -109,7 +109,7 @@ export default function Profile(props) {
                                   open={dShow}
                                   setOpen={setDShow}
                                   data={[dataC[0]]}
-                                  name={[me.username]}
+                                  users={[me]}
                                 />
                                 <div
                                   className="space-y-2 px-2 md:px-4 md:mx-4"
@@ -152,11 +152,7 @@ export default function Profile(props) {
                       ) : (
                         <>
                           <div className="flex flex-wrap justify-center items-center m-4 md:ml-4 max-w-[400px] max-h-[400px]">
-                            <Graph
-                              data={dataH}
-                              names={[me.username]}
-                              time="Weekly"
-                            />
+                            <Graph data={dataH} users={[me]} time="Weekly" />
                           </div>
                           <div className="flex flex-wrap justify-center items-center md:max-w-[205px] sm:max-w-[400px] mr-2">
                             <Stat
@@ -201,7 +197,7 @@ export default function Profile(props) {
                     </p>
                   ) : (
                     <>
-                      <Histories dataList={dataC} />
+                      <Histories dataList={dataC} userList={[me]} />
                       <div className="m-3 flex justify-center">
                         <Link to="/history">
                           <Button variant="outline-secondary">show all</Button>

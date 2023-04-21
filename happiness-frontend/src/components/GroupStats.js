@@ -2,9 +2,7 @@ import Stat from "../components/Stat";
 import Graph from "../components/Graph";
 
 export default function GroupStats({ groupData, happinessData, selected }) {
-  const names = groupData.users
-    .sort((u1, u2) => u1.id - u2.id)
-    .map((u) => u.username);
+  const users = groupData.users.sort((u1, u2) => u1.id - u2.id);
 
   /*
       0 = mean
@@ -53,7 +51,7 @@ export default function GroupStats({ groupData, happinessData, selected }) {
               {/* TODO: doesn't rerender when week/month changed */}
               <Graph
                 data={happinessData}
-                names={names}
+                users={users}
                 time={selected === 1 ? "Weekly" : "Monthly"}
               />
             </div>

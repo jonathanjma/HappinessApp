@@ -7,7 +7,7 @@ export default function ChartPreview({
   chartData,
   open,
   setOpen,
-  names,
+  users,
   formatted,
 }) {
   console.log(chartData);
@@ -21,7 +21,7 @@ export default function ChartPreview({
       open={dShow}
       setOpen={setDShow}
       data={pointData[0].map((e) => formatted[e][pointData[1]])}
-      name={pointData[0].map((e) => names[e])}
+      users={pointData[0].map((e) => users[e])}
     />
   );
 

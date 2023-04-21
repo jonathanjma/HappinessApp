@@ -36,11 +36,11 @@ function IndexData(data, names) {
 }
 
 // props.data: List of objects of all data objects (can be in any time order or user_id order)
-//
+// Requires: props.users must be a list of user objects in ascending order
 
-// Requires: The list props.names is sorted by corresponding id in ascending order.
 // exports graph element with embedded chart and title
 export default function Graph(props) {
+  let names = props.users.map((e) => e.username);
   let datas = props.data;
   // console.log("checking sort");
   // console.log(datas);
@@ -91,11 +91,11 @@ export default function Graph(props) {
   const [pointData, setPointData] = useState([[], 0]);
   // constructs chart data (passed in to LineChart.js)
   const [chartData, setChartData] = useState({
-    name: props.names,
+    name: names,
     time: props.time,
     ids: formatted.map((e) => e[0].user_id),
     labels: uniq.map((e) => e.slice(5).split("-").join("/")),
-    datasets: IndexData(formatted, props.names),
+    datasets: IndexData(formatted, names),
   });
   const [cShow, setCShow] = useState(false);
   const [dShow, setDShow] = useState(false);
@@ -105,7 +105,7 @@ export default function Graph(props) {
       chartData={chartData}
       open={cShow}
       setOpen={setCShow}
-      names={props.names}
+      users={props.users}
       formatted={formatted}
     />
   );
@@ -115,7 +115,7 @@ export default function Graph(props) {
       open={dShow}
       setOpen={setDShow}
       data={pointData[0].map((e) => formatted[e][pointData[1]])}
-      name={pointData[0].map((e) => props.names[e])}
+      users={pointData[0].map((e) => props.users[e])}
     />
   );
   return (

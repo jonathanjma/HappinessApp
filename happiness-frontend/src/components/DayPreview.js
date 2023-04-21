@@ -8,21 +8,14 @@ Potential future idea:
 */
 
 // open and setOpen - useState values, control opening/closing of modal
-// data - an object representing specific happiness datapoint
-export default function DayPreview({ open, setOpen, data = undefined, name }) {
+// data - a list of objects representing specific happiness datapoint to be displayed
+// users - list of user objects, each corresponding to a specific datapoint
+export default function DayPreview({ open, setOpen, data = undefined, users }) {
   const cancelButtonRef = useRef(null);
 
   const tiles = [];
-  if (name !== "" && data !== undefined) {
-    for (let i = 0; i < name.length; i++) {
-      tiles.push(
-        <BigHistoryCard data={data[i]} name={name[i]} shown={true} key={i} />
-      );
-    }
-  } else {
-    for (let i = 0; i < data.length; i++) {
-      tiles.push(<BigHistoryCard data={data[i]} shown={true} id={i} key={i} />);
-    }
+  for (let i = 0; i < data.length; i++) {
+    tiles.push(<BigHistoryCard data={data[i]} user={users[i]} key={i} />);
   }
 
   return (
