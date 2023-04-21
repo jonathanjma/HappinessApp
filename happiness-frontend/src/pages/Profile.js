@@ -1,13 +1,16 @@
 import Stat from "../components/Stat";
-import Users from "../components/Users";
 import Graph from "../components/Graph";
 import Histories from "../components/Histories";
 import DayPreview from "../components/DayPreview";
 import { useState } from "react";
 import { useUser } from "../contexts/UserProvider";
-import { Spinner } from "react-bootstrap";
-import { PrevWeekData } from "../components/GetHappinessData";
+import { Spinner, Button } from "react-bootstrap";
+import {
+  PrevWeekData,
+  GetCountHappiness,
+} from "../components/GetHappinessData";
 import { useApi } from "../contexts/ApiProvider";
+import { Link } from "react-router-dom";
 
 export default function Profile(props) {
   const { user: userState } = useUser();
@@ -17,10 +20,11 @@ export default function Profile(props) {
   const api = useApi();
 
   const [isLoadingH, dataH, errorH] = PrevWeekData(true, me.id);
+  const [isLoadingC, dataC, errorC] = GetCountHappiness(4, me);
+  console.log(dataC);
   console.log(dataH);
 
   const [dShow, setDShow] = useState(false);
-
   return (
     <>
       <div className="flex flex-wrap justify-center">
@@ -49,45 +53,44 @@ export default function Profile(props) {
                   </p>
                   <div className="flex flex-wrap justify-center items-center @container">
                     <div className="justify-center">
-                      <p className="text-center text-raisin-600 text-md font-medium m-2 sm:w-1/3">
-                        Groups
+                      <p className="text-center text-raisin-600 text-md font-medium m-2 sm:w-full">
+                        Groups: 3
                       </p>
-                      <p className="text-lg text-center text-raisin-600 m-2">
-                        3 {/* TODO: Implement group count */}
-                      </p>
+                      {/* <p className="text-lg text-center text-raisin-600 m-2">
+                        3
+                      </p> */}
                     </div>
-                    <div className="w-3/8">
+                    {/* <div className="w-3/8">
                       <p className="text-md text-raisin-600 font-medium text-center m-2">
                         Weekly Average
                       </p>
                       <p className="text-lg text-raisin-600 text-center m-2">
                         {5.75}
-                        {/* TODO: Replace with something else */}
                       </p>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>
               <div className="flex m-4">
-                {isLoadingH ? (
+                {isLoadingC ? (
                   <Spinner animation="border" />
                 ) : (
                   <>
-                    {errorH ? (
+                    {errorC ? (
                       <p className="text-md font-medium text-raisin-600 m-3">
                         Error: Could not load happiness.
                       </p>
                     ) : (
                       <>
-                        {dataH.length === 0 ? (
+                        {dataC.length === 0 ? (
                           <p className="text-md font-medium text-raisin-600 m-3">
-                            Data not available for selected period.
+                            No happiness data available.
                           </p>
                         ) : (
                           <>
                             <div className="space-y-2 px-2 md:px-4">
                               {todayString.substring(0, 10) ===
-                              dataH[dataH.length - 1].timestamp ? (
+                              dataC[0].timestamp ? (
                                 <p className="text-md text-raisin-600 font-semibold text-center">
                                   Today's Happiness
                                 </p>
@@ -97,27 +100,29 @@ export default function Profile(props) {
                                 </p>
                               )}
                               <p className="text-2xl text-rhythm-500 font-medium text-center">
-                                {dataH[dataH.length - 1].value}
+                                {dataC[0].value}
                               </p>
                             </div>
-                            {dataH[dataH.length - 1].comment ? (
-                              <div
-                                className="space-y-2 px-2 md:px-4 md:mx-4"
-                                onClick={() => setDShow(true)}
-                              >
-                                <p className="text-md text-raisin-600 font-semibold text-center">
-                                  Comment
-                                </p>
-                                <p className="line-clamp-3 -md:line-clamp-3 text-md text-rhythm-500 font-medium text-center">
-                                  {dataH[dataH.length - 1].comment}
-                                </p>
+                            {dataC[0].comment ? (
+                              <>
                                 <DayPreview
                                   open={dShow}
                                   setOpen={setDShow}
-                                  data={[dataH[dataH.length - 1]]}
-                                  name={[me.username]}
+                                  data={[dataC[0]]}
+                                  users={[me]}
                                 />
-                              </div>
+                                <div
+                                  className="space-y-2 px-2 md:px-4 md:mx-4"
+                                  onClick={() => setDShow(true)}
+                                >
+                                  <p className="text-md text-raisin-600 font-semibold text-center">
+                                    Comment
+                                  </p>
+                                  <p className="line-clamp-3 -md:line-clamp-3 text-md text-rhythm-500 font-medium text-center">
+                                    {dataC[0].comment}
+                                  </p>
+                                </div>
+                              </>
                             ) : (
                               <></>
                             )}
@@ -147,11 +152,7 @@ export default function Profile(props) {
                       ) : (
                         <>
                           <div className="flex flex-wrap justify-center items-center m-4 md:ml-4 max-w-[400px] max-h-[400px]">
-                            <Graph
-                              data={dataH}
-                              names={[me.username]}
-                              time="Weekly"
-                            />
+                            <Graph data={dataH} users={[me]} time="Weekly" />
                           </div>
                           <div className="flex flex-wrap justify-center items-center md:max-w-[205px] sm:max-w-[400px] mr-2">
                             <Stat
@@ -180,7 +181,34 @@ export default function Profile(props) {
               History
             </p>
           </div>
-          <Histories id={props.id} max={4} byCount={true} />
+          {isLoadingC ? (
+            <Spinner animation="border" />
+          ) : (
+            <>
+              {errorC ? (
+                <p className="text-md font-medium text-raisin-600 m-3">
+                  Error: Could not load happiness.
+                </p>
+              ) : (
+                <>
+                  {dataC.length === 0 ? (
+                    <p className="text-md font-medium text-raisin-600 m-3">
+                      Data not available for selected period.
+                    </p>
+                  ) : (
+                    <>
+                      <Histories dataList={dataC} userList={[me]} />
+                      <div className="m-3 flex justify-center">
+                        <Link to="/history">
+                          <Button variant="outline-secondary">show all</Button>
+                        </Link>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+            </>
+          )}
         </div>
       </div>
     </>

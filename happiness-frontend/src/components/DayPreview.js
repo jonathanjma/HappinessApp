@@ -1,25 +1,21 @@
-import OldHistoryCard from "./OldHistoryCard";
-import { Fragment, useRef, useState } from "react";
+import BigHistoryCard from "./BigHistoryCard";
+import { Fragment, useRef } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 
 /* 
-Things to implement:
+Potential future idea:
 - Arrows on either side of comment to show previous/next day's comment and happiness
 */
 
-export default function DayPreview({ open, setOpen, data = undefined, name }) {
+// open and setOpen - useState values, control opening/closing of modal
+// data - a list of objects representing specific happiness datapoint to be displayed
+// users - list of user objects, each corresponding to a specific datapoint
+export default function DayPreview({ open, setOpen, data = undefined, users }) {
   const cancelButtonRef = useRef(null);
-  const handleShow = () => setOpen(true);
-  console.log("test test");
-  console.log(data);
 
   const tiles = [];
-  if (name !== undefined && data !== undefined) {
-    for (let i = 0; i < name.length; i++) {
-      tiles.push(
-        <OldHistoryCard key={i} data={data[i]} name={name[i]} shown={true} />
-      );
-    }
+  for (let i = 0; i < data.length; i++) {
+    tiles.push(<BigHistoryCard data={data[i]} user={users[i]} key={i} />);
   }
 
   return (
@@ -29,7 +25,10 @@ export default function DayPreview({ open, setOpen, data = undefined, name }) {
           as="div"
           className="relative z-10"
           initialFocus={cancelButtonRef}
-          onClose={() => setOpen(false)}
+          onClose={() => {
+            console.log("hey");
+            setOpen(false);
+          }}
         >
           <Transition.Child
             as={Fragment}

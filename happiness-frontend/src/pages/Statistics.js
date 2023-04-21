@@ -14,7 +14,7 @@ export default function Statistics() {
   console.log(dataH);
   const [isLoadingHM, dataHM, errorHM] = PrevMonthData(true, me.id);
 
-  const names = [me.username];
+  const users = [me];
 
   /*
       0 = mean
@@ -95,7 +95,7 @@ export default function Statistics() {
                       ) : (
                         <>
                           <div className="lg:w-1/2 lg:mt-4">
-                            <Graph data={dataH} names={names} time="Weekly" />
+                            <Graph data={dataH} users={users} time="Weekly" />
                           </div>
                           <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
                             {datavals.map((e) => {
@@ -138,7 +138,7 @@ export default function Statistics() {
                       ) : (
                         <>
                           <div className="lg:w-1/2 lg:mt-4">
-                            <Graph data={dataHM} names={names} time="Monthly" />
+                            <Graph data={dataHM} users={users} time="Monthly" />
                           </div>
                           <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
                             {datavals.map((e) => {

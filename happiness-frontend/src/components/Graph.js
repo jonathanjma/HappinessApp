@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Users from "../components/Users";
 import ChartPreview from "./ChartPreview";
 import LineChart from "./LineChart";
 import DayPreview from "./DayPreview";
@@ -37,11 +36,11 @@ function IndexData(data, names) {
 }
 
 // props.data: List of objects of all data objects (can be in any time order or user_id order)
-//
+// Requires: props.users must be a list of user objects in ascending order
 
-// Requires: The list props.names is sorted by corresponding id in ascending order.
 // exports graph element with embedded chart and title
 export default function Graph(props) {
+  let names = props.users.map((e) => e.username);
   let datas = props.data;
   // console.log("checking sort");
   // console.log(datas);
@@ -53,55 +52,70 @@ export default function Graph(props) {
   let seen = [];
   let uniq = [];
   let ctr = -1;
+  // loops through complete data and adds all unique dates
   for (let k = 0; k < datas.length; k++) {
     if (!uniq.includes(datas[k].timestamp)) {
       uniq.push(datas[k].timestamp);
     }
-    if (!seen.includes(datas[k].user_id)) {
+  }
+  let k = 0;
+  let q = 0;
+  while (q < datas.length) {
+    // new user that not accessed previously
+    if (!seen.includes(datas[q].user_id)) {
       ctr++;
-      formatted.push([datas[k]]);
-      seen.push(datas[k].user_id);
+      formatted.push([datas[q]]);
+      seen.push(datas[q].user_id);
+      k = 1;
+      q++;
     } else {
-      formatted[ctr].push(datas[k]);
+      // accounts for missing values
+      if (datas[q].timestamp !== uniq[k]) {
+        formatted[ctr].push({
+          comment: null,
+          id: 0,
+          timestamp: uniq[q],
+          user_id: datas[q].user_id,
+          value: Number.NaN,
+        });
+        k++;
+        // if there is existing value
+      } else {
+        formatted[ctr].push(datas[q]);
+        k++;
+        q++;
+      }
     }
   }
+  console.log(formatted);
+  const [pointData, setPointData] = useState([[], 0]);
+  // constructs chart data (passed in to LineChart.js)
   const [chartData, setChartData] = useState({
-    name: props.names,
+    name: names,
     time: props.time,
     ids: formatted.map((e) => e[0].user_id),
     labels: uniq.map((e) => e.slice(5).split("-").join("/")),
-    datasets: IndexData(formatted, props.names),
+    datasets: IndexData(formatted, names),
   });
   const [cShow, setCShow] = useState(false);
   const [dShow, setDShow] = useState(false);
-  const [day, setDay] = useState(0);
-  const [selUser, setSelUser] = useState([0]);
 
   const chartPreview = (
     <ChartPreview
       chartData={chartData}
       open={cShow}
       setOpen={setCShow}
-      name={props.names}
-      idsList={seen}
-      dayData={formatted}
+      users={props.users}
+      formatted={formatted}
     />
   );
-  const ids = seen.map((e, t) => {
-    if (selUser.includes(e)) {
-      return t;
-    } else {
-      return 0;
-    }
-  });
-  console.log(ids);
   console.log(formatted);
   const dayPreview = (
     <DayPreview
       open={dShow}
       setOpen={setDShow}
-      data={ids.map((e, t) => formatted[e][day[t]])}
-      name={props.names}
+      data={pointData[0].map((e) => formatted[e][pointData[1]])}
+      users={pointData[0].map((e) => props.users[e])}
     />
   );
   return (
@@ -116,8 +130,7 @@ export default function Graph(props) {
               chartData={chartData}
               chartShow={setCShow}
               dayShow={setDShow}
-              daySet={setDay}
-              userSet={setSelUser}
+              setPointData={setPointData}
             />
             {chartPreview}
             {dayPreview}
