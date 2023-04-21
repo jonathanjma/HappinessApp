@@ -15,7 +15,11 @@ export default function DayPreview({ open, setOpen, data = undefined, users }) {
 
   const tiles = [];
   for (let i = 0; i < data.length; i++) {
-    tiles.push(<BigHistoryCard data={data[i]} user={users[i]} key={i} />);
+    tiles.push(
+      <div className="flex justify-center">
+        <BigHistoryCard data={data[i]} user={users[i]} key={i} />
+      </div>
+    );
   }
 
   return (
@@ -53,10 +57,10 @@ export default function DayPreview({ open, setOpen, data = undefined, users }) {
                 leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                 leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
               >
-                <Dialog.Panel className="sm:w-full sm:max-w-xl">
+                <Dialog.Panel className="sm:w-full sm:max-w-xl lg:max-w-3xl">
                   <>
                     {tiles}
-                    <div className="mx-3 max-w-[576px]">
+                    <div className="mx-3 w-full">
                       <button
                         type="button"
                         className="mt-3 inline-flex w-full justify-center text-raisin-600 rounded-md border border-gray-300 bg-cultured-50 px-4 py-2 text-base font-medium shadow-sm hover:bg-tangerine-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"

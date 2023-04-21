@@ -48,17 +48,17 @@ export default function MonthView({
                 }
                 onClick={() => setCard(data)}
               >
-                <p className="md:hidden text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600">
+                <p className="md:hidden text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600 pt-3">
                   {day}
                 </p>
-                <p className="hidden md:block text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600">
-                  {data.value}
+                <p className="hidden md:block text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600 pt-2.5">
+                  {data.value < 10 ? data.value.toFixed(1) : data.value}
                 </p>
               </div>
             </>
           ) : (
             <div className="bg-buff-50 flex w-full justify-center items-center h-full md:h-3/4">
-              <p className="md:hidden text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600">
+              <p className="md:hidden text-center text-lg sm:text-xl md:text-2xl font-medium text-raisin-600 pt-3">
                 {day}
               </p>
             </div>
