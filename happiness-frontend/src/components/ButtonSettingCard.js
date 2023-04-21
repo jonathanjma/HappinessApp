@@ -6,20 +6,19 @@ export default function ButtonSettingCard(props) {
   const { Logout, DeleteUser } = useUser();
 
   /*
-      props.id: setting id
+      props.key: setting id
       props.icon: setting icon
       props.name: setting name
       props.isSensitive: tells whether a confirmation should come up before the setting is changed.
       */
   const doAction = () => {
-    switch (props.id) {
+    switch (props.key) {
       case 7:
         Logout().then(() => {window.location.reload()})
         break
       case 8:
         DeleteUser().then(() => {window.location.reload()})
         break
-
     }
   };
   const clicked = () => {
@@ -52,13 +51,12 @@ export default function ButtonSettingCard(props) {
   return (
     <div className="w-[300px] m-2 py-8 px-8 max-w-sm bg-white rounded-xl shadow-lg space-y-2 sm:py-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-6">
       <p className="text-xl">{props.name}</p>
-      <button>
         <img
-          className="h-[50px] w-[50px] block mx-auto sm:shrink-0 sm:mx-0"
+          className="h-[50px] w-[50px] block mx-auto sm:shrink-0 sm:mx-0 hover:cursor-pointer"
           src={props.icon}
           onClick={clicked}
+          content={""}
         />
-      </button>
     </div>
   );
 }
