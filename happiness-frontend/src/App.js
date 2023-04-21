@@ -18,14 +18,15 @@ import SubmitHappiness from "./pages/SubmitHappiness";
 // change id number to id of user in Users.js (temporary until backend + login set up)
 export default function App() {
   const id = 1;
+  const bgStyle = "max-w-7xl mx-auto min-h-screen px-3 py-2"
 
   return (
     <Container fluid className="App bg-buff-50">
       <BrowserRouter>
         <ApiProvider>
           <UserProvider>
-            <Header user_id={id} />
-            <div className="max-w-7xl mx-auto min-h-screen px-3 py-2">
+
+
               <Routes>
                 <Route
                   path="/"
@@ -39,30 +40,32 @@ export default function App() {
                   path="*"
                   element={
                     <PrivateRoute>
+                      <Header user_id={id} />
                       <Routes>
                         <Route path="/home" element={<SubmitHappiness />} />
-                        <Route
-                          path="/statistics"
-                          element={<Statistics id={id} />}
-                        />
-                        <Route path="/profile" element={<Profile id={id} />} />
-                        <Route
-                          path="/groups"
-                          element={<UserGroups id={id} />}
-                        />
-                        <Route
-                          path="/groups/:groupID"
-                          element={<Group id={id} />}
-                        />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="/history" element={<History id={id} />} />
+
+                            <Route
+                              path="/statistics"
+                              element={<div className={bgStyle}><Statistics id={id}/> </div>}
+                            />
+                            <Route path="/profile" element={<div className={bgStyle}><Profile id={id} /></div>} />
+                            <Route
+                              path="/groups"
+                              element={<div className={bgStyle}><UserGroups id={id} /> </div>}
+                            />
+                            <Route
+                              path="/groups/:groupID"
+                              element={<div className={bgStyle}><Group id={id} /></div>}
+                            />
+                            <Route path="/settings" element={<div className={bgStyle}><Settings /></div>} />
+                            <Route path="/history" element={<div className={bgStyle}><History id={id} /></div>} />
+
                         <Route path="*" element={<Navigate to="/" />} />
                       </Routes>
                     </PrivateRoute>
                   }
                 />
               </Routes>
-            </div>
           </UserProvider>
         </ApiProvider>
       </BrowserRouter>

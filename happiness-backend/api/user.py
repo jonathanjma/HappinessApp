@@ -101,15 +101,24 @@ def add_user_setting(req):
     """
     Add Settings
     Adds a setting to the current user's property bag. \n
+    If the setting already exists in the property bag, it modifies the value of the setting. \n
     Returns: A JSON success response that contains the added setting, or a failure response.
     """
     current_user = token_auth.current_user()
     key, value = req.get("key"), req.get("value")
-    setting = Setting(key=key, value=value, user_id=current_user.id)
-    db.session.add(setting)
-    db.session.commit()
+    # TODO the change I just made broke the app
+    oldSetting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
+    if oldSetting is None:
+        print("OLD SETTING NOT FOUND -----------------")
+        newSetting = Setting(key=key, value=value, user_id=current_user.id)
+        db.session.add(newSetting)
+        db.session.commit()
+        return newSetting
 
-    return setting
+    oldSetting.value = value
+    db.session.commit()
+    print("Old setting updated")
+    return oldSetting
 
 
 @user.get('/settings/')
