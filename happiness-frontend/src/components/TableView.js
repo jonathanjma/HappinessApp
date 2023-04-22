@@ -30,8 +30,6 @@ function TableCell({ entry, setCard, boundary }) {
   );
 }
 
-// TODO: smaller comment modals, why is week table so large?
-
 export default function TableView({ groupData, happinessData, selected }) {
   const [card, setCard] = useState();
 
@@ -86,7 +84,9 @@ export default function TableView({ groupData, happinessData, selected }) {
   for (let user of groupUsers) {
     const entries = [];
     entries.push(
-      <td className="border-collapse border py-1.5 px-2">{user.username}</td>
+      <td className="border-collapse border py-1.5 px-2" key={user.id}>
+        {user.username}
+      </td>
     );
     for (let date of allDates) {
       let entry = happinessData.find(
@@ -97,6 +97,7 @@ export default function TableView({ groupData, happinessData, selected }) {
           entry={entry}
           setCard={setCard}
           boundary={weekBounds.includes(date)}
+          key={user.id + " " + date}
         />
       );
       if (entry !== undefined) {
@@ -104,7 +105,10 @@ export default function TableView({ groupData, happinessData, selected }) {
       }
     }
     rows.push(
-      <tr className={rows.length === 0 ? "border-t-2 border-t-black" : ""}>
+      <tr
+        className={rows.length === 0 ? "border-t-2 border-t-black" : ""}
+        key={user.id}
+      >
         {entries}
       </tr>
     );
@@ -128,6 +132,7 @@ export default function TableView({ groupData, happinessData, selected }) {
                 <th
                   colSpan={span}
                   className="text-center text-md font-bold text-raisin-600 border-collapse border p-1"
+                  key={month}
                 >
                   {month}
                 </th>
@@ -144,6 +149,7 @@ export default function TableView({ groupData, happinessData, selected }) {
                       day === "S" && (i === 0 || weekdays[i - 1] === "S")
                     )
                   }
+                  key={i}
                 >
                   {day}
                 </th>
@@ -158,6 +164,7 @@ export default function TableView({ groupData, happinessData, selected }) {
                     "text-center text-md font-bold text-raisin-600 border-collapse border-y p-1.5" +
                     weekEdge(weekBounds.includes(date))
                   }
+                  key={date}
                 >
                   {date.substring(8)}
                 </th>
@@ -177,6 +184,7 @@ export default function TableView({ groupData, happinessData, selected }) {
                     (!isNaN(avg) ? ReturnColor(avg) : "bg-gray-400") +
                     weekEdge(weekBounds.includes(date))
                   }
+                  key={date}
                 >
                   {isNaN(avg) ? "-" : avg}
                 </td>
