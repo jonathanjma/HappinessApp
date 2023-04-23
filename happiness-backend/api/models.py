@@ -27,7 +27,7 @@ class User(db.Model):
     email = db.Column(db.String, nullable=False, unique=True)
     username = db.Column(db.String, nullable=False, unique=True)
     password = db.Column(db.String, nullable=False)
-    # Will represent an AWS URL
+    created = db.Column(db.DateTime)
     profile_picture = db.Column(db.String, nullable=False)
     # If the user has not yet set a profile picture the field gets set to "default"
     settings = db.relationship("Setting", cascade="delete")
@@ -51,6 +51,7 @@ class User(db.Model):
                                       bcrypt.gensalt(rounds=13))
         self.username = kwargs.get("username")
         self.profile_picture = kwargs.get("profile_picture", self.avatar_url())
+        self.created = datetime.today()
         self.get_token()
 
     def avatar_url(self):

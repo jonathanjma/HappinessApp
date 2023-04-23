@@ -1,9 +1,17 @@
 import pickle
+import json
 
+import datetime
 import requests
 
-create_users_groups = True
-port = "5000"
+# date of earliest happiness entry
+since = datetime.datetime(2023, 4, 15)
+port="5000"
+
+# false: only import happiness
+# true: create test users/group and import happiness
+create_users_groups = False
+
 
 if create_users_groups:
     new_user1 = requests.post(f'http://localhost:{port}/api/user/',
@@ -39,10 +47,7 @@ if create_users_groups:
     add_members = requests.put(f'http://localhost:{port}/api/group/1',
                                headers={"Authorization": f"Bearer {token}"},
                                json={
-                                   "add_users": [
-                                       {"username": "jonathan"},
-                                       {"username": "zach"}
-                                   ]
+                                   "add_users": ["jonathan", "zach"]
                                })
     assert new_group.status_code == 201 and add_members.status_code == 200
     print('group created')
@@ -50,7 +55,11 @@ if create_users_groups:
 with open('happiness_import.pick', 'rb') as f:
     all_user_data = pickle.load(f)
 
-import_data = requests.post(f'http://localhost:{port}/api/happiness/import',
+all_user_data = list(
+    filter(lambda x: datetime.datetime.strptime(x['timestamp'], "%Y-%m-%d") >= since,
+           all_user_data))
+
+import_data = requests.post('http://localhost:5000/api/happiness/import',
                             headers={"Content-Type": "application/json"},
-                            data=all_user_data)
+                            data=json.dumps(all_user_data))
 print(import_data.text)

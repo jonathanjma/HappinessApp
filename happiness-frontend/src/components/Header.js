@@ -4,48 +4,64 @@ import Nav from "react-bootstrap/Nav";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import { NavLink } from "react-router-dom";
 import Image from "react-bootstrap/Image";
-import Users from "./Users";
-import {useUser} from "../contexts/UserProvider";
+import { useUser } from "../contexts/UserProvider";
+import { Spinner } from "react-bootstrap";
 
-export default function Header({ user_id }) {
-  const { Logout } = useUser()
+export default function Header() {
+  const { user: userState, Logout } = useUser();
+  const me = userState.user;
+
   return (
     <Navbar bg="light" sticky="top">
       <Container fluid="md">
-        <Navbar.Brand>😀 Happiness App</Navbar.Brand>
-        <Nav>
+        <Navbar.Brand>
           <Nav.Link as={NavLink} to="/">
-            Home
+            😀 Happiness App
           </Nav.Link>
+        </Navbar.Brand>
+        <Nav>
           <Nav.Link as={NavLink} to="/statistics">
             Statistics
           </Nav.Link>
-          <NavDropdown
-            title={
-              <Image
-                src={Users(user_id).img}
-                roundedCircle
-                className="max-w-[30px] max-h-[30px]"
-                style={{ display: "inline" }}
-              />
-            }
-            align="end"
-          >
-            <NavDropdown.Item as={NavLink} to="/profile">
-              Profile
-            </NavDropdown.Item>
-            <NavDropdown.Item as={NavLink} to="/groups">
-              Groups
-            </NavDropdown.Item>
-            <NavDropdown.Divider />
-            <NavDropdown.Item as={NavLink} to="/settings">
-              Settings
-            </NavDropdown.Item>
-            <NavDropdown.Divider />
-            <NavDropdown.Item as={NavLink} to="/" onClick={() => {Logout()}}>
-              Logout
-            </NavDropdown.Item>
-          </NavDropdown>
+          <Nav.Link as={NavLink} to="/groups">
+            Groups
+          </Nav.Link>
+          {me ? (
+            <NavDropdown
+              title={
+                <Image
+                  src={me.profile_picture}
+                  roundedCircle
+                  className="max-w-[30px] max-h-[30px]"
+                  style={{ display: "inline" }}
+                />
+              }
+              align="end"
+            >
+              <NavDropdown.Item as={NavLink} to="/profile">
+                Profile
+              </NavDropdown.Item>
+              <NavDropdown.Item as={NavLink} to="/history">
+                History
+              </NavDropdown.Item>
+              <NavDropdown.Divider />
+              <NavDropdown.Item as={NavLink} to="/settings">
+                Settings
+              </NavDropdown.Item>
+              <NavDropdown.Divider />
+              <NavDropdown.Item
+                as={NavLink}
+                to="/"
+                onClick={() => {
+                  Logout();
+                }}
+              >
+                Logout
+              </NavDropdown.Item>
+            </NavDropdown>
+          ) : (
+            <Spinner animation="border" />
+          )}
         </Nav>
       </Container>
     </Navbar>
