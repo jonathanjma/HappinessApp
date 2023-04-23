@@ -17,7 +17,7 @@ happiness = Blueprint('happiness', __name__)
 @authenticate(token_auth)
 @body(HappinessSchema)
 @response(HappinessSchema, 201)
-@other_responses({400: "Date already exists."})
+@other_responses({400: "Date already exists.", 400 : "Invalid happiness value."})
 def create_happiness(req):
     """
     Create Happiness Entry
@@ -32,6 +32,10 @@ def create_happiness(req):
     # check if date already exists, rn used to avoid errors when debugging
     if happiness_dao.get_happiness_by_date(current_user.id, datetime.strptime(timestamp, "%Y-%m-%d")):
         return failure_response("Date already exists.", 400)
+
+    # validate happiness value
+    if float(value * 2).is_integer or value < 0 or value > 10:
+        return failure_response("Invalid happiness value.", 400)
 
     happiness = Happiness(user_id=current_user.id, value=value,
                           comment=comment, timestamp=datetime.strptime(timestamp, "%Y-%m-%d"))

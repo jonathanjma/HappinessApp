@@ -26,7 +26,7 @@ export default function History(props) {
   useEffect(
     () =>
       setEnd((end) => {
-        end.setDate(end.getDate() + 7 - end.getDay());
+        end.setDate(end.getDate() + 6 - end.getDay());
         return new Date(end);
       }),
     []

@@ -60,7 +60,7 @@ export default function Stat(props) {
     return maxNum;
   }
   function range(vals) {
-    return vals[vals.length - 1] - vals[0];
+    return Math.round(vals[vals.length - 1] - vals[0]);
   }
   function stdev(vals) {
     const n = vals.length;
