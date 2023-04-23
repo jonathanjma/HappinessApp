@@ -13,6 +13,7 @@ export default function ToggleSettingCard(props) {
     const [isChecked, setIsChecked] = useState(Boolean(props.defaultCheck));
     const api = useApi();
     const { user } = useUser();
+    console.log(user.user.settings)
     const toggleMutation = useMutation({
         mutationFn: (value) => {
             return api.post("/user/settings/", {
@@ -23,7 +24,24 @@ export default function ToggleSettingCard(props) {
     })
     const handleChange = () => {
         console.log("ACTIVATED CHANGE")
+        let wasFound = false
+        console.log(user.user.settings)
+
+
         setIsChecked(!isChecked)
+        user.user.settings.forEach((s) => {
+            if (s.key === props.name) {
+                s.value = !isChecked
+                wasFound = true;
+                console.log(`User settings after change: ${user.user.settings}`)
+            }
+        })
+        if (!wasFound) {
+            user.user.settings.push({
+                "key": props.name,
+                "value": !isChecked
+            })
+        }
         toggleMutation.mutate(isChecked)
     }
   return (

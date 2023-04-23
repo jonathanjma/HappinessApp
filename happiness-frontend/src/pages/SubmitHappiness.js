@@ -166,12 +166,13 @@ export default function SubmitHappiness() {
                   onChange={(e) => {
                     setHappiness(e.target.value / 10);
                   }}
+                  onMouseUp={(e) => {
+                    setHappiness(formatHappinessNum(e.target.value / 10));
+                  }}
                   className="w-40 md:w-72 h-2 rounded-lg appearance-none cursor-pointer dark:bg-white-300 scale-150 mt-20"
               />
 
               {/* Happiness Number */}
-              {/* TODO the fixed width causes it to be off center,
-     but good enough for now I guess */}
               <p className="text-8xl text-white text-stroke-4 mt-10 ml-28 font-roboto flex-none flex-row w-40">
                 <b>{formatHappinessNum(happiness)}</b>
               </p>
@@ -185,6 +186,8 @@ export default function SubmitHappiness() {
                 placeholder=""
                 onChange={(e) => {
                   setHappiness(parseFloat(e.target.value))
+                  if (e.target.value < 0) {
+                    setHappiness(0)}
                 }}
                 onBlur={() => {
                   if ((happiness * 10) % 10 >= 5) {
@@ -243,7 +246,7 @@ function initializeDateList(dateList) {
   // Loop through the past 7 days (including today)
   for (let i = 0; i < 7; i++) {
     // Create a new Date object representing the current day in the loop
-    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() -  i);
 
     // Check if the current date is the first day of the month
     if (date.getDate() === 1 && i !== 0) {
