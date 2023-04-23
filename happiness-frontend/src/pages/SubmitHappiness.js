@@ -150,47 +150,53 @@ export default function SubmitHappiness() {
             </h1>
           </>
 
-          {/* Happy Face, Slider, and Happiness Number (Desktop only) */}
-          <div className="flex flex-row items-center justify-center mobile-hidden">
-            {/* Happy Face Decorator */}
-            <span className="mr-28 mt-10">
-              <DynamicSmile happiness={happiness} />
-            </span>
-            {/* Happiness Slider */}
+            {/* Happy Face, Slider, and Happiness Number (Desktop only) */}
+            <div className="flex flex-row items-center justify-center mobile-hidden">
+              {/* Happy Face Decorator */}
+              <span className="mr-28 mt-10">
+      <DynamicSmile happiness={happiness} />
+    </span>
+              {/* Happiness Slider */}
+              <input
+                  id="default-range"
+                  type="range"
+                  onChange={(e) => {
+                    setHappiness(e.target.value / 10);
+                  }}
+                  onMouseUp={(e) => {
+                    setHappiness(formatHappinessNum(e.target.value / 10));
+                  }}
+                  className="w-40 md:w-72 h-2 rounded-lg appearance-none cursor-pointer dark:bg-white-300 scale-150 mt-20"
+              />
+
+              {/* Happiness Number */}
+              <p className="text-8xl text-white text-stroke-4 mt-10 ml-28 font-roboto flex-none flex-row w-40">
+                <b>{formatHappinessNum(happiness)}</b>
+              </p>
+            </div>
+
+            {/* Happiness Number Input Field (Mobile Only) */}
             <input
-              id="default-range"
-              type="range"
-              onChange={(e) => {
-                setHappiness(e.target.value / 10);
-              }}
-              className="w-40 md:w-72 h-2 rounded-lg appearance-none cursor-pointer dark:bg-white-300 scale-150 mt-20"
+                className="mt-10 w-24 h-20 text-4xl text-center rounded-2xl bg-gray-100 focus:border-raisin-600 border-raisin-100 border-2 focus:border-4 md:hidden"
+                type="number"
+                value={happiness}
+                placeholder=""
+                onChange={(e) => {
+                  setHappiness(parseFloat(e.target.value))
+                  if (e.target.value < 0) {
+                    setHappiness(0)}
+                }}
+                onBlur={() => {
+                  if ((happiness * 10) % 10 >= 5) {
+                    setHappiness(Math.floor(happiness) + 0.5)
+                  } else if (isNaN(happiness)) {
+                    setHappiness(5)
+                  } else {
+                    setHappiness(Math.floor(happiness))
+                  }
+                }
+                }
             />
-
-            {/* Happiness Number */}
-            <p className="text-8xl text-white text-stroke-4 mt-10 ml-28 font-roboto flex-none flex-row w-40">
-              <b>{formatHappinessNum(happiness)}</b>
-            </p>
-          </div>
-
-          {/* Happiness Number Input Field (Mobile Only) */}
-          <input
-            className="mt-10 w-24 h-20 text-4xl text-center rounded-2xl bg-gray-100 focus:border-raisin-600 border-raisin-100 border-2 focus:border-4 md:hidden"
-            type="number"
-            value={happiness}
-            placeholder=""
-            onChange={(e) => {
-              setHappiness(parseFloat(e.target.value));
-            }}
-            onBlur={() => {
-              if ((happiness * 10) % 10 >= 5) {
-                setHappiness(Math.floor(happiness) + 0.5);
-              } else if (isNaN(happiness)) {
-                setHappiness(5);
-              } else {
-                setHappiness(Math.floor(happiness));
-              }
-            }}
-          />
 
           {/* Happiness Comment Box */}
           <>

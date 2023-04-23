@@ -120,7 +120,6 @@ def add_user_setting(req):
     """
     current_user = token_auth.current_user()
     key, value = req.get("key"), req.get("value")
-    # TODO the change I just made broke the app
     oldSetting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
     if oldSetting is None:
         print("OLD SETTING NOT FOUND -----------------")

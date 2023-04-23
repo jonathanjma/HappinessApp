@@ -3,6 +3,7 @@ import Graph from "../components/Graph";
 import Histories from "../components/Histories";
 import DayPreview from "../components/DayPreview";
 import { useState } from "react";
+import { useQuery } from "react-query";
 import { useUser } from "../contexts/UserProvider";
 import { Spinner, Button } from "react-bootstrap";
 import {
@@ -17,11 +18,17 @@ export default function Profile() {
   const me = userState.user;
   const today = new Date();
   const todayString = today.toISOString().substring(0, 10);
+  const api = useApi();
 
+  const {
+    isLoading: isLoadingUG,
+    data: dataUG,
+    error: errorUG,
+  } = useQuery("get user groups", () =>
+    api.get("/user/groups").then((res) => res.data)
+  );
   const [isLoadingH, dataH, errorH] = PrevWeekData(true, me.id);
   const [isLoadingC, dataC, errorC] = GetCountHappiness(4, me);
-  console.log(dataC);
-  console.log(dataH);
 
   const [dShow, setDShow] = useState(false);
   return (
@@ -48,13 +55,30 @@ export default function Profile() {
                     {me.username}
                   </p>
                   <p className="text-center text-raisin-600">
-                    Member since 1/5/22
+                    {me.created !== null
+                      ? "Member since " +
+                        new Date(me.created)
+                          .toLocaleDateString("sv")
+                          .substring(0, 10)
+                      : ""}
                   </p>
                   <div className="flex flex-wrap justify-center items-center @container">
                     <div className="justify-center">
-                      <p className="text-center text-raisin-600 text-md font-medium m-2 sm:w-full">
-                        Groups: 3
-                      </p>
+                      {isLoadingUG ? (
+                        <Spinner animation="border" />
+                      ) : (
+                        <>
+                          {errorUG ? (
+                            <p className="text-md font-medium text-raisin-600 m-3">
+                              Error: Could not load happiness.
+                            </p>
+                          ) : (
+                            <p className="text-center text-raisin-600 text-md font-medium m-2 sm:w-full">
+                              Groups: {dataUG.length}
+                            </p>
+                          )}
+                        </>
+                      )}
                       {/* <p className="text-lg text-center text-raisin-600 m-2">
                         3
                       </p> */}

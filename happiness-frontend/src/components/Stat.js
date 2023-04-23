@@ -36,7 +36,7 @@ export default function Stat(props) {
         2
       );
     }
-    return vals[Math.round(vals.length / 2) - 1];
+    return vals[Math.round(vals.length / 2)];
   }
   function mode(vals) {
     let max = 0,

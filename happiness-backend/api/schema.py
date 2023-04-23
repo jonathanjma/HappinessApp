@@ -29,6 +29,7 @@ class UserSchema(ma.SQLAlchemySchema):
     username = ma.auto_field(required=True)
     email = ma.Email(required=True)
     password = ma.auto_field(required=True, load_only=True)
+    created = ma.auto_field(required=True)
     profile_picture = ma.auto_field()
     settings = ma.Nested(SettingsSchema, many=True, required=True)
 

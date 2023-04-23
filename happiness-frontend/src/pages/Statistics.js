@@ -103,13 +103,13 @@ export default function Statistics() {
                             <Graph data={dataH} users={users} time="Weekly" />
                           </div>
                           <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
-                            {datavals.map((e) => {
-                              if (e.value) {
+                            {datavals.map((val, t) => {
+                              if (val) {
                                 return (
                                   <Stat
                                     data={dataH.map((e) => e.value)}
-                                    key={e.key}
-                                    val={e.key}
+                                    key={t}
+                                    val={t}
                                   />
                                 );
                               }
