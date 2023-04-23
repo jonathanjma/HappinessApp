@@ -29,7 +29,14 @@ function TabButton({ text }) {
 }
 
 // Title for tab with buttons to change the currently viewed time range
-export function TimeButtonTitle({ text, radioValue, setStart, setEnd }) {
+// size is the text size of the main tab
+export function TimeButtonTitle({
+  text,
+  radioValue,
+  setStart,
+  setEnd,
+  size = "sm:text-3xl text-2xl",
+}) {
   return (
     <div className="flex items-center justify-center">
       {/* View earlier time period button */}
@@ -58,9 +65,7 @@ export function TimeButtonTitle({ text, radioValue, setStart, setEnd }) {
         &lt;
       </button>
       {/* Title text */}
-      <p className="lg:text-3xl text-2xl font-medium m-3 text-raisin-600">
-        {text}
-      </p>
+      <p className={"font-medium m-3 text-raisin-600 " + size}>{text}</p>
       {/* View later time period button */}
       <button
         type="button"

@@ -80,14 +80,12 @@ export default function Statistics() {
 
   return (
     <>
-      <p className="w-full text-center text-5xl font-medium my-4 text-raisin-600">
-        Statistics
-      </p>
       <TimeButtonTitle
         text="Statistics"
         radioValue={radioValue}
         setStart={setStart}
         setEnd={setEnd}
+        size="text-4xl sm:text-5xl"
       />
       {/* buttons to activate weekly/monthly view */}
       <div className="lg:absolute lg:top-20 lg:right-10 flex sm-lg:w-full justify-center">
