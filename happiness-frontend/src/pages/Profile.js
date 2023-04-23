@@ -12,12 +12,11 @@ import {
 import { useApi } from "../contexts/ApiProvider";
 import { Link } from "react-router-dom";
 
-export default function Profile(props) {
+export default function Profile() {
   const { user: userState } = useUser();
   const me = userState.user;
   const today = new Date();
   const todayString = today.toISOString().substring(0, 10);
-  const api = useApi();
 
   const [isLoadingH, dataH, errorH] = PrevWeekData(true, me.id);
   const [isLoadingC, dataC, errorC] = GetCountHappiness(4, me);

@@ -60,7 +60,7 @@ export default function DayPreview({ open, setOpen, data = undefined, users }) {
                 <Dialog.Panel className="sm:w-full sm:max-w-xl lg:max-w-3xl">
                   <>
                     {tiles}
-                    <div className="mx-3 w-full">
+                    <div className="w-full">
                       <button
                         type="button"
                         className="mt-3 inline-flex w-full justify-center text-raisin-600 rounded-md border border-gray-300 bg-cultured-50 px-4 py-2 text-base font-medium shadow-sm hover:bg-tangerine-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"

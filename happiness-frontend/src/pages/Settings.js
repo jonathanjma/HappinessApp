@@ -2,10 +2,16 @@ import ToggleSettingCard from "../components/ToggleSettingCard";
 import { statSettings } from "../resources/StatSettings";
 import { accountSettings } from "../resources/AccountSettings";
 import ButtonSettingCard from "../components/ButtonSettingCard";
+import {useUser} from "../contexts/UserProvider";
+import React, { useState } from "react";
 
-export default function Settings(props) {
-  /*Props.settings should be an array of settings
-      that contains information about the settings.*/
+export default function Settings() {
+    const  { user } = useUser()
+    const [settingValueMap] = useState(new Map());
+    user.user.settings.forEach((setting) => {
+        settingValueMap.set(setting.key, setting.value)
+    })
+
   return (
     <>
       <p className="text-3xl font-semibold text-raisin-600 ml-10 mb-4 mt-3">
@@ -15,7 +21,7 @@ export default function Settings(props) {
         {accountSettings.map((setting) => {
           return (
             <ButtonSettingCard
-              id={setting.id}
+              key={setting.id}
               name={setting.name}
               icon={setting.icon}
               isSensitive={setting.isSensitive}
@@ -30,9 +36,10 @@ export default function Settings(props) {
         {statSettings.map((setting) => {
           return (
             <ToggleSettingCard
-              id={setting.id}
+              key={setting.id}
               name={setting.name}
               icon={setting.icon}
+              defaultCheck={!settingValueMap.has(setting.name) ? false : settingValueMap.get(setting.name)}
             />
           );
         })}

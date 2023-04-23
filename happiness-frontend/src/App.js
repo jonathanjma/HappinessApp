@@ -18,42 +18,84 @@ import SubmitHappiness from "./pages/SubmitHappiness";
 // change id number to id of user in Users.js (temporary until backend + login set up)
 export default function App() {
   const id = 1;
+  const bgStyle = "max-w-7xl mx-auto min-h-screen px-3 py-2";
 
   return (
     <Container fluid className="App bg-buff-50">
       <BrowserRouter>
         <ApiProvider>
           <UserProvider>
-            <Header user_id={id} />
-            <div className="max-w-7xl mx-auto min-h-screen px-3 py-2">
-              <Routes>
-                <Route
-                  path="/"
-                  element={
-                    <PublicRoute>
-                      <Welcome />
-                    </PublicRoute>
-                  }
-                />
-                <Route
-                  path="*"
-                  element={
-                    <PrivateRoute>
-                      <Routes>
-                        <Route path="/home" element={<SubmitHappiness />} />
-                        <Route path="/statistics" element={<Statistics />} />
-                        <Route path="/profile" element={<Profile id={id} />} />
-                        <Route path="/groups" element={<UserGroups />} />
-                        <Route path="/groups/:groupID" element={<Group />} />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="/history" element={<History id={id} />} />
-                        <Route path="*" element={<Navigate to="/" />} />
-                      </Routes>
-                    </PrivateRoute>
-                  }
-                />
-              </Routes>
-            </div>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <PublicRoute>
+                    <Welcome />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="*"
+                element={
+                  <PrivateRoute>
+                    <Header user_id={id} />
+                    <Routes>
+                      <Route path="/home" element={<SubmitHappiness />} />
+                      <Route
+                        path="/statistics"
+                        element={
+                          <div className={bgStyle}>
+                            <Statistics />{" "}
+                          </div>
+                        }
+                      />
+                      <Route
+                        path="/profile"
+                        element={
+                          <div className={bgStyle}>
+                            <Profile />
+                          </div>
+                        }
+                      />
+                      <Route
+                        path="/groups"
+                        element={
+                          <div className={bgStyle}>
+                            <UserGroups />{" "}
+                          </div>
+                        }
+                      />
+                      <Route
+                        path="/groups/:groupID"
+                        element={
+                          <div className={bgStyle}>
+                            <Group />
+                          </div>
+                        }
+                      />
+                      <Route
+                        path="/settings"
+                        element={
+                          <div className={bgStyle}>
+                            <Settings />
+                          </div>
+                        }
+                      />
+                      <Route
+                        path="/history"
+                        element={
+                          <div className={bgStyle}>
+                            <History />
+                          </div>
+                        }
+                      />
+
+                      <Route path="*" element={<Navigate to="/" />} />
+                    </Routes>
+                  </PrivateRoute>
+                }
+              />
+            </Routes>
           </UserProvider>
         </ApiProvider>
       </BrowserRouter>

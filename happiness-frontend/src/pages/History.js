@@ -8,7 +8,7 @@ import { Spinner } from "react-bootstrap";
 import Stat from "../components/Stat";
 import BigHistoryCard from "../components/BigHistoryCard";
 
-export default function History(props) {
+export default function History() {
   const { user: userState } = useUser();
   const me = userState.user;
 
@@ -26,7 +26,7 @@ export default function History(props) {
   useEffect(
     () =>
       setEnd((end) => {
-        end.setDate(end.getDate() + 7 - end.getDay());
+        end.setDate(end.getDate() + 6 - end.getDay());
         return new Date(end);
       }),
     []
