@@ -4,12 +4,12 @@ import { useNavigate } from "react-router-dom";
 export default function GroupCard({ data }) {
   const navigate = useNavigate();
 
-  const onClick = (ev) => {
-    navigate("/groups/" + data.id);
-  };
-
   return (
-    <Card onClick={onClick} style={{ cursor: "pointer" }} className="m-2 group">
+    <Card
+      onClick={() => navigate("/groups/" + data.id)}
+      style={{ cursor: "pointer" }}
+      className="m-2 group min-w-[200px]"
+    >
       <Card.Body>
         <Card.Title>{data.name}</Card.Title>
         <div className="grid">

@@ -1,38 +1,25 @@
-import OldHistoryCard from "./OldHistoryCard";
-import { Fragment, useRef, useState } from "react";
+import BigHistoryCard from "./BigHistoryCard";
+import { Fragment, useRef } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import Users from "./Users";
 
 /* 
-Things to implement:
+Potential future idea:
 - Arrows on either side of comment to show previous/next day's comment and happiness
 */
 
-export default function DayPreview({
-  open,
-  setOpen,
-  ids_list,
-  day = 0,
-  data = undefined,
-}) {
+// open and setOpen - useState values, control opening/closing of modal
+// data - a list of objects representing specific happiness datapoint to be displayed
+// users - list of user objects, each corresponding to a specific datapoint
+export default function DayPreview({ open, setOpen, data = undefined, users }) {
   const cancelButtonRef = useRef(null);
-  const handleShow = () => setOpen(true);
 
   const tiles = [];
-  if (ids_list !== undefined) {
-    for (let i = 0; i < ids_list.length; i++) {
-      tiles.push(
-        ids_list[i] === 0 ? (
-          <OldHistoryCard id={1} data={Users(1).data[day]} shown={false} />
-        ) : (
-          <OldHistoryCard
-            id={ids_list[i]}
-            data={data === undefined ? Users(ids_list[i]).data[day] : data}
-            shown={true}
-          />
-        )
-      );
-    }
+  for (let i = 0; i < data.length; i++) {
+    tiles.push(
+      <div className="flex justify-center" key={i}>
+        <BigHistoryCard data={data[i]} user={users[i]} />
+      </div>
+    );
   }
 
   return (
@@ -42,7 +29,10 @@ export default function DayPreview({
           as="div"
           className="relative z-10"
           initialFocus={cancelButtonRef}
-          onClose={() => setOpen(false)}
+          onClose={() => {
+            console.log("hey");
+            setOpen(false);
+          }}
         >
           <Transition.Child
             as={Fragment}
@@ -67,10 +57,10 @@ export default function DayPreview({
                 leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                 leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
               >
-                <Dialog.Panel className="sm:w-full sm:max-w-xl">
+                <Dialog.Panel className="sm:w-full sm:max-w-xl lg:max-w-3xl">
                   <>
                     {tiles}
-                    <div className="mx-3 max-w-[576px]">
+                    <div className="w-full">
                       <button
                         type="button"
                         className="mt-3 inline-flex w-full justify-center text-raisin-600 rounded-md border border-gray-300 bg-cultured-50 px-4 py-2 text-base font-medium shadow-sm hover:bg-tangerine-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
