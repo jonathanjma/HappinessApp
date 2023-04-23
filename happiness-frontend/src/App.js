@@ -15,9 +15,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import PublicRoute from "./components/PublicRoute";
 import SubmitHappiness from "./pages/SubmitHappiness";
 
-// change id number to id of user in Users.js (temporary until backend + login set up)
 export default function App() {
-  const id = 1;
   const bgStyle = "max-w-7xl mx-auto min-h-screen px-3 py-2";
 
   return (
@@ -38,7 +36,7 @@ export default function App() {
                 path="*"
                 element={
                   <PrivateRoute>
-                    <Header user_id={id} />
+                    <Header />
                     <Routes>
                       <Route path="/home" element={<SubmitHappiness />} />
                       <Route

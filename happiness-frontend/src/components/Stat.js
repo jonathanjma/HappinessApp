@@ -1,16 +1,12 @@
 import React from "react";
-import Users from "./Users";
 
 export default function Stat(props) {
   let trans = {
     mean: "Average",
     median: "Median",
     mode: "Mode",
-    // range: "Range",
     stdev: "Standard Deviation",
     min: "Minimum Value",
-    // q1: "1st Quartile",
-    // q3: "3rd Quartile",
     max: "Maximum Value",
   };
 
@@ -96,11 +92,8 @@ export default function Stat(props) {
     mean: mean(vals),
     median: median(vals),
     mode: mode(vals),
-    // range: range(vals),
     stdev: stdev(vals),
     min: min(vals),
-    // q1: q1(vals),
-    // q3: q3(vals),
     max: max(vals),
   };
 

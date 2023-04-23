@@ -66,8 +66,8 @@ export default function History() {
       }),
     []
   );
-  console.log(stMonth);
-  console.log(endMonth);
+  // console.log(stMonth);
+  // console.log(endMonth);
 
   // fetches data for monthly view
   const [isLoadingM, dataM, errorM, refetchM] = GetRangeHappiness(
@@ -79,7 +79,6 @@ export default function History() {
   useEffect(() => {
     refetchM();
   }, [stMonth, endMonth]);
-  console.log(dataM);
 
   const [card, setCard] = useState();
 

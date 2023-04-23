@@ -5,7 +5,6 @@ export default function HistoryCard({ data, user }) {
   const parts = data.timestamp.split("-");
   const dayString = new Date(parts[0], parts[1] - 1, parts[2]);
   const [dShow, setDShow] = useState(false);
-  console.log(dShow);
   return (
     <>
       <DayPreview open={dShow} setOpen={setDShow} data={[data]} users={user} />

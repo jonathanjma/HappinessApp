@@ -58,7 +58,9 @@ function TimeButtonTitle({ text, radioValue, setStart, setEnd }) {
         &lt;
       </button>
       {/* Title text */}
-      <p className="text-3xl font-medium m-3 text-raisin-600">{text}</p>
+      <p className="lg:text-3xl text-2xl font-medium m-3 text-raisin-600">
+        {text}
+      </p>
       {/* View later time period button */}
       <button
         type="button"

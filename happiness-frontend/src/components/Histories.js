@@ -1,6 +1,4 @@
-import BigHistoryCard from "./BigHistoryCard";
 import HistoryCard from "./HistoryCard";
-import Users from "./Users";
 
 /* 
 Returns: Multiple HistoryCard elements
