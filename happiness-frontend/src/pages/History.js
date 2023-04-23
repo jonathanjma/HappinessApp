@@ -8,7 +8,7 @@ import { Spinner } from "react-bootstrap";
 import Stat from "../components/Stat";
 import BigHistoryCard from "../components/BigHistoryCard";
 
-export default function History(props) {
+export default function History() {
   const { user: userState } = useUser();
   const me = userState.user;
 

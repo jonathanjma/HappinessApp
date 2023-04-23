@@ -6,11 +6,11 @@ export default function Stat(props) {
     mean: "Average",
     median: "Median",
     mode: "Mode",
-    range: "Range",
+    // range: "Range",
     stdev: "Standard Deviation",
     min: "Minimum Value",
-    q1: "1st Quartile",
-    q3: "3rd Quartile",
+    // q1: "1st Quartile",
+    // q3: "3rd Quartile",
     max: "Maximum Value",
   };
 
@@ -59,9 +59,6 @@ export default function Stat(props) {
     }
     return maxNum;
   }
-  function range(vals) {
-    return Math.round(vals[vals.length - 1] - vals[0]);
-  }
   function stdev(vals) {
     const n = vals.length;
     const mean = vals.reduce((a, b) => a + b) / n;
@@ -73,10 +70,20 @@ export default function Stat(props) {
   function min(vals) {
     return vals[0];
   }
+  function max(vals) {
+    return vals[vals.length - 1];
+  }
+
+  // unused as of now, can be used later
+  function range(vals) {
+    return Math.round(vals[vals.length - 1] - vals[0]);
+  }
+  // unused, saved for future use
   function q1(vals) {
     let med = vals.length / 2;
     return median(vals.slice(0, med));
   }
+  // unused, saved for future use
   function q3(vals) {
     let med = Math.floor(vals.length / 2);
     if (med % 2 === 0) {
@@ -84,19 +91,16 @@ export default function Stat(props) {
     }
     return median(vals.slice(med + 1));
   }
-  function max(vals) {
-    return vals[vals.length - 1];
-  }
 
   let calcs = {
     mean: mean(vals),
     median: median(vals),
     mode: mode(vals),
-    range: range(vals),
+    // range: range(vals),
     stdev: stdev(vals),
     min: min(vals),
-    q1: q1(vals),
-    q3: q3(vals),
+    // q1: q1(vals),
+    // q3: q3(vals),
     max: max(vals),
   };
 

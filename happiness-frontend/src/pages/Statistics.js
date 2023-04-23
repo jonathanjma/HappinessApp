@@ -9,6 +9,8 @@ import { PrevWeekData, PrevMonthData } from "../components/GetHappinessData";
 export default function Statistics() {
   const { user: userState } = useUser();
   const me = userState.user;
+  const settings = me.settings;
+  const settingsNames = settings.map((e) => e.key);
 
   const [isLoadingH, dataH, errorH] = PrevWeekData(true, me.id);
   console.log(dataH);
@@ -20,25 +22,29 @@ export default function Statistics() {
       0 = mean
       1 = median
       2 = mode
-      3 = range
-      4 = standard deviation
-      5 = minimum
-      6 = q1
-      7 = q3
-      8 = maximum
+      3 = standard deviation
+      4 = minimum
+      5 = maximum
       */
   // future conversion to boolean array
-  const datavals = [
-    { value: true, key: 0 },
-    { value: true, key: 1 },
-    { value: false, key: 2 },
-    { value: true, key: 3 },
-    { value: true, key: 4 },
-    { value: true, key: 5 },
-    { value: false, key: 6 },
-    { value: false, key: 7 },
-    { value: true, key: 8 },
+  const setNames = [
+    "Show Average",
+    "Show Median",
+    "Show Mode",
+    "Show Standard Deviation",
+    "Show Minimum Value",
+    "Show Maximum Value",
   ];
+  const datavals = setNames.map((name) => {
+    if (settingsNames.includes(name)) {
+      for (const e of settings) {
+        if (name === e.key) {
+          return e.value;
+        }
+      }
+    } else return false;
+  });
+  console.log(datavals);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   return (
@@ -141,13 +147,13 @@ export default function Statistics() {
                             <Graph data={dataHM} users={users} time="Monthly" />
                           </div>
                           <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
-                            {datavals.map((e) => {
-                              if (e.value) {
+                            {datavals.map((val, t) => {
+                              if (val) {
                                 return (
                                   <Stat
                                     data={dataHM.map((e) => e.value)}
-                                    key={e.key}
-                                    val={e.key}
+                                    key={t}
+                                    val={t}
                                   />
                                 );
                               }
