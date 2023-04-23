@@ -10,9 +10,9 @@ import { useNavigate } from "react-router-dom";
 // Group Management: changing group name, adding and deleting group users, deleting group
 export default function GroupManage({ groupID, groupData }) {
   const api = useApi();
-  const user = useUser();
+  const { user: userState } = useUser();
   const navigate = useNavigate();
-  const cur_user = user.user.user;
+  const cur_user = userState.user;
   const originalUsers = groupData.users.map((u) => u.username);
   const [groupUsers, setGroupUsers] = useState(groupData.users);
 

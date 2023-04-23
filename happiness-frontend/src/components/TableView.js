@@ -30,10 +30,36 @@ function TableCell({ entry, setCard, boundary }) {
   );
 }
 
-export default function TableView({ groupData, happinessData, selected }) {
+export default function TableView({ groupData, happinessData, start, end }) {
   const [card, setCard] = useState();
 
-  const groupUsers = groupData.users.sort((u1, u2) => u1.id - u2.id);
+  const groupUsers = [
+    {
+      id: 1,
+      profile_picture:
+        "https://www.gravatar.com/avatar/168bbf5f86ddb22a0543c88e91ec0467?d=identicon",
+      username: "alex",
+    },
+    {
+      id: 2,
+      profile_picture:
+        "https://www.gravatar.com/avatar/ad0511748082c303e8fac057aa801524?d=identicon",
+      username: "jonathan",
+    },
+    {
+      id: 3,
+      profile_picture:
+        "https://www.gravatar.com/avatar/d565aa2e19e658586e910e6f3a173c44?d=identicon",
+      username: "zach",
+    },
+    {
+      id: 4,
+      profile_picture:
+        "https://www.gravatar.com/avatar/5c9bd1935688b3b59630ea3fa42f88ec?d=identicon",
+      username: "aaron",
+    },
+  ];
+  //groupData.users.sort((u1, u2) => u1.id - u2.id);
 
   // For any 2 dates, calculates all dates + weekdays in between, any week boundaries (Mondays),
   // and the amount of days in the data that are in each month (monthSpan)
@@ -66,16 +92,9 @@ export default function TableView({ groupData, happinessData, selected }) {
   };
 
   // Sets start date of table depending on if week or month view is selected
-  const lastPeriod = new Date();
-  if (selected === 1) {
-    lastPeriod.setDate(lastPeriod.getDate() - 7);
-  } else {
-    lastPeriod.setMonth(lastPeriod.getMonth() - 1);
-    lastPeriod.setDate(lastPeriod.getDate() + 1);
-  }
   const [allDates, weekdays, weekBounds, monthSpan] = getDatesInBetween(
-    lastPeriod,
-    new Date()
+    start,
+    end
   );
 
   // Construct table rows using happiness data
@@ -145,9 +164,7 @@ export default function TableView({ groupData, happinessData, selected }) {
                 <th
                   className={
                     "text-center text-xs font-medium text-raisin-600 pt-1 pb-1 border-collapse border-y" +
-                    weekEdge(
-                      day === "S" && (i === 0 || weekdays[i - 1] === "S")
-                    )
+                    weekEdge(day === "S" && i !== 0 && weekdays[i - 1] === "S")
                   }
                   key={i}
                 >

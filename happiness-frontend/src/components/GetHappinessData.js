@@ -53,21 +53,21 @@ export function GetCountHappiness(count, user, page = 1) {
 }
 
 // Gets list of Happiness objects for given user (for given start and end Date objects)
-export function GetRangeHappiness(user, startData, endData) {
+export function GetRangeHappiness(userMode, id, startDate, endDate) {
   const api = useApi();
-  console.log(startData);
-  console.log(endData);
+  console.log(startDate);
+  console.log(endDate);
+  const get_url =
+    (userMode ? `/happiness/?id=${id}&` : `/group/${id}/happiness?`) +
+    `start=${startDate}&end=${endDate}`;
   const {
     isLoading: isLoadingH,
     data: dataH,
     error: errorH,
-    refetch: refetch,
+    refetch,
   } = useQuery(
-    "happiness data by range",
-    () =>
-      api
-        .get("/happiness/", { id: user.id, start: startData, end: endData })
-        .then((res) => res.data),
+    "happiness data by range " + get_url,
+    () => api.get(get_url).then((res) => res.data),
     { refetchOnWindowFocus: false }
   );
   return [isLoadingH, dataH, errorH, refetch];

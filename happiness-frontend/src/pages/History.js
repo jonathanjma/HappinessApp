@@ -36,7 +36,8 @@ export default function History(props) {
 
   // fetches data for weekly view
   const [isLoading, data, error, refetch] = GetRangeHappiness(
-    me,
+    true,
+    me.id,
     start.toLocaleDateString("sv").substring(0, 10),
     end.toLocaleDateString("sv").substring(0, 10)
   );
@@ -70,7 +71,8 @@ export default function History(props) {
 
   // fetches data for monthly view
   const [isLoadingM, dataM, errorM, refetchM] = GetRangeHappiness(
-    me,
+    true,
+    me.id,
     stMonth.toLocaleDateString("sv").substring(0, 10),
     endMonth.toLocaleDateString("sv").substring(0, 10)
   );
@@ -146,7 +148,7 @@ export default function History(props) {
               <button
                 type="button"
                 className="absolute px-3 right-2 w-[50px] h-[40px] md:h-[50px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
-                onClick={(_) => {
+                onClick={() => {
                   setEnd((end) => {
                     end.setDate(end.getDate() + 7);
                     return new Date(end);
