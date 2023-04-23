@@ -17,7 +17,7 @@ export default function Stat(props) {
         vals.push(e);
       }
     });
-    vals.sort();
+    vals.sort((a, b) => a - b);
     return vals;
   }
   const vals = getSortedVals(props.data);
