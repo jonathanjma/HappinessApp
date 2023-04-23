@@ -6,11 +6,12 @@ import requests
 
 # date of earliest happiness entry
 since = datetime.datetime(2023, 4, 15)
-port=3000
+port="5000"
 
 # false: only import happiness
 # true: create test users/group and import happiness
 create_users_groups = False
+
 
 if create_users_groups:
     new_user1 = requests.post(f'http://localhost:{port}/api/user/',

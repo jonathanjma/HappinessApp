@@ -82,6 +82,10 @@ class User(db.Model):
         """
         return hashlib.sha1(os.urandom(64)).hexdigest()
 
+    def set_password(self, pwd):
+        self.password = bcrypt.hashpw(pwd.encode("utf8"),
+                                      bcrypt.gensalt(rounds=13))
+
     def get_token(self):
         """
         Generates a new session token for a user

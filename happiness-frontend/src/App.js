@@ -14,6 +14,8 @@ import UserProvider from "./contexts/UserProvider";
 import PrivateRoute from "./components/PrivateRoute";
 import PublicRoute from "./components/PublicRoute";
 import SubmitHappiness from "./pages/SubmitHappiness";
+import RequestResetPassword from "./pages/RequestResetPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 export default function App() {
   const bgStyle = "max-w-7xl mx-auto min-h-screen px-3 py-2";
@@ -32,6 +34,14 @@ export default function App() {
                   </PublicRoute>
                 }
               />
+              <Route path="/reset-pass"
+                     element={<PublicRoute>
+                         <RequestResetPassword newPassword={false}/>
+                     </PublicRoute>} />
+              <Route path="/reset-pass/change-pass/:token"
+                     element={<PublicRoute>
+                         <ResetPassword newPassword={true}/>
+                     </PublicRoute>} />
               <Route
                 path="*"
                 element={
@@ -87,7 +97,6 @@ export default function App() {
                           </div>
                         }
                       />
-
                       <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                   </PrivateRoute>

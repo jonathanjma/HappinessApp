@@ -19,9 +19,11 @@ export default function Settings() {
       </p>
       <div className="flex justify-left flex-wrap">
         {accountSettings.map((setting) => {
+            console.log(`id: ${setting.id}`)
           return (
             <ButtonSettingCard
               key={setting.id}
+              id={setting.id}
               name={setting.name}
               icon={setting.icon}
               isSensitive={setting.isSensitive}

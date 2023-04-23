@@ -1,28 +1,53 @@
 import DynamicSmile from "../components/DynamicSmile";
-import { useState } from "react";
+import {useEffect, useState} from "react";
+import {useMutation} from "react-query";
+import {useApi} from "../contexts/ApiProvider";
+import {useParams} from "react-router-dom";
+import PublicRoute from "../components/PublicRoute";
 
-export default function ForgotPassword() {
-  let msgText = () => {
-    if (hasError) {
-      return "Invalid email provided.";
-    } else if (!emailUnsubmitted) {
-      return "Email sent.";
-    } else {
-      return "";
-    }
-  };
+export default function RequestResetPassword(props) {
+
   const [email, setEmail] = useState("");
   const [emailUnsubmitted, setEmailUnsubmitted] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [message, setMessage] = useState("");
+  const { token } = useParams()
+  const api = useApi()
+  const toggleEmailMutation = useMutation({
+    mutationFn: (value) => {
+      return api.post("/user/initiate_password_reset/", {
+        "email": value
+      })
+    },
+  })
+
+
+  useEffect(() => {
+    if (toggleEmailMutation.isError) {
+      setHasError(true)
+      setMessage("Error sending email. Are you sure an account is associated with that email?")
+    } else {
+      setHasError(false)
+      if (!emailUnsubmitted) {
+        setMessage("Email sent. Emails can take up to a few minutes to be received.");
+      } else {
+        setMessage("")
+      }
+    }
+  }, [toggleEmailMutation.isError])
   let submitEmail = () => {
     if (
       email === "" ||
       !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email)
     ) {
       setHasError(true);
+      setMessage("Email invalid")
     } else {
+      setMessage("Email sending...")
       setEmailUnsubmitted(false);
       setHasError(false);
+      console.log("Mutating email")
+      toggleEmailMutation.mutate(email)
     }
   };
 
@@ -57,6 +82,7 @@ export default function ForgotPassword() {
             setEmailUnsubmitted(true);
             setEmail(e.target.value);
             setHasError(false);
+            setMessage("");
           }}
           placeholder="john.doe@example.com"
         ></input>
@@ -67,7 +93,7 @@ export default function ForgotPassword() {
           <b>Submit</b>
         </button>
       </div>
-      <p className="text-white ml-10 mt-4 text-xl">{msgText()}</p>
+      <p className="text-white ml-10 mt-4 text-xl">{message}</p>
     </div>
   );
 }

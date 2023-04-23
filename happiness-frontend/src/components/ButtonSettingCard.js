@@ -12,13 +12,16 @@ export default function ButtonSettingCard(props) {
       props.isSensitive: tells whether a confirmation should come up before the setting is changed.
       */
   const doAction = () => {
-    switch (props.key) {
+    console.log(`Do action, key is ${props.id}`)
+    switch (props.id) {
       case 7:
         Logout().then(() => {window.location.reload()})
         break
       case 8:
         DeleteUser().then(() => {window.location.reload()})
         break
+      default:
+        console.log("default")
     }
   };
   const clicked = () => {

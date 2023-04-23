@@ -5,11 +5,13 @@ from flask import json, request
 from api import users_dao
 from api import email_methods
 from api.app import db
+from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
 from api.responses import success_response, failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     UsernameSchema, UserEmailSchema, SimpleUserSchema
 from api.token import token_auth
+
 
 import threading
 
@@ -186,7 +188,7 @@ def reset_password(token):
     """
     if request.method == "POST":
         # Reset password to desired password
-        current_user = User.verify_reset_password(token)
+        current_user = users_dao.get_user_by_email(confirm_email_token(token))
         if not current_user:
             return failure_response("Password reset token verification failed, token may be expired", 401)
 
