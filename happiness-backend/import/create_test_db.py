@@ -1,7 +1,14 @@
 import pickle
+import json
 
+import datetime
 import requests
 
+# date of earliest happiness entry
+since = datetime.datetime(2023, 4, 15)
+
+# false: only import happiness
+# true: create test users/group and import happiness
 create_users_groups = False
 
 if create_users_groups:
@@ -46,7 +53,11 @@ if create_users_groups:
 with open('happiness_import.pick', 'rb') as f:
     all_user_data = pickle.load(f)
 
+all_user_data = list(
+    filter(lambda x: datetime.datetime.strptime(x['timestamp'], "%Y-%m-%d") >= since,
+           all_user_data))
+
 import_data = requests.post('http://localhost:5000/api/happiness/import',
                             headers={"Content-Type": "application/json"},
-                            data=all_user_data)
+                            data=json.dumps(all_user_data))
 print(import_data.text)

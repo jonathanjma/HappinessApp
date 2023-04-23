@@ -1,5 +1,4 @@
 import datetime
-import json
 import pickle
 from datetime import timedelta
 from io import BytesIO
@@ -9,10 +8,11 @@ import openpyxl
 from gspread.urls import SPREADSHEET_URL
 from gspread.utils import column_letter_to_index, ExportFormat
 
-# import data config
+# import data config:
 # format is (app_user_id, (2022_data_sheet_row, 2023_data_sheet_row))
 # -------------------------------------------------------
 import_config = [(1, (4, 4)), (2, (10, 10)), (3, (8, 8))]
+since = datetime.date(2022, 8, 15) # date of earliest happiness entry
 # -------------------------------------------------------
 
 gc = gspread.oauth()
@@ -97,7 +97,8 @@ def parse_sheet_user_data(app_user_id, start_date, data_sheet, data_sheet_row):
             if len(user_comment) == 0: user_comment = all_notes.get(cell_rc, '')
             if len(user_comment) != 0: happiness_entry['comment'] = user_comment
 
-            user_data.append(happiness_entry)
+            if date_counter >= since:
+                user_data.append(happiness_entry)
 
         count += 1
         date_counter = date_counter + timedelta(days=1 if count % 5 != 0 else 3)
@@ -120,9 +121,7 @@ for user_id, sheet_rows in import_config:
     all_user_data.extend(data)
     print(f'user {user_id} @ row {sheet_rows}: {len(data)} data entries parsed')
 
-data = json.dumps(all_user_data)
-
 with open('happiness_import.pick', 'wb') as f:
-    pickle.dump(data, f)
+    pickle.dump(all_user_data, f)
 
-print(data)
+print(all_user_data)
