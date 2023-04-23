@@ -24,6 +24,7 @@ def create_happiness(req):
     Creates a new happiness entry with a given value. \n
     Optional values: comment, timestamp (default: current day) \n
     Returns: Happiness entry with the given information.
+    Requires: Happiness entry must be between 0 and 10 in a 0.5 increment.
     """
     current_user = token_auth.current_user()
     value, comment, timestamp = req.get(
@@ -34,8 +35,8 @@ def create_happiness(req):
         return failure_response("Date already exists.", 400)
 
     # validate happiness value
-    if float(value * 2).is_integer or value < 0 or value > 10:
-        return failure_response("Invalid happiness value.", 400)
+    # if float(value * 2).is_integer or value < 0 or value > 10:
+    #     return failure_response("Invalid happiness value.", 400)
 
     happiness = Happiness(user_id=current_user.id, value=value,
                           comment=comment, timestamp=datetime.strptime(timestamp, "%Y-%m-%d"))

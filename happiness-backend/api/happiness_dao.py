@@ -32,7 +32,7 @@ def get_happiness_by_timestamp(user_id, start, end):
     """
     return Happiness.query.filter(
         Happiness.user_id == user_id,
-        Happiness.timestamp.between(start, end)).all()
+        Happiness.timestamp.between(start, end)).order_by(Happiness.timestamp.asc()).all()
 
 
 def get_happiness_by_count(user_id, page, n):
@@ -50,7 +50,7 @@ def get_happiness_by_group_timestamp(user_ids, start, end):
     """
     return Happiness.query.filter(
         Happiness.user_id.in_(user_ids),
-        Happiness.timestamp.between(start, end)).all()
+        Happiness.timestamp.between(start, end)).order_by(Happiness.timestamp.asc()).all()
 
 def get_happiness_by_group_count(user_ids, page, n):
     """
