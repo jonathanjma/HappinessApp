@@ -29,7 +29,7 @@ function TabButton({ text }) {
 }
 
 // Title for tab with buttons to change the currently viewed time range
-function TimeButtonTitle({ text, radioValue, setStart, setEnd }) {
+export function TimeButtonTitle({ text, radioValue, setStart, setEnd }) {
   return (
     <div className="flex items-center justify-center">
       {/* View earlier time period button */}

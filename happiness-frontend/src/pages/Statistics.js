@@ -1,6 +1,6 @@
 import Stat from "../components/Stat";
 import Graph from "../components/Graph";
-import { Tab } from "@headlessui/react";
+import { TimeButtonTitle } from "../pages/Group.js";
 import { useState, Fragment, useEffect } from "react";
 import { Spinner } from "react-bootstrap";
 import { useUser } from "../contexts/UserProvider";
@@ -83,6 +83,12 @@ export default function Statistics() {
       <p className="w-full text-center text-5xl font-medium my-4 text-raisin-600">
         Statistics
       </p>
+      <TimeButtonTitle
+        text="Statistics"
+        radioValue={radioValue}
+        setStart={setStart}
+        setEnd={setEnd}
+      />
       {/* buttons to activate weekly/monthly view */}
       <div className="lg:absolute lg:top-20 lg:right-10 flex sm-lg:w-full justify-center">
         <button
