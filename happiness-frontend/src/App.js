@@ -7,7 +7,7 @@ import Container from "react-bootstrap/Container";
 import Settings from "./pages/Settings";
 import History from "./pages/History";
 import UserGroups from "./pages/UserGroups";
-import Group from "./pages/Group";
+import GroupCopy from "./pages/GroupCopy";
 import "./App.css";
 import ApiProvider from "./contexts/ApiProvider";
 import UserProvider from "./contexts/UserProvider";
@@ -69,7 +69,7 @@ export default function App() {
                         path="/groups/:groupID"
                         element={
                           <div className={bgStyle}>
-                            <Group />
+                            <GroupCopy />
                           </div>
                         }
                       />

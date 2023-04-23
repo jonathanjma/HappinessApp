@@ -1,31 +1,11 @@
-import { Table } from "react-bootstrap";
 import { useState } from "react";
 import BigHistoryCard from "./BigHistoryCard";
-
-// Color table cell based on happiness value
-const cellColor = (level) => {
-  let happiness = level * 10;
-  if (happiness < 10) return "rgb(185 28 28)";
-  else if (happiness < 20) return "rgb(220 38 38)";
-  else if (happiness < 30) return "rgb(234 179 8)";
-  else if (happiness < 40) return "rgb(250 204 21)";
-  else if (happiness < 60) return "rgb(253 224 71)";
-  else if (happiness < 70) return "rgb(253 224 71)";
-  else if (happiness < 80) return "rgb(74 222 128)";
-  else if (happiness < 100) return "rgb(34 197 94)";
-  else return "rgb(22 163 74)";
-};
+import { ReturnColor } from "./MonthView";
 
 // Sets border styles if table cell marks beginning of new week
 const weekEdge = (isBound) => {
-  return {
-    borderLeftWidth: isBound ? "2px" : "inherit",
-    borderLeftColor: !isBound ? "rgb(107 114 128)" : "inherit",
-  };
+  return isBound ? " border-r border-l-2 border-l-black " : " border-x ";
 };
-
-// Fixes bootstrap edge bug when using responsive and bordered table (super wierd)
-const border_fix = { borderWidth: ".8px" };
 
 // Represents table cell for a user's happiness
 function TableCell({ entry, setCard, boundary }) {
@@ -37,13 +17,12 @@ function TableCell({ entry, setCard, boundary }) {
 
   return (
     <td
-      style={{
-        backgroundColor:
-          entry !== undefined ? cellColor(entry.value) : "rgb(211,211,211)",
-        ...border_fix,
-        ...weekEdge(boundary),
-      }}
-      className="text-center text-md font-medium text-raisin-600"
+      className={
+        "border-collapse border-y p-1.5 text-center text-md font-medium text-raisin-600 " +
+        (entry !== undefined ? ReturnColor(entry.value) : "bg-gray-400") +
+        weekEdge(boundary) +
+        (entry !== undefined && entry.comment ? "has_comment" : "")
+      }
       onClick={() => setCard(entry)}
     >
       {value}
@@ -51,27 +30,55 @@ function TableCell({ entry, setCard, boundary }) {
   );
 }
 
-// TODO: smaller comment modals, why is week table so large?
-
-export default function TableView({ groupData, happinessData, selected }) {
+export default function TableView({ groupData, happinessData, start, end }) {
   const [card, setCard] = useState();
 
-  const groupUsers = groupData.users.sort((u1, u2) => u1.id - u2.id);
+  const groupUsers = [
+    {
+      id: 1,
+      profile_picture:
+        "https://www.gravatar.com/avatar/168bbf5f86ddb22a0543c88e91ec0467?d=identicon",
+      username: "alex",
+    },
+    {
+      id: 2,
+      profile_picture:
+        "https://www.gravatar.com/avatar/ad0511748082c303e8fac057aa801524?d=identicon",
+      username: "jonathan",
+    },
+    {
+      id: 3,
+      profile_picture:
+        "https://www.gravatar.com/avatar/d565aa2e19e658586e910e6f3a173c44?d=identicon",
+      username: "zach",
+    },
+    {
+      id: 4,
+      profile_picture:
+        "https://www.gravatar.com/avatar/5c9bd1935688b3b59630ea3fa42f88ec?d=identicon",
+      username: "aaron",
+    },
+  ];
+  //groupData.users.sort((u1, u2) => u1.id - u2.id);
 
-  // For any 2 dates, calculates all dates in between, any week boundaries (Mondays),
+  // For any 2 dates, calculates all dates + weekdays in between, any week boundaries (Mondays),
   // and the amount of days in the data that are in each month (monthSpan)
   const getDatesInBetween = (start, end) => {
     const getMonthName = (month) =>
       month.toLocaleString("en-US", { month: "long" });
 
     let dates = [];
+    let weekdays = [];
     let weekBoundaries = [];
     let prevMonth = start.getMonth();
     let monthSpan = { [getMonthName(start)]: 0 };
     while (start <= end) {
-      dates.push(start.toISOString().substring(0, 10));
-      if (start.toDateString().slice(0, 3) === "Mon") {
-        weekBoundaries.push(start.toISOString().substring(0, 10));
+      dates.push(start.toLocaleDateString("sv").substring(0, 10));
+      weekdays.push(
+        start.toLocaleString("en-us", { weekday: "long" }).substring(0, 1)
+      );
+      if (start.toLocaleString("en-us", { weekday: "long" }) === "Sunday") {
+        weekBoundaries.push(start.toLocaleDateString("sv").substring(0, 10));
       }
       if (start.getMonth() === prevMonth) {
         monthSpan[getMonthName(start)] += 1;
@@ -81,20 +88,13 @@ export default function TableView({ groupData, happinessData, selected }) {
       prevMonth = start.getMonth();
       start.setDate(start.getDate() + 1);
     }
-    return [dates, weekBoundaries, monthSpan];
+    return [dates, weekdays, weekBoundaries, monthSpan];
   };
 
   // Sets start date of table depending on if week or month view is selected
-  const lastPeriod = new Date();
-  if (selected === 1) {
-    lastPeriod.setDate(lastPeriod.getDate() - 7);
-  } else {
-    lastPeriod.setMonth(lastPeriod.getMonth() - 1);
-    lastPeriod.setDate(lastPeriod.getDate() + 1);
-  }
-  const [allDates, weekBounds, monthSpan] = getDatesInBetween(
-    lastPeriod,
-    new Date()
+  const [allDates, weekdays, weekBounds, monthSpan] = getDatesInBetween(
+    new Date(start),
+    new Date(end)
   );
 
   // Construct table rows using happiness data
@@ -102,7 +102,11 @@ export default function TableView({ groupData, happinessData, selected }) {
   const byDate = Object.fromEntries(allDates.map((k) => [k, []]));
   for (let user of groupUsers) {
     const entries = [];
-    entries.push(<td style={border_fix}>{user.username}</td>);
+    entries.push(
+      <td className="border-collapse border py-1.5 px-2" key={user.id}>
+        {user.username}
+      </td>
+    );
     for (let date of allDates) {
       let entry = happinessData.find(
         (entry) => entry.user_id === user.id && entry.timestamp === date
@@ -112,13 +116,21 @@ export default function TableView({ groupData, happinessData, selected }) {
           entry={entry}
           setCard={setCard}
           boundary={weekBounds.includes(date)}
+          key={user.id + " " + date}
         />
       );
       if (entry !== undefined) {
         byDate[date].push(entry.value);
       }
     }
-    rows.push(<tr>{entries}</tr>);
+    rows.push(
+      <tr
+        className={rows.length === 0 ? "border-t-2 border-t-black" : ""}
+        key={user.id}
+      >
+        {entries}
+      </tr>
+    );
   }
 
   // Calculate average happiness for every day
@@ -129,57 +141,75 @@ export default function TableView({ groupData, happinessData, selected }) {
 
   return (
     <div className="flex flex-col items-center">
-      <Table bordered responsive>
-        <thead>
-          {/* Month */}
-          <tr>
-            <th style={border_fix}></th>
-            {Object.entries(monthSpan).map(([month, span]) => (
-              <th
-                colSpan={span}
-                className="text-center text-md font-bold text-raisin-600"
-                style={border_fix}
-              >
-                {month}
-              </th>
-            ))}
-          </tr>
-          {/* Day */}
-          <tr>
-            <th></th>
-            {allDates.map((date) => (
-              <th
-                style={weekEdge(weekBounds.includes(date))}
-                className="text-center text-md font-bold text-raisin-600"
-              >
-                {date.substring(8)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {/* Happiness data for each user */}
-          {rows.map((row) => row)}
-          {/* Average happiness for each day */}
-          <tr>
-            <td style={border_fix}>Average</td>
-            {averages.map(([date, avg]) => (
-              <td
-                style={{
-                  backgroundColor: !isNaN(avg)
-                    ? cellColor(avg)
-                    : "rgb(211,211,211)",
-                  ...border_fix,
-                  ...weekEdge(weekBounds.includes(date)),
-                }}
-                className="text-center text-md font-medium text-raisin-600"
-              >
-                {isNaN(avg) ? "-" : avg}
-              </td>
-            ))}
-          </tr>
-        </tbody>
-      </Table>
+      <div className="w-full overflow-x-auto">
+        <table className="min-w-full table-fixed border-collapse border">
+          <thead>
+            {/* Month */}
+            <tr>
+              <th></th>
+              {Object.entries(monthSpan).map(([month, span]) => (
+                <th
+                  colSpan={span}
+                  className="text-center text-md font-bold text-raisin-600 border-collapse border p-1"
+                  key={month}
+                >
+                  {month}
+                </th>
+              ))}
+            </tr>
+            {/* Day of week */}
+            <tr>
+              <th></th>
+              {weekdays.map((day, i) => (
+                <th
+                  className={
+                    "text-center text-xs font-medium text-raisin-600 pt-1 pb-1 border-collapse border-y" +
+                    weekEdge(day === "S" && i !== 0 && weekdays[i - 1] === "S")
+                  }
+                  key={i}
+                >
+                  {day}
+                </th>
+              ))}
+            </tr>
+            {/* Day */}
+            <tr>
+              <th></th>
+              {allDates.map((date) => (
+                <th
+                  className={
+                    "text-center text-md font-bold text-raisin-600 border-collapse border-y p-1.5" +
+                    weekEdge(weekBounds.includes(date))
+                  }
+                  key={date}
+                >
+                  {date.substring(8)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {/* Happiness data for each user */}
+            {rows.map((row) => row)}
+            {/* Average happiness for each day */}
+            <tr className="border-t-2 border-t-black">
+              <td className="py-1.5 px-2">Average</td>
+              {averages.map(([date, avg]) => (
+                <td
+                  className={
+                    "text-center text-md font-medium text-raisin-600 border-collapse p-1.5 " +
+                    (!isNaN(avg) ? ReturnColor(avg) : "bg-gray-400") +
+                    weekEdge(weekBounds.includes(date))
+                  }
+                  key={date}
+                >
+                  {isNaN(avg) ? "-" : avg}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
       {/* Show comment for selected happiness entry */}
       {card && (
         <BigHistoryCard
