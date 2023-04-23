@@ -45,7 +45,7 @@ export default function App() {
                         path="/statistics"
                         element={
                           <div className={bgStyle}>
-                            <Statistics />{" "}
+                            <Statistics />
                           </div>
                         }
                       />
@@ -61,7 +61,7 @@ export default function App() {
                         path="/groups"
                         element={
                           <div className={bgStyle}>
-                            <UserGroups />{" "}
+                            <UserGroups />
                           </div>
                         }
                       />

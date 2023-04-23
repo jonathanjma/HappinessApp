@@ -1,4 +1,5 @@
 import React from "react";
+// don't delete below import!
 import { Chart as ChartJS } from "chart.js/auto";
 import { Line } from "react-chartjs-2";
 
@@ -13,16 +14,11 @@ export default function LineChart({
   function change_data(element) {
     if (dayShow) {
       if (element.length > 0) {
-        console.log(element);
         let index = element[0].index;
         let dataindices = element.map((e) => e.datasetIndex);
         setPointData([dataindices, index]);
-        console.log(index);
-        console.log(dataindices);
-        console.log("test");
         dayShow(true);
       } else {
-        console.log(element);
         if (chartShow) chartShow(true);
       }
     }

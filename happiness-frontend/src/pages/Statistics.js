@@ -13,7 +13,6 @@ export default function Statistics() {
   const settingsNames = settings.map((e) => e.key);
 
   const [isLoadingH, dataH, errorH] = PrevWeekData(true, me.id);
-  console.log(dataH);
   const [isLoadingHM, dataHM, errorHM] = PrevMonthData(true, me.id);
 
   const users = [me];
@@ -44,7 +43,7 @@ export default function Statistics() {
       }
     } else return false;
   });
-  console.log(datavals);
+  // console.log(datavals);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   return (

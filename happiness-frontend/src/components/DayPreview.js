@@ -16,8 +16,8 @@ export default function DayPreview({ open, setOpen, data = undefined, users }) {
   const tiles = [];
   for (let i = 0; i < data.length; i++) {
     tiles.push(
-      <div className="flex justify-center">
-        <BigHistoryCard data={data[i]} user={users[i]} key={i} />
+      <div className="flex justify-center" key={i}>
+        <BigHistoryCard data={data[i]} user={users[i]} />
       </div>
     );
   }

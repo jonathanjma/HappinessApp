@@ -55,8 +55,6 @@ export function GetCountHappiness(count, user, page = 1) {
 // Gets list of Happiness objects for given user (for given start and end Date objects)
 export function GetRangeHappiness(userMode, id, startDate, endDate) {
   const api = useApi();
-  console.log(startDate);
-  console.log(endDate);
   const get_url =
     (userMode ? `/happiness/?id=${id}&` : `/group/${id}/happiness?`) +
     `start=${startDate}&end=${endDate}`;

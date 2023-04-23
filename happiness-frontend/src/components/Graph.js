@@ -87,16 +87,16 @@ export default function Graph(props) {
       }
     }
   }
-  console.log(formatted);
+  // console.log(formatted);
   const [pointData, setPointData] = useState([[], 0]);
   // constructs chart data (passed in to LineChart.js)
-  const [chartData, setChartData] = useState({
+  const chartData = {
     name: names,
     time: props.time,
     ids: formatted.map((e) => e[0].user_id),
     labels: uniq.map((e) => e.slice(5).split("-").join("/")),
     datasets: IndexData(formatted, names),
-  });
+  };
   const [cShow, setCShow] = useState(false);
   const [dShow, setDShow] = useState(false);
 
@@ -109,7 +109,7 @@ export default function Graph(props) {
       formatted={formatted}
     />
   );
-  console.log(formatted);
+  // console.log(formatted);
   const dayPreview = (
     <DayPreview
       open={dShow}

@@ -33,33 +33,7 @@ function TableCell({ entry, setCard, boundary }) {
 export default function TableView({ groupData, happinessData, start, end }) {
   const [card, setCard] = useState();
 
-  const groupUsers = [
-    {
-      id: 1,
-      profile_picture:
-        "https://www.gravatar.com/avatar/168bbf5f86ddb22a0543c88e91ec0467?d=identicon",
-      username: "alex",
-    },
-    {
-      id: 2,
-      profile_picture:
-        "https://www.gravatar.com/avatar/ad0511748082c303e8fac057aa801524?d=identicon",
-      username: "jonathan",
-    },
-    {
-      id: 3,
-      profile_picture:
-        "https://www.gravatar.com/avatar/d565aa2e19e658586e910e6f3a173c44?d=identicon",
-      username: "zach",
-    },
-    {
-      id: 4,
-      profile_picture:
-        "https://www.gravatar.com/avatar/5c9bd1935688b3b59630ea3fa42f88ec?d=identicon",
-      username: "aaron",
-    },
-  ];
-  //groupData.users.sort((u1, u2) => u1.id - u2.id);
+  const groupUsers = groupData.users.sort((u1, u2) => u1.id - u2.id);
 
   // For any 2 dates, calculates all dates + weekdays in between, any week boundaries (Mondays),
   // and the amount of days in the data that are in each month (monthSpan)
@@ -92,9 +66,10 @@ export default function TableView({ groupData, happinessData, start, end }) {
   };
 
   // Sets start date of table depending on if week or month view is selected
+  // (dates are copied to avoid mutating current dates in Group component)
   const [allDates, weekdays, weekBounds, monthSpan] = getDatesInBetween(
-    start,
-    end
+    new Date(start),
+    new Date(end)
   );
 
   // Construct table rows using happiness data

@@ -10,7 +10,7 @@ export default function ChartPreview({
   users,
   formatted,
 }) {
-  console.log(chartData);
+  // console.log(chartData);
   const cancelButtonRef = useRef(null);
   const handleShow = () => setOpen(true);
   const [dShow, setDShow] = useState(false);

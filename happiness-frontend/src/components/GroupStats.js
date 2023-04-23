@@ -8,39 +8,23 @@ export default function GroupStats({ groupData, happinessData, selected }) {
       0 = mean
       1 = median
       2 = mode
-      3 = range
-      4 = standard deviation
-      5 = minimum
-      6 = q1
-      7 = q3
-      8 = maximum
+      3 = standard deviation
+      4 = minimum
+      5 = maximum
       */
   // future conversion to boolean array
   const datavals = [
     { value: true, key: 0 },
     { value: true, key: 1 },
-    { value: false, key: 2 },
+    { value: true, key: 2 },
     { value: true, key: 3 },
     { value: true, key: 4 },
     { value: true, key: 5 },
-    { value: false, key: 6 },
-    { value: false, key: 7 },
-    { value: true, key: 8 },
   ];
 
   return (
     <div className="w-full lg:flex lg:flex-wrap justify-center">
       <div className="mt-4 -lg:mt-4 w-full lg:flex lg:flex-wrap justify-center items-start @container">
-        {/*{isLoadingH ? (*/}
-        {/*  <Spinner animation="border" />*/}
-        {/*) : (*/}
-        {/*  <>*/}
-        {/*    {errorH ? (*/}
-        {/*      <p className="text-xl font-medium text-raisin-600 m-3">*/}
-        {/*        Error: Could not load happiness.*/}
-        {/*      </p>*/}
-        {/*    ) : (*/}
-        {/*      <>*/}
         {happinessData.length === 0 ? (
           <p className="text-xl font-medium text-raisin-600 m-3">
             Data not available for selected period.
@@ -71,10 +55,6 @@ export default function GroupStats({ groupData, happinessData, selected }) {
             </div>
           </>
         )}
-        {/*      </>*/}
-        {/*    )}*/}
-        {/*  </>*/}
-        {/*)}*/}
       </div>
     </div>
   );
