@@ -3,7 +3,7 @@ import pickle
 import requests
 
 create_users_groups = True
-port = "3000"
+port = "5000"
 
 if create_users_groups:
     new_user1 = requests.post(f'http://localhost:{port}/api/user/',

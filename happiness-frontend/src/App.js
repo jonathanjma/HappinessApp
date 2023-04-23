@@ -14,6 +14,8 @@ import UserProvider from "./contexts/UserProvider";
 import PrivateRoute from "./components/PrivateRoute";
 import PublicRoute from "./components/PublicRoute";
 import SubmitHappiness from "./pages/SubmitHappiness";
+import RequestResetPassword from "./pages/RequestResetPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // change id number to id of user in Users.js (temporary until backend + login set up)
 export default function App() {
@@ -36,6 +38,14 @@ export default function App() {
                     </PublicRoute>
                   }
                 />
+                  <Route path="/reset-pass"
+                         element={<PublicRoute>
+                             <RequestResetPassword newPassword={false}/>
+                         </PublicRoute>} />
+                  <Route path="/reset-pass/change-pass/:token"
+                         element={<PublicRoute>
+                             <ResetPassword newPassword={true}/>
+                         </PublicRoute>} />
                 <Route
                   path="*"
                   element={

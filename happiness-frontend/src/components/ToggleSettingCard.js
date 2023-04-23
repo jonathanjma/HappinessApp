@@ -14,6 +14,7 @@ export default function ToggleSettingCard(props) {
     const api = useApi();
     const { user } = useUser();
     console.log(user.user.settings)
+
     const toggleMutation = useMutation({
         mutationFn: (value) => {
             return api.post("/user/settings/", {
@@ -22,6 +23,7 @@ export default function ToggleSettingCard(props) {
             })
         },
     })
+
     const handleChange = () => {
         console.log("ACTIVATED CHANGE")
         let wasFound = false
