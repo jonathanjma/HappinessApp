@@ -56,17 +56,12 @@ export default function Graph(props) {
     if (!uniq.includes(datas[k].timestamp)) {
       uniq.push(datas[k].timestamp);
     }
-    if (!seen.includes(datas[k].user_id)) {
-      seen.push(datas[k].user_id); // push ID and INDEX of user with that user id
-    }
   }
-  let seen_indices = seen.map((e) => seen.indexOf(e));
-  let seen_names = seen_indices.map((e) => names[e]);
   let k = 0; // index of happiness item for user
   let q = 0; // index of item in whole datas length
   let u = 0; // index of user in users array
 
-  while (u < seen.length) {
+  while (u < props.users.length) {
     while (k < uniq.length) {
       if (formatted.length === u) {
         formatted.push([]);
@@ -82,7 +77,7 @@ export default function Graph(props) {
           value: Number.NaN,
         });
         k++;
-      } else if (q === datas.length || datas[q].user_id !== seen[u]) {
+      } else if (q === datas.length || datas[q].user_id !== props.users[u].id) {
         // if next user's value is shown, fills in the blanks
         formatted[u].push({
           comment: null,
@@ -102,17 +97,17 @@ export default function Graph(props) {
     u++;
     k = 0;
   }
-  // console.log(formatted);
+  console.log(formatted);
   const [pointData, setPointData] = useState([[], 0]);
   // constructs chart data (passed in to LineChart.js)
   const chartData = {
-    name: seen_names,
+    name: names,
     time: props.time,
     ids: formatted.map((e) => e[0].user_id),
     labels: uniq.map((e) => e.slice(5).split("-").join("/")),
-    datasets: IndexData(formatted, seen_names),
+    datasets: IndexData(formatted, names),
   };
-  // console.log(chartData);
+  console.log(chartData);
   const [cShow, setCShow] = useState(false);
   const [dShow, setDShow] = useState(false);
 
