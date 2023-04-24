@@ -102,7 +102,7 @@ export default function Statistics() {
         </button>
         <button
           className={
-            "inline-block sm:px-4 py-2 sm:py-4 mb-1 md:m-1.5 w-[110px] md:h-[60px] rounded-l-lg md:rounded-lg text-xs sm:text-sm md:text-md text-center" +
+            "inline-block sm:px-4 py-2 sm:py-4 mb-1 md:m-1.5 w-[110px] md:h-[60px] rounded-r-lg md:rounded-lg text-xs sm:text-sm md:text-md text-center" +
             (radioValue === 2
               ? " text-cultured-50 bg-raisin-600"
               : " hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white")
