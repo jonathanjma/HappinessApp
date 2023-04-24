@@ -2,19 +2,19 @@ import ToggleSettingCard from "../components/ToggleSettingCard";
 import { statSettings } from "../resources/StatSettings";
 import { accountSettings } from "../resources/AccountSettings";
 import ButtonSettingCard from "../components/ButtonSettingCard";
-import {useUser} from "../contexts/UserProvider";
+import { useUser } from "../contexts/UserProvider";
 import React, { useState } from "react";
 
 export default function Settings() {
-    const  { user } = useUser()
-    const [settingValueMap] = useState(new Map());
-    user.user.settings.forEach((setting) => {
-        settingValueMap.set(setting.key, setting.value)
-    })
+  const { user } = useUser();
+  const [settingValueMap] = useState(new Map());
+  user.user.settings.forEach((setting) => {
+    settingValueMap.set(setting.key, setting.value);
+  });
 
   return (
     <>
-      <p className="text-3xl font-semibold text-raisin-600 ml-10 mb-4 mt-3">
+      {/* <p className="text-3xl font-semibold text-raisin-600 ml-10 mb-4 mt-3">
         Account Settings
       </p>
       <div className="flex justify-left flex-wrap">
@@ -30,7 +30,7 @@ export default function Settings() {
             />
           );
         })}
-      </div>
+      </div> */}
       <p className="text-3xl font-semibold text-raisin-600 ml-10 mb-4 mt-3">
         Statistics Settings
       </p>
@@ -41,7 +41,11 @@ export default function Settings() {
               key={setting.id}
               name={setting.name}
               icon={setting.icon}
-              defaultCheck={!settingValueMap.has(setting.name) ? false : settingValueMap.get(setting.name)}
+              defaultCheck={
+                !settingValueMap.has(setting.name)
+                  ? false
+                  : settingValueMap.get(setting.name)
+              }
             />
           );
         })}

@@ -19,25 +19,6 @@ export function PrevWeekData(userMode, id) {
   );
   return [isLoadingH, dataH, errorH];
 }
-// Gets list of Happiness objects for given user (from the past month)
-export function PrevMonthData(userMode, id) {
-  const lastMt = new Date();
-  lastMt.setMonth(lastMt.getMonth() - 1);
-
-  const api = useApi();
-  const monthData = lastMt.toLocaleDateString("sv").substring(0, 10);
-  const get_url =
-    (userMode ? `/happiness/?id=${id}&` : `/group/${id}/happiness?`) +
-    `start=${monthData}`;
-  const {
-    isLoading: isLoadingHM,
-    data: dataHM,
-    error: errorHM,
-  } = useQuery("monthly happiness data " + get_url, () =>
-    api.get(get_url).then((res) => res.data)
-  );
-  return [isLoadingHM, dataHM, errorHM];
-}
 
 export function GetCountHappiness(count, user, page = 1) {
   const api = useApi();
