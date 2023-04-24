@@ -51,52 +51,68 @@ export default function Graph(props) {
   const formatted = Array();
   let seen = [];
   let uniq = [];
-  let ctr = -1;
-  // loops through complete data and adds all unique dates
+  // loops through complete data and adds all unique dates and unique users
   for (let k = 0; k < datas.length; k++) {
     if (!uniq.includes(datas[k].timestamp)) {
       uniq.push(datas[k].timestamp);
     }
+    if (!seen.includes(datas[k].user_id)) {
+      seen.push(datas[k].user_id); // push ID and INDEX of user with that user id
+    }
   }
-  let k = 0;
-  let q = 0;
-  while (q < datas.length) {
-    // new user that not accessed previously
-    if (!seen.includes(datas[q].user_id)) {
-      ctr++;
-      formatted.push([datas[q]]);
-      seen.push(datas[q].user_id);
-      k = 1;
-      q++;
-    } else {
+  let seen_indices = seen.map((e) => seen.indexOf(e));
+  let seen_names = seen_indices.map((e) => names[e]);
+  let k = 0; // index of happiness item for user
+  let q = 0; // index of item in whole datas length
+  let u = 0; // index of user in users array
+
+  while (u < seen.length) {
+    while (k < uniq.length) {
+      if (formatted.length === u) {
+        formatted.push([]);
+      }
       // accounts for missing values
-      if (datas[q].timestamp !== uniq[k]) {
-        formatted[ctr].push({
+      if (datas[q] && datas[q].timestamp !== uniq[k]) {
+        console.log("ok");
+        formatted[u].push({
           comment: null,
           id: 0,
-          timestamp: uniq[q],
+          timestamp: uniq[k],
           user_id: datas[q].user_id,
           value: Number.NaN,
         });
         k++;
-        // if there is existing value
+      } else if (q === datas.length || datas[q].user_id !== seen[u]) {
+        // if next user's value is shown, fills in the blanks
+        formatted[u].push({
+          comment: null,
+          id: 0,
+          timestamp: uniq[k],
+          user_id: datas[q - 1].user_id,
+          value: Number.NaN,
+        });
+        k++;
       } else {
-        formatted[ctr].push(datas[q]);
+        // if there is existing value
+        formatted[u].push(datas[q]);
         k++;
         q++;
       }
     }
+    u++;
+    k = 0;
   }
   // console.log(formatted);
   const [pointData, setPointData] = useState([[], 0]);
   // constructs chart data (passed in to LineChart.js)
   const chartData = {
-    name: names,
+    name: seen_names,
     time: props.time,
     ids: formatted.map((e) => e[0].user_id),
     labels: uniq.map((e) => e.slice(5).split("-").join("/")),
-    datasets: IndexData(formatted, names),
+    datasets: IndexData(formatted, seen_names),
   };
+  // console.log(chartData);
   const [cShow, setCShow] = useState(false);
   const [dShow, setDShow] = useState(false);
 
