@@ -6,6 +6,7 @@ import { NavLink } from "react-router-dom";
 import Image from "react-bootstrap/Image";
 import { useUser } from "../contexts/UserProvider";
 import { Spinner } from "react-bootstrap";
+import favicon from "../media/smiley-icon.webp";
 
 export default function Header() {
   const { user: userState, Logout } = useUser();
@@ -16,10 +17,11 @@ export default function Header() {
       <Container fluid="md">
         <Navbar.Brand>
           <Nav.Link as={NavLink} to="/">
-            😀 Happiness App
+            <Image src={favicon} className="max-w-[32px] mr-2" />
+            Happiness App
           </Nav.Link>
         </Navbar.Brand>
-        <Nav>
+        <Nav className="flex items-center">
           <Nav.Link as={NavLink} to="/statistics">
             Statistics
           </Nav.Link>
