@@ -122,10 +122,10 @@ export default function SubmitHappiness() {
             dateList={dateList}
           />
 
-          <h1 className="md:text-7xl text-5xl text-white md:text-stroke-4 text-stroke-2 text-center mt-3 font-roboto">
+          <h1 className="md:text-7xl text-5xl text-white md:text-stroke-4 text-stroke-2 text-center mt-3 font-roboto md:px-10 px-2 w-5/8">
             <b>Happiness already submitted for this day.</b>
           </h1>
-          <img src={SubmittedHappinessIcon} className={"w-1/5 h-1/5 mt-10"} />
+          <img src={SubmittedHappinessIcon} className={"md:w-1/5 md:h-1/5 h-2/5 w-2/5 mt-10"} />
         </div>
       </div>
     ) : (
