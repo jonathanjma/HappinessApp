@@ -1,7 +1,7 @@
 import Stat from "../components/Stat";
 import Graph from "../components/Graph";
 import { TimeButtonTitle } from "../pages/Group.js";
-import { useState, Fragment, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Spinner } from "react-bootstrap";
 import { useUser } from "../contexts/UserProvider";
 import { GetRangeHappiness } from "../components/GetHappinessData";
