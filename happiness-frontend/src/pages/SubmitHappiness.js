@@ -78,13 +78,14 @@ export default function SubmitHappiness() {
     }
     data.forEach((happinessEntry) => {
       if (happinessEntry.timestamp === formatDate(dateList[selectedIndex])) {
-        setHappiness(5);
+        setHappiness(happinessEntry.value);
         wasFound = true;
         setHasSubmitted(true);
       }
     });
     if (!wasFound) {
       setHasSubmitted(false);
+      setHappiness(5)
     }
   };
 
