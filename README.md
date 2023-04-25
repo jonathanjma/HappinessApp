@@ -9,7 +9,8 @@ Happiness App is being developed using React for the frontend and Flask + SQLAlc
 
 ## Status
 
-Happiness App is currently under development. We have released a minimum viable product for closed beta testing. We are in the process of fixing bugs and adding new features. (last updated 4/24)
+Happiness App is currently under development. We have released a minimum viable product for closed beta testing. 
+We are in the process of fixing bugs and adding new features. (last updated 4/24)
 
 ## Backend
 
