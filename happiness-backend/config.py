@@ -8,7 +8,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', '').replace(
         'postgres://', 'postgresql://') or \
-                              'sqlite:///' + os.path.join(basedir, 'app.db')
+        'sqlite:///' + os.path.join(basedir, 'app.db')
 
     # API documentation
     APIFAIRY_TITLE = 'Happiness App API'
@@ -22,7 +22,6 @@ class Config:
 
     # Email sending
     MAIL_SERVER = "smtp.gmail.com"
-    SERVER_NAME = "localhost:5000"
     MAIL_PORT = "465"
     MAIL_USE_TLS = False
     MAIL_USE_SSL = True

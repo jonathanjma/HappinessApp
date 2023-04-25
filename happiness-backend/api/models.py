@@ -1,7 +1,6 @@
 import hashlib
 import os
 from datetime import datetime, timedelta
-
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from api.app import db
@@ -82,7 +81,7 @@ class User(db.Model):
         return hashlib.sha1(os.urandom(64)).hexdigest()
 
     def set_password(self, pwd):
-        self.password = self.password = generate_password_hash(pwd)
+        self.password = generate_password_hash(pwd)
 
     def get_token(self):
         """
@@ -201,7 +200,7 @@ class Happiness(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     value = db.Column(db.Float)
-    comment = db.Column(db.String())
+    comment = db.Column(db.String)
     timestamp = db.Column(db.DateTime)
 
     def __init__(self, **kwargs):
