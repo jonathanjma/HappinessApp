@@ -1,9 +1,9 @@
 import DateDropdown from "./DateDropdown";
-import EditIcon from "../media/pencil-square-outline-icon.png";
-import {PageState} from "../keys";
+import EditIcon from "../../media/pencil-square-outline-icon.png";
+import {PageState} from "../../keys";
 import DynamicSmile from "./DynamicSmile";
 import React from "react";
-import {formatHappinessNum, happinessColor} from "../pages/SubmitHappiness";
+import {formatHappinessNum, happinessColor} from "../../pages/SubmitHappiness";
 
 export default function HappinessEditor (props) {
     // Props for this page:

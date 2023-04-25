@@ -6,8 +6,9 @@ load_dotenv()
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-                              'sqlite:///' + os.path.join(basedir, 'app.db')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', '').replace(
+        'postgres://', 'postgresql://') or \
+        'sqlite:///' + os.path.join(basedir, 'app.db')
 
     # API documentation
     APIFAIRY_TITLE = 'Happiness App API'
@@ -17,7 +18,7 @@ class Config:
     # Security measures
     SECURITY_PASSWORD_SALT = os.environ.get("SECURITY_PASSWORD_SALT")
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    SERVER_NAME = "happiness-qfvoiwgqdq-ue.a.run.app"
+    SERVER_NAME = "happiness-app-backend.herokuapp.com"
 
     # Email sending
     MAIL_SERVER = "smtp.gmail.com"

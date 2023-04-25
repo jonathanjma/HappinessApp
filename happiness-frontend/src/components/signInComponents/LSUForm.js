@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import "react-toastify/dist/ReactToastify.css";
-import { useUser } from "../contexts/UserProvider";
-import {Keys} from "../keys";
-import Warning from "../media/red-alert-icon.svg"
+import { useUser } from "../../contexts/UserProvider";
+import {Keys} from "../../keys";
+import Warning from "../../media/red-alert-icon.svg"
 import {useNavigate} from "react-router-dom";
 import ErrorBox from "./ErrorBox";
+import PasswordErrorBox from "./PasswordErrorBox";
 
 export default function LSUForm(props) {
   const [email, setEmail] = useState("");
@@ -14,25 +15,40 @@ export default function LSUForm(props) {
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [beforeEdit, setBeforeEdit] = useState(true);
+  const [checkPassword, setCheckPassword] = useState(false);
   const { Login, CreateUser, user } = useUser();
 
+
+  const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   // Input validation effects:
   useEffect(() => {
+
     if (props.isLoggingIn) {
       setHasError(false);
       setErrorMessage("");
       return;
     }
+
     if (beforeEdit) {
       setBeforeEdit(false);
       setErrorMessage("");
       setHasError(true);
       return;
     }
-
-    const upperCaseRegex = new RegExp("^(?=.*[A-Z])");
+    if (username.trim().length === 0) {
+      setHasError(true);
+      setErrorMessage("Username is empty");
+      return;
+    }
+    // Tests email
+    if (!emailRegex.test(email)) {
+      setHasError(true);
+      setErrorMessage("Email is invalid");
+      setCheckPassword(!checkPassword);
+      return;
+    }
     const digitRegex = new RegExp("^(?=.*[0-9])");
-    const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const upperCaseRegex = /[A-Z]/
 
     if (password.length < 8) {
       setHasError(true);
@@ -50,25 +66,17 @@ export default function LSUForm(props) {
       return;
     }
     if (password !== confirmPassword) {
-      setHasError(true);
       setErrorMessage("The password fields do not match");
-      return;
-    }
-    if (username.trim().length === 0) {
       setHasError(true);
-      setErrorMessage("Username is empty");
-      return;
+      return
     }
-    // Tests email
-    if (!emailRegex.test(email)) {
-      setHasError(true);
-      setErrorMessage("Email is invalid");
-      return;
-    }
-
     setHasError(false);
     setErrorMessage("");
+
   }, [password, confirmPassword, props.isLoggingIn, username, email]);
+
+
+
 
 
   // Sign in effect:
@@ -205,8 +213,11 @@ export default function LSUForm(props) {
         <div className="md:flex md:items-center">
           <div className="md:w-1/3"></div>
           <div className="md:w-2/3">
-            {/* Error text */}
-            <ErrorBox errorMessage={errorMessage} />
+            {/* Error boxes */}
+            <div className={`${props.isLoggingIn ? "collapse" : ""}`}>
+              <ErrorBox errorMessage={errorMessage}/>
+            </div>
+
             {/* Sign in button */}
             <button
               className="shadow bg-tangerine-500 hover:bg-tangerine-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"

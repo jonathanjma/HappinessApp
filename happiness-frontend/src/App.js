@@ -2,7 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Statistics from "./pages/Statistics";
 import Profile from "./pages/Profile";
 import Header from "./components/Header";
-import Welcome from "./pages/Welcome";
+import Welcome from "./pages/authentication/Welcome";
 import Container from "react-bootstrap/Container";
 import Settings from "./pages/Settings";
 import History from "./pages/History";
@@ -14,8 +14,8 @@ import UserProvider from "./contexts/UserProvider";
 import PrivateRoute from "./components/PrivateRoute";
 import PublicRoute from "./components/PublicRoute";
 import SubmitHappiness from "./pages/SubmitHappiness";
-import RequestResetPassword from "./pages/RequestResetPassword";
-import ResetPassword from "./pages/ResetPassword";
+import RequestResetPassword from "./pages/authentication/RequestResetPassword";
+import ResetPassword from "./pages/authentication/ResetPassword";
 
 export default function App() {
   const bgStyle = "max-w-7xl mx-auto min-h-screen px-3 py-2";

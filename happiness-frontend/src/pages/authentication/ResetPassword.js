@@ -1,13 +1,13 @@
 import {useEffect, useState} from "react";
-import DynamicSmile from "../components/DynamicSmile";
+import DynamicSmile from "../../components/submitHappinessComponents/DynamicSmile";
 import {useMutation} from "react-query";
-import {useApi} from "../contexts/ApiProvider";
+import {useApi} from "../../contexts/ApiProvider";
 import {useParams} from "react-router-dom";
-import ErrorBox from "../components/ErrorBox";
+import ErrorBox from "../../components/signInComponents/ErrorBox";
+import PasswordErrorBox from "../../components/signInComponents/PasswordErrorBox";
 
 export default function ResetPassword() {
     const [hasError, setHasError] = useState(false);
-    const [errorMessage, setErrorMessage] = useState("");
     const [message, setMessage] = useState("");
     const [password, setPassword] = useState("");
     const [hasSubmitted, setHasSubmitted] = useState(false)
@@ -22,38 +22,26 @@ export default function ResetPassword() {
     })
     const submitPassword = () => {
         setHasSubmitted(true)
-        const upperCaseRegex = new RegExp("^(?=.*[A-Z])");
-        const digitRegex = new RegExp("^(?=.*[0-9])");
-        const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        if (hasError || password.length === 0) return;
 
-        if (password.length < 8) {
-            setHasError(true);
-            setErrorMessage("The password must be at least 8 characters long");
-            return;
-        }
-        if (!upperCaseRegex.test(password)) {
-            setHasError(true);
-            setErrorMessage("The password must contain at least 1 uppercase letter");
-            return;
-        }
-        if (!digitRegex.test(password)) {
-            setHasError(true);
-            setErrorMessage("The password must contain at least 1 digit");
-            return;
-        }
         togglePassResetMutation.mutate(password)
-        setMessage("Password changed.")
     }
 
 
     useEffect(() => {
         if (togglePassResetMutation.isError) {
-            setHasError(true)
-            setErrorMessage("Error resetting password. Check your internet connection")
+            setHasError(true);
+            setMessage("Error resetting password. Check your internet connection");
         } else if (!hasSubmitted){
             setHasError(false)
         }
     }, [togglePassResetMutation.isError])
+
+    useEffect( () => {
+        if (togglePassResetMutation.isSuccess) {
+            setMessage("Password changed.");
+        }
+    }, [togglePassResetMutation.isSuccess] )
 
     return (
         // Root div
@@ -93,7 +81,9 @@ export default function ResetPassword() {
                     <b>Submit</b>
                 </button>
             </div>
-            <ErrorBox errorMessage={errorMessage} />
+            <div className="md:w-2/5 ml-10 mt-4 pr-10 ">
+                <PasswordErrorBox  password={password} setHasError={setHasError}  />
+            </div>
             <p className={`text-white ml-10 mt-4 text-xl ${message.length === 0 ? "collapse" : ""}`}>{message}</p>
         </div>
     );

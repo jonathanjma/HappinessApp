@@ -1,10 +1,10 @@
-import DynamicSmile from "../components/DynamicSmile";
+import DynamicSmile from "../../components/submitHappinessComponents/DynamicSmile";
 import {useEffect, useState} from "react";
 import {useMutation} from "react-query";
-import {useApi} from "../contexts/ApiProvider";
+import {useApi} from "../../contexts/ApiProvider";
 import {useParams} from "react-router-dom";
-import PublicRoute from "../components/PublicRoute";
-import ErrorBox from "../components/ErrorBox";
+import PublicRoute from "../../components/PublicRoute";
+import ErrorBox from "../../components/signInComponents/ErrorBox";
 
 export default function RequestResetPassword(props) {
 

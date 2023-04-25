@@ -2,15 +2,15 @@ import React, { useEffect, useState } from "react";
 
 import "../App.css";
 import SubmittedHappinessIcon from "../media/submitted-happiness-icon.svg";
-import EditIcon from "../media/pencil-square-outline-icon.png"
-import DynamicSmile from "../components/DynamicSmile";
-import DateDropdown from "../components/DateDropdown";
+import EditIcon from "../media/pencil-square-outline-icon.png";
+import DynamicSmile from "../components/submitHappinessComponents/DynamicSmile";
+import DateDropdown from "../components/submitHappinessComponents/DateDropdown";
 import { useApi } from "../contexts/ApiProvider";
 import { useQuery, useMutation } from "react-query";
 import { useUser } from "../contexts/UserProvider";
 import { Spinner } from "react-bootstrap";
-import {PageState} from "../keys";
-import HappinessEditor from "../components/HappinessEditor";
+import { PageState } from "../keys";
+import HappinessEditor from "../components/submitHappinessComponents/HappinessEditor";
 
 export default function SubmitHappiness() {
   // happiness represents how happy the user is on a scale of 0 to 10.
@@ -33,10 +33,10 @@ export default function SubmitHappiness() {
   const { user } = useUser();
   const api = useApi();
   useEffect(() => {
-      refetch();
-      setComment("");
-  }, [selectedIndex])
-  const { isLoading, data, isError, refetch} = useQuery(
+    refetch();
+    setComment("");
+  }, [selectedIndex]);
+  const { isLoading, data, isError, refetch } = useQuery(
     `happiness for ${user.id}`,
     () => {
       return api
@@ -54,10 +54,10 @@ export default function SubmitHappiness() {
   });
 
   const editHappinessMutation = useMutation({
-      mutationFn: (newHappiness) => {
-          return api.put(`/happiness/${happinessId}`, newHappiness);
-      },
-  })
+    mutationFn: (newHappiness) => {
+      return api.put(`/happiness/${happinessId}`, newHappiness);
+    },
+  });
 
   // Keeps happiness in valid range
   useEffect(() => {
@@ -106,43 +106,51 @@ export default function SubmitHappiness() {
     });
     if (!wasFound) {
       setPageState(PageState.UNSUBMITTED);
-      setHappiness(5)
+      setHappiness(5);
     }
   };
 
   const submitNewHappiness = () => {
-      postHappinessMutation.mutate({
-          value: happiness,
-          comment: comment,
-          timestamp: formatDate(dateList[selectedIndex]),
-      });
-      setPageState(PageState.SUBMITTED);
-      // submittedDays.push(formatDate(dateList[selectedIndex]));
-  }
+    postHappinessMutation.mutate({
+      value: happiness,
+      comment: comment,
+      timestamp: formatDate(dateList[selectedIndex]),
+    });
+    setPageState(PageState.SUBMITTED);
+    // submittedDays.push(formatDate(dateList[selectedIndex]));
+  };
 
   const editHappiness = () => {
-      editHappinessMutation.mutate({
-          value: happiness,
-          comment: comment,
-      });
-      setPageState(PageState.SUBMITTED);
-  }
+    editHappinessMutation.mutate({
+      value: happiness,
+      comment: comment,
+    });
+    setPageState(PageState.SUBMITTED);
+  };
 
   const EditButton = () => {
-      return (
-        <img src={EditIcon} width={50} height={50} className={"ml-8 hover:scale-110 hover:shadow-xl duration-100 hover:cursor-pointer"} onClick={() => {
-
+    return (
+      <img
+        src={EditIcon}
+        width={50}
+        height={50}
+        className={
+          "ml-8 hover:scale-110 hover:shadow-xl duration-100 hover:cursor-pointer"
+        }
+        onClick={() => {
           if (pageState === PageState.EDITING) {
-              setPageState(PageState.SUBMITTED)
-              console.log("Pre edit happiness: " + preEditHappiness)
-              setHappiness(preEditHappiness)
+            setPageState(PageState.SUBMITTED);
+            console.log("Pre edit happiness: " + preEditHappiness);
+            setHappiness(preEditHappiness);
           } else {
-              setPageState(PageState.EDITING)
-              console.log("Pre edit happinesss: " + preEditHappiness)
-              setPreEditHappiness(happiness)
-          }}} />
-      )
-  }
+            setPageState(PageState.EDITING);
+            console.log("Pre edit happinesss: " + preEditHappiness);
+            setPreEditHappiness(happiness);
+          }
+        }}
+      />
+    );
+  };
 
   if (isLoading) {
     return (
@@ -160,92 +168,91 @@ export default function SubmitHappiness() {
       </span>
     );
   }
-  console.log(`Page state = ${pageState}`)
+  console.log(`Page state = ${pageState}`);
 
   switch (pageState) {
     case PageState.SUBMITTED:
       return (
-          <div
-              className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
-                  happiness
-              )}`}
-          >
-            <div className="flex items-center">
+        <div
+          className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
+            happiness
+          )}`}
+        >
+          <div className="flex items-center">
             <DateDropdown
-                selectedIndex={selectedIndex}
-                setSelectedIndex={setSelectedIndex}
-                dateList={dateList}
+              selectedIndex={selectedIndex}
+              setSelectedIndex={setSelectedIndex}
+              dateList={dateList}
             />
-              <EditButton />
+            <EditButton />
           </div>
-            {/* Items */}
-            <div className="flex flex-col justify-center items-center">
-
-
-
-              <h1 className="md:text-7xl text-5xl text-white md:text-stroke-4 text-stroke-2 text-center mt-3 font-roboto md:px-10 px-2 w-9/12">
-                <b>Happiness submitted for this day.</b>
-              </h1>
-              <img src={SubmittedHappinessIcon} className={"md:w-1/5 md:h-1/5 h-3/5 w-3/5 mt-10"} />
-            </div>
+          {/* Items */}
+          <div className="flex flex-col justify-center items-center">
+            <h1 className="md:text-7xl text-5xl text-white md:text-stroke-4 text-stroke-2 text-center mt-3 font-roboto md:px-10 px-2 w-9/12">
+              <b>Happiness submitted for this day.</b>
+            </h1>
+            <img
+              src={SubmittedHappinessIcon}
+              className={"md:w-1/5 md:h-1/5 h-3/5 w-3/5 mt-10"}
+            />
           </div>
+        </div>
       );
     case PageState.UNSUBMITTED:
-        console.log("this case")
+      console.log("this case");
       return (
-          <div
-              className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
-                  happiness
-              )}`}
-          >
-              <div className="flex items-center">
-                  <DateDropdown
-                      selectedIndex={selectedIndex}
-                      setSelectedIndex={setSelectedIndex}
-                      dateList={dateList}
-                  />
-              </div>
-              <HappinessEditor
-                  happiness={happiness}
-                  setHappiness={setHappiness}
-                  comment={comment}
-                  setComment={setComment}
-                  pageMessage={"How are you feeling today?"}
-                  pageState={pageState}
-                  setPageState={setPageState}
-                  onSubmitClick={submitNewHappiness}
-              />
+        <div
+          className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
+            happiness
+          )}`}
+        >
+          <div className="flex items-center">
+            <DateDropdown
+              selectedIndex={selectedIndex}
+              setSelectedIndex={setSelectedIndex}
+              dateList={dateList}
+            />
           </div>
+          <HappinessEditor
+            happiness={happiness}
+            setHappiness={setHappiness}
+            comment={comment}
+            setComment={setComment}
+            pageMessage={"How are you feeling today?"}
+            pageState={pageState}
+            setPageState={setPageState}
+            onSubmitClick={submitNewHappiness}
+          />
+        </div>
       );
 
     case PageState.EDITING:
       return (
-          <div
-              className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
-                  happiness
-              )}`}
-          >
-              <div className="flex items-center">
-                  <DateDropdown
-                      selectedIndex={selectedIndex}
-                      setSelectedIndex={setSelectedIndex}
-                      dateList={dateList}
-                  />
-                  <EditButton />
-
-              </div>
-              <HappinessEditor
-                  happiness={happiness}
-                  setHappiness={setHappiness}
-                  comment={comment}
-                  setComment={setComment}
-                  pageMessage={"Edit your happiness"}
-                  pageState={pageState}
-                  setPageState={setPageState}
-                  onSubmitClick={editHappiness}
-              />
+        <div
+          className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
+            happiness
+          )}`}
+        >
+          <div className="flex items-center">
+            <DateDropdown
+              selectedIndex={selectedIndex}
+              setSelectedIndex={setSelectedIndex}
+              dateList={dateList}
+            />
+            <EditButton />
           </div>
-      )
+          <HappinessEditor
+            happiness={happiness}
+            setHappiness={setHappiness}
+            comment={comment}
+            setComment={setComment}
+            pageMessage={"Edit your happiness"}
+            pageState={pageState}
+            setPageState={setPageState}
+            onSubmitClick={editHappiness}
+          />
+        </div>
+      );
   }
 }
 
