@@ -2,6 +2,7 @@ import hashlib
 import os
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import func
 
 from api.app import db
 
@@ -170,7 +171,7 @@ class Group(db.Model):
         Requires a list of usernames to add
         """
         for username in new_users:
-            user = User.query.filter(User.username.lower() == username.lower()).first()
+            user = User.query.filter(User.username.ilike(username)).first()
             if user is not None and user not in self.users:
                 self.users.append(user)
 
@@ -180,7 +181,7 @@ class Group(db.Model):
         Requires a list of usernames to remove
         """
         for username in users_to_remove:
-            user = User.query.filter(User.username.lower() == username.lower()).first()
+            user = User.query.filter(User.username.ilike(username)).first()
             if user is not None and user in self.users:
                 self.users.remove(user)
 

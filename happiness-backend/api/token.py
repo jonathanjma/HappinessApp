@@ -2,7 +2,7 @@ from apifairy import authenticate, response, other_responses
 from flask import Blueprint
 from flask import current_app
 from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
-from users_dao import get_user_by_username
+from api.users_dao import get_user_by_username
 from itsdangerous import URLSafeTimedSerializer
 
 from api.app import db
