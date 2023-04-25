@@ -3,32 +3,15 @@ import ChartPreview from "./ChartPreview";
 import LineChart from "./LineChart";
 import DayPreview from "./DayPreview";
 
-function IndexData(data, names) {
+function IndexData(data, users, colors) {
   // constructs array of data values based on given indices for the LineChart
-  let colors = [
-    "blue",
-    "red",
-    "green",
-    "purple",
-    "orange",
-    "salmon",
-    "brown",
-    "pink",
-    "turquoise",
-    "black",
-    "magenta",
-    "yellow",
-    "gray",
-    "violet",
-    "indigo",
-  ];
   var selectedData = [];
   data.map((i, t) => {
     selectedData.push({
-      label: names[t],
+      label: users[t].username,
       data: i.map((e) => e.value),
       tension: 0.4,
-      borderColor: colors[t % 15],
+      borderColor: colors[t],
     });
     return selectedData;
   });
@@ -40,7 +23,31 @@ function IndexData(data, names) {
 
 // exports graph element with embedded chart and title
 export default function Graph(props) {
+  let colors = [
+    "royalblue",
+    "crimson",
+    "seagreen",
+    "slateblue",
+    "darkorchid",
+    "deeppink",
+    "olive",
+    "orange",
+    "salmon",
+    "saddlebrown",
+    "navy",
+    "pink",
+    "turquoise",
+    "black",
+    "limegreen",
+    "mediumvioletred",
+    "darkkhaki",
+    "darkgray",
+    "violet",
+    "aquamarine",
+    "indigo",
+  ];
   let names = props.users.map((e) => e.username);
+  let ids_list = props.users.map((e) => e.id);
   let datas = props.data;
   // console.log("checking sort");
   // console.log(datas);
@@ -56,19 +63,21 @@ export default function Graph(props) {
     if (!uniq.includes(datas[k].timestamp)) {
       uniq.push(datas[k].timestamp);
     }
+    if (!seen.includes(datas[k].user_id)) {
+      seen.push(datas[k].user_id);
+    }
   }
   let k = 0; // index of happiness item for user
   let q = 0; // index of item in whole datas length
   let u = 0; // index of user in users array
 
-  while (u < props.users.length) {
+  while (u < seen.length) {
     while (k < uniq.length) {
       if (formatted.length === u) {
         formatted.push([]);
       }
       // accounts for missing values
       if (datas[q] && datas[q].timestamp !== uniq[k]) {
-        console.log("ok");
         formatted[u].push({
           comment: null,
           id: 0,
@@ -77,7 +86,7 @@ export default function Graph(props) {
           value: Number.NaN,
         });
         k++;
-      } else if (q === datas.length || datas[q].user_id !== props.users[u].id) {
+      } else if (q === datas.length || datas[q].user_id !== seen[u]) {
         // if next user's value is shown, fills in the blanks
         formatted[u].push({
           comment: null,
@@ -97,17 +106,22 @@ export default function Graph(props) {
     u++;
     k = 0;
   }
-  console.log(formatted);
+  const shownUsers = seen.map((e) => props.users[ids_list.indexOf(e)]);
+
   const [pointData, setPointData] = useState([[], 0]);
   // constructs chart data (passed in to LineChart.js)
   const chartData = {
-    name: names,
+    name: seen.map((e) => names[ids_list.indexOf(e)]),
     time: props.time,
     ids: formatted.map((e) => e[0].user_id),
     labels: uniq.map((e) => e.slice(5).split("-").join("/")),
-    datasets: IndexData(formatted, names),
+    datasets: IndexData(
+      formatted,
+      shownUsers,
+      seen.map((e) => colors[ids_list.indexOf(e)])
+    ),
   };
-  console.log(chartData);
+  // console.log(chartData);
   const [cShow, setCShow] = useState(false);
   const [dShow, setDShow] = useState(false);
 
@@ -116,7 +130,7 @@ export default function Graph(props) {
       chartData={chartData}
       open={cShow}
       setOpen={setCShow}
-      users={props.users}
+      users={shownUsers}
       formatted={formatted}
     />
   );
@@ -126,7 +140,7 @@ export default function Graph(props) {
       open={dShow}
       setOpen={setDShow}
       data={pointData[0].map((e) => formatted[e][pointData[1]])}
-      users={pointData[0].map((e) => props.users[e])}
+      users={pointData[0].map((e) => shownUsers[e])}
     />
   );
   return (
