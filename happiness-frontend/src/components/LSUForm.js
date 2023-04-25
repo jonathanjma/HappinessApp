@@ -162,6 +162,10 @@ export default function LSUForm(props) {
                 setPassword(e.target.value);
               }}
               placeholder="***************"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  signIn();
+              }}}
             />
           </div>
         </div>
@@ -189,6 +193,11 @@ export default function LSUForm(props) {
                 setConfirmPassword(e.target.value);
               }}
               placeholder="***************"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  signIn();
+                }
+              }}
             />
           </div>
         </div>

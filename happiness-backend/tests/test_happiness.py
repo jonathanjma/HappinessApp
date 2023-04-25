@@ -112,13 +112,13 @@ def test_edit_delete_happiness(init_client):
     assert h.comment == 'test'
 
     happiness_set_response2 = client.put('/api/happiness/1', json={
-        'value': 8.5,
+        'value': 0.0,
         'comment': 'asdadsadsad',
     }, headers={"Authorization": f"Bearer {bearer_token}"})
     print(happiness_set_response2.status_code)
     assert happiness_set_response2.status_code == 200
     happiness4 = get_happiness_by_id(1)
-    assert happiness4.value == 8.5
+    assert happiness4.value == 0.0
     assert happiness4.comment == 'asdadsadsad'
 
     happiness_delete_response = client.delete(

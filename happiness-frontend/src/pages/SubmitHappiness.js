@@ -2,12 +2,15 @@ import React, { useEffect, useState } from "react";
 
 import "../App.css";
 import SubmittedHappinessIcon from "../media/submitted-happiness-icon.svg";
+import EditIcon from "../media/pencil-square-outline-icon.png";
 import DynamicSmile from "../components/DynamicSmile";
 import DateDropdown from "../components/DateDropdown";
 import { useApi } from "../contexts/ApiProvider";
 import { useQuery, useMutation } from "react-query";
 import { useUser } from "../contexts/UserProvider";
 import { Spinner } from "react-bootstrap";
+import { PageState } from "../keys";
+import HappinessEditor from "../components/HappinessEditor";
 
 export default function SubmitHappiness() {
   // happiness represents how happy the user is on a scale of 0 to 10.
@@ -18,16 +21,22 @@ export default function SubmitHappiness() {
   const dateList = [];
   initializeDateList(dateList);
 
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [pageState, setPageState] = useState(PageState.UNSUBMITTED);
   const [happiness, setHappiness] = useState(5.0);
   const [comment, setComment] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [preEditHappiness, setPreEditHappiness] = useState(0);
+  const [happinessId, setHappinessId] = useState(0);
   // When the user submits a day, we will store locally the submitted days so the UI can update accordingly.
   // This only stores submitted days in current session, when user refreshes the query will run again anyway.
-  const [submittedDays, setSubmittedDays] = useState([]);
+  // const [submittedDays, setSubmittedDays] = useState([]);
   const { user } = useUser();
   const api = useApi();
-  const { isLoading, data, isError } = useQuery(
+  useEffect(() => {
+    refetch();
+    setComment("");
+  }, [selectedIndex]);
+  const { isLoading, data, isError, refetch } = useQuery(
     `happiness for ${user.id}`,
     () => {
       return api
@@ -38,12 +47,19 @@ export default function SubmitHappiness() {
         .then((res) => res.data);
     }
   );
-  const happinessMutation = useMutation({
+  const postHappinessMutation = useMutation({
     mutationFn: (newHappiness) => {
       return api.post("/happiness/", newHappiness);
     },
   });
 
+  const editHappinessMutation = useMutation({
+    mutationFn: (newHappiness) => {
+      return api.put(`/happiness/${happinessId}`, newHappiness);
+    },
+  });
+
+  // Keeps happiness in valid range
   useEffect(() => {
     if (happiness > 10 && happiness - 10 < 1) {
       setHappiness(10);
@@ -52,6 +68,7 @@ export default function SubmitHappiness() {
     }
   }, [happiness]);
 
+  // Checks if happiness is submitted after the query is finished
   useEffect(() => {
     if (isError) {
       return;
@@ -62,30 +79,77 @@ export default function SubmitHappiness() {
     checkSubmitted();
   }, [isLoading]);
 
+  // When they change date we need to check again if happiness is submitted.
   useEffect(() => {
     checkSubmitted();
   }, [selectedIndex]);
 
+  // Logic for checking whether happiness was submitted.
   const checkSubmitted = () => {
     if (isLoading) {
       return;
     }
     let wasFound = false;
     // First check the local session storage:
-    if (submittedDays.includes(formatDate(dateList[selectedIndex]))) {
-      setHasSubmitted(true);
-      return;
-    }
+    // if (submittedDays.includes(formatDate(dateList[selectedIndex]))) {
+    //   setPageState(PageState.SUBMITTED);
+    //   return;
+    // }
     data.forEach((happinessEntry) => {
       if (happinessEntry.timestamp === formatDate(dateList[selectedIndex])) {
-        setHappiness(5);
+        setHappiness(happinessEntry.value);
+        setComment(happinessEntry.comment);
+        setHappinessId(happinessEntry.id);
         wasFound = true;
-        setHasSubmitted(true);
+        setPageState(PageState.SUBMITTED);
       }
     });
     if (!wasFound) {
-      setHasSubmitted(false);
+      setPageState(PageState.UNSUBMITTED);
+      setHappiness(5);
     }
+  };
+
+  const submitNewHappiness = () => {
+    postHappinessMutation.mutate({
+      value: happiness,
+      comment: comment,
+      timestamp: formatDate(dateList[selectedIndex]),
+    });
+    setPageState(PageState.SUBMITTED);
+    // submittedDays.push(formatDate(dateList[selectedIndex]));
+  };
+
+  const editHappiness = () => {
+    editHappinessMutation.mutate({
+      value: happiness,
+      comment: comment,
+    });
+    setPageState(PageState.SUBMITTED);
+  };
+
+  const EditButton = () => {
+    return (
+      <img
+        src={EditIcon}
+        width={50}
+        height={50}
+        className={
+          "ml-8 hover:scale-110 hover:shadow-xl duration-100 hover:cursor-pointer"
+        }
+        onClick={() => {
+          if (pageState === PageState.EDITING) {
+            setPageState(PageState.SUBMITTED);
+            console.log("Pre edit happiness: " + preEditHappiness);
+            setHappiness(preEditHappiness);
+          } else {
+            setPageState(PageState.EDITING);
+            console.log("Pre edit happinesss: " + preEditHappiness);
+            setPreEditHappiness(happiness);
+          }
+        }}
+      />
+    );
   };
 
   if (isLoading) {
@@ -104,134 +168,92 @@ export default function SubmitHappiness() {
       </span>
     );
   }
+  console.log(`Page state = ${pageState}`);
 
-  return (
-    // Submitted happiness view:
-    hasSubmitted ? (
-      <div
-        className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
-          happiness
-        )}`}
-      >
-        {/* Items */}
-        <div className="flex flex-col justify-center items-center">
-          <DateDropdown
-            selectedIndex={selectedIndex}
-            setSelectedIndex={setSelectedIndex}
-            dateList={dateList}
-          />
-
-          <h1 className="md:text-7xl text-5xl text-white md:text-stroke-4 text-stroke-2 text-center mt-3 font-roboto">
-            <b>Happiness already submitted for this day.</b>
-          </h1>
-          <img src={SubmittedHappinessIcon} className={"w-1/5 h-1/5 mt-10"} />
-        </div>
-      </div>
-    ) : (
-      //       Default submit happiness view:
-      <div
-        className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
-          happiness
-        )}`}
-      >
-        {/* Items */}
-        <div className="flex flex-col justify-center items-center">
-          {/* Today's Date */}
-          <DateDropdown
-            selectedIndex={selectedIndex}
-            setSelectedIndex={setSelectedIndex}
-            dateList={dateList}
-          />
-
-          {/* Prompt */}
-          <>
-            <h1 className="md:text-7xl text-5xl text-white md:text-stroke-3 text-stroke-2 text-center mt-3 font-roboto">
-              <b>How are you feeling today?</b>
+  switch (pageState) {
+    case PageState.SUBMITTED:
+      return (
+        <div
+          className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
+            happiness
+          )}`}
+        >
+          <div className="flex items-center">
+            <DateDropdown
+              selectedIndex={selectedIndex}
+              setSelectedIndex={setSelectedIndex}
+              dateList={dateList}
+            />
+            <EditButton />
+          </div>
+          {/* Items */}
+          <div className="flex flex-col justify-center items-center">
+            <h1 className="md:text-7xl text-5xl text-white md:text-stroke-4 text-stroke-2 text-center mt-3 font-roboto md:px-10 px-2 w-9/12">
+              <b>Happiness submitted for this day.</b>
             </h1>
-          </>
-
-            {/* Happy Face, Slider, and Happiness Number (Desktop only) */}
-            <div className="flex flex-row items-center justify-center mobile-hidden">
-              {/* Happy Face Decorator */}
-              <span className="mr-28 mt-10">
-      <DynamicSmile happiness={happiness} />
-    </span>
-              {/* Happiness Slider */}
-              <input
-                  id="default-range"
-                  type="range"
-                  onChange={(e) => {
-                    setHappiness(e.target.value / 10);
-                  }}
-                  onMouseUp={(e) => {
-                    setHappiness(formatHappinessNum(e.target.value / 10));
-                  }}
-                  className="w-40 md:w-72 h-2 rounded-lg appearance-none cursor-pointer dark:bg-white-300 scale-150 mt-20"
-              />
-
-              {/* Happiness Number */}
-              <p className="text-8xl text-white text-stroke-4 mt-10 ml-28 font-roboto flex-none flex-row w-40">
-                <b>{formatHappinessNum(happiness)}</b>
-              </p>
-            </div>
-
-            {/* Happiness Number Input Field (Mobile Only) */}
-            <input
-                className="mt-10 w-24 h-20 text-4xl text-center rounded-2xl bg-gray-100 focus:border-raisin-600 border-raisin-100 border-2 focus:border-4 md:hidden"
-                type="number"
-                value={happiness}
-                placeholder=""
-                onChange={(e) => {
-                  setHappiness(parseFloat(e.target.value))
-                  if (e.target.value < 0) {
-                    setHappiness(0)}
-                }}
-                onBlur={() => {
-                  if ((happiness * 10) % 10 >= 5) {
-                    setHappiness(Math.floor(happiness) + 0.5)
-                  } else if (isNaN(happiness)) {
-                    setHappiness(5)
-                  } else {
-                    setHappiness(Math.floor(happiness))
-                  }
-                }
-                }
+            <img
+              src={SubmittedHappinessIcon}
+              className={"md:w-1/5 md:h-1/5 h-3/5 w-3/5 mt-10"}
             />
-
-          {/* Happiness Comment Box */}
-          <>
-            <textarea
-              id="large-input"
-              value={comment}
-              className="md:w-5/12 w-3/4 p-4 bg-gray-200 rounded mt-10 border-raisin-100 outline-none focus:border-raisin-200 border-2 focus:border-4"
-              placeholder="Add a comment about the day"
-              onChange={(e) => {
-                setComment(e.target.value);
-              }}
-            />
-          </>
-
-          {/* Submit button: */}
-          <>
-            <button
-              onClick={() => {
-                happinessMutation.mutate({
-                  value: happiness,
-                  comment: comment,
-                  timestamp: formatDate(dateList[selectedIndex]),
-                });
-                setHasSubmitted(true);
-                submittedDays.push(formatDate(dateList[selectedIndex]));
-              }}
-              className="flex-1 scale-150 text-white bg-gradient-to-r from-raisin-500 via-raisin-600 to-raisin-700 shadow-lg font-roboto font-semibold rounded-lg text-sm px-5 outline-none py-2.5 text-center mr-2 mb-2 mt-9"
-            >
-              Submit
-            </button>
-          </>
+          </div>
         </div>
-      </div>
-    )
-  );
+      );
+    case PageState.UNSUBMITTED:
+      console.log("this case");
+      return (
+        <div
+          className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
+            happiness
+          )}`}
+        >
+          <div className="flex items-center">
+            <DateDropdown
+              selectedIndex={selectedIndex}
+              setSelectedIndex={setSelectedIndex}
+              dateList={dateList}
+            />
+          </div>
+          <HappinessEditor
+            happiness={happiness}
+            setHappiness={setHappiness}
+            comment={comment}
+            setComment={setComment}
+            pageMessage={"How are you feeling today?"}
+            pageState={pageState}
+            setPageState={setPageState}
+            onSubmitClick={submitNewHappiness}
+          />
+        </div>
+      );
+
+    case PageState.EDITING:
+      return (
+        <div
+          className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
+            happiness
+          )}`}
+        >
+          <div className="flex items-center">
+            <DateDropdown
+              selectedIndex={selectedIndex}
+              setSelectedIndex={setSelectedIndex}
+              dateList={dateList}
+            />
+            <EditButton />
+          </div>
+          <HappinessEditor
+            happiness={happiness}
+            setHappiness={setHappiness}
+            comment={comment}
+            setComment={setComment}
+            pageMessage={"Edit your happiness"}
+            pageState={pageState}
+            setPageState={setPageState}
+            onSubmitClick={editHappiness}
+          />
+        </div>
+      );
+  }
 }
 
 function formatDate(date) {
@@ -267,7 +289,7 @@ function initializeDateList(dateList) {
   }
 }
 
-function happinessColor(happiness) {
+export function happinessColor(happiness) {
   switch (true) {
     case happiness < 1.0:
       return "bg-red-700";
@@ -287,7 +309,7 @@ function happinessColor(happiness) {
       return "bg-green-600";
   }
 }
-function formatHappinessNum(happiness) {
+export function formatHappinessNum(happiness) {
   if ((happiness * 10) % 10 >= 5) {
     return (Math.floor(happiness) + 0.5).toFixed(1);
   } else {

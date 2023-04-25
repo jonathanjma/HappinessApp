@@ -30,7 +30,7 @@ export default function ButtonSettingCard(props) {
       confirmAlert({
         title: "Are you sure you want to " + props.name.toLowerCase() + "?",
         message: "This cannot be undone.",
-        buttons: [
+        buttons: [ 
           {
             label: "Yes",
             onClick: doAction,
