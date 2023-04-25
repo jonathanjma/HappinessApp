@@ -15,7 +15,7 @@ function CommentShow({ data }) {
 export default function BigHistoryCard({ data, user }) {
   const parts = data.timestamp.split("-");
   const dayString = new Date(parts[0], parts[1] - 1, parts[2]);
-  console.log(dayString);
+  // console.log(dayString);
   return (
     <>
       <div className="@xl:flex w-full justify-center min-h-[175px] max-w-[700px] min-w-[285px] mt-4 bg-cultured-50 rounded-xl shadow-lg space-y-2">
