@@ -32,7 +32,7 @@ export default function MonthView({
   function MonthItem({ day, data }) {
     return (
       <>
-        <div className="w-full flex flex-wrap justify-center h-[60px] md:h-[100px] bg-cultured-50 rounded-sm">
+        <div className="w-full flex flex-wrap justify-center h-[40px] md:h-[100px] bg-cultured-50 rounded-sm">
           <div className="hidden md:block w-full md:h-1/4 justify-center">
             <p className="text-center text-sm sm:text-md md:text-lg font-medium lg:text-raisin-600">
               {day}
