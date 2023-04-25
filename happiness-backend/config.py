@@ -20,7 +20,6 @@ class Config:
 
     # Email sending
     MAIL_SERVER = "smtp.gmail.com"
-    SERVER_NAME = "localhost:5000"
     MAIL_PORT = "465"
     MAIL_USE_TLS = False
     MAIL_USE_SSL = True
