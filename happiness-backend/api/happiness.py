@@ -65,7 +65,7 @@ def edit_happiness(req, id):
         if query_data.user_id != user_id:
             return failure_response("Not Allowed.", 403)
         value, comment = req.get("value"), req.get("comment")
-        if value != query_data.value:
+        if value != query_data.value and value != None:
             query_data.value = value
         if comment:
             query_data.comment = comment
