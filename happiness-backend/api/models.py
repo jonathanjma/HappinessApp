@@ -170,7 +170,7 @@ class Group(db.Model):
         Requires a list of usernames to add
         """
         for username in new_users:
-            user = User.query.filter(User.username == username).first()
+            user = User.query.filter(User.username.lower() == username.lower()).first()
             if user is not None and user not in self.users:
                 self.users.append(user)
 
@@ -180,7 +180,7 @@ class Group(db.Model):
         Requires a list of usernames to remove
         """
         for username in users_to_remove:
-            user = User.query.filter(User.username == username).first()
+            user = User.query.filter(User.username.lower() == username.lower()).first()
             if user is not None and user in self.users:
                 self.users.remove(user)
 

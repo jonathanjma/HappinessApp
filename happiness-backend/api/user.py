@@ -188,6 +188,9 @@ def reset_password(token):
     """
     if request.method == "POST":
         # Reset password to desired password
+        email = confirm_email_token(token)
+        if email is False:
+            return failure_response("Token expired", 400)
         current_user = users_dao.get_user_by_email(confirm_email_token(token))
         if not current_user:
             return failure_response("Password reset token verification failed, token may be expired", 401)
