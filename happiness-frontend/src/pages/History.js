@@ -192,7 +192,7 @@ export default function History() {
                   <div className="font-medium relative w-full text-center text-2xl py-2 my-0 bg-buff-200 max-h-[60px]">
                     <button
                       type="button"
-                      className="absolute top-3 left-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
+                      className="absolute top-3 left-4 w-[50px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
                       onClick={() => {
                         setStMonth((start) => {
                           start.setMonth(start.getMonth() - 1);
@@ -222,7 +222,7 @@ export default function History() {
                     </p>
                     <button
                       type="button"
-                      className="absolute top-3 right-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
+                      className="absolute top-3 right-4 w-[50px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
                       onClick={() => {
                         setStMonth((st) => {
                           st.setMonth(st.getMonth() + 1);
