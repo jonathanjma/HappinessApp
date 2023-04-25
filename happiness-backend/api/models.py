@@ -2,7 +2,7 @@ import hashlib
 import os
 from datetime import datetime, timedelta
 
-import bcrypt
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from api.app import db
 
@@ -47,8 +47,7 @@ class User(db.Model):
         self.email = kwargs.get("email")
 
         # Convert raw password into encrypted string that can still be decrypted, but we cannot decrypt it.
-        self.password = bcrypt.hashpw(kwargs.get("password").encode("utf8"),
-                                      bcrypt.gensalt(rounds=13))
+        self.password = generate_password_hash(kwargs.get("password"))
         self.username = kwargs.get("username")
         self.profile_picture = kwargs.get("profile_picture", self.avatar_url())
         self.created = datetime.today()
@@ -74,7 +73,7 @@ class User(db.Model):
         """
         Verifies the password of a user
         """
-        return bcrypt.checkpw(password.encode("utf8"), self.password)
+        return check_password_hash(self.password, password)
 
     def _urlsafe_base_64(self):
         """
@@ -83,8 +82,7 @@ class User(db.Model):
         return hashlib.sha1(os.urandom(64)).hexdigest()
 
     def set_password(self, pwd):
-        self.password = bcrypt.hashpw(pwd.encode("utf8"),
-                                      bcrypt.gensalt(rounds=13))
+        self.password = self.password = generate_password_hash(pwd)
 
     def get_token(self):
         """
@@ -203,7 +201,7 @@ class Happiness(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     value = db.Column(db.Float)
-    comment = db.Column(db.String(700))
+    comment = db.Column(db.String())
     timestamp = db.Column(db.DateTime)
 
     def __init__(self, **kwargs):
