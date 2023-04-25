@@ -9,16 +9,25 @@ Happiness App is being developed using React for the frontend and Flask + SQLAlc
 
 ## Status
 
-Happiness App is currently under development. We are currently integrating the frontend and the backend
-together and polishing the UI. (last updated 3/1)
+Happiness App is currently under development. We have released a minimum viable product for closed beta testing. We are in the process of fixing bugs and adding new features. (last updated 4/24)
 
 ## Backend
 
 To learn more about the backend, click [here](happiness-backend/README.md).
 
 ## Demo Images
+
 User Profile Page:
 ![](/imgs/profile.png)
 
 User Statistics Page:
 ![](/imgs/stats.png)
+
+User History Page:
+![](/imgs/history_month.png)
+
+Group Table Page:
+![](/imgs/group_table.png)
+
+Group Statistics Page:
+![](/imgs/group_statistics.png)
