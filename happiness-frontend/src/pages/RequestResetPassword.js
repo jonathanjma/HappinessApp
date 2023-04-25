@@ -4,12 +4,14 @@ import {useMutation} from "react-query";
 import {useApi} from "../contexts/ApiProvider";
 import {useParams} from "react-router-dom";
 import PublicRoute from "../components/PublicRoute";
+import ErrorBox from "../components/ErrorBox";
 
 export default function RequestResetPassword(props) {
 
   const [email, setEmail] = useState("");
   const [emailUnsubmitted, setEmailUnsubmitted] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [message, setMessage] = useState("");
   const { token } = useParams()
   const api = useApi()
@@ -25,23 +27,21 @@ export default function RequestResetPassword(props) {
   useEffect(() => {
     if (toggleEmailMutation.isError) {
       setHasError(true)
-      setMessage("Error sending email. Are you sure an account is associated with that email?")
-    } else {
+      setErrorMessage("Error sending email. Are you sure an account is associated with that email?")
+      setMessage("");
+    } else if (toggleEmailMutation.isSuccess) {
       setHasError(false)
-      if (!emailUnsubmitted) {
-        setMessage("Email sent. Emails can take up to a few minutes to be received.");
-      } else {
-        setMessage("")
-      }
+      setMessage("Email sent. Emails can take up to a few minutes to be received.");
+      setErrorMessage("");
     }
-  }, [toggleEmailMutation.isError])
+  }, [toggleEmailMutation.isError, toggleEmailMutation.isSuccess])
   let submitEmail = () => {
     if (
       email === "" ||
       !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email)
     ) {
       setHasError(true);
-      setMessage("Email invalid")
+      setErrorMessage("Email invalid")
     } else {
       setMessage("Email sending...")
       setEmailUnsubmitted(false);
@@ -71,7 +71,7 @@ export default function RequestResetPassword(props) {
         Enter the email you used to create your account.
       </p>
 
-      <div className="flex-row flex">
+      <div className="flex-col flex">
         <input
           type="email"
           className={`bg-gray-200 ${
@@ -83,15 +83,19 @@ export default function RequestResetPassword(props) {
             setEmail(e.target.value);
             setHasError(false);
             setMessage("");
+            setErrorMessage("");
           }}
           placeholder="john.doe@example.com"
         ></input>
         <button
-          className=" bg-green-500 border-2 border-green-600 rounded w-40 py-2 px-4 text-white leading-tight focus:outline-none mt-10 ml-3 mr-2"
+          className=" bg-green-500 border-2 border-green-600 rounded w-40 py-2 px-4 text-white leading-tight focus:outline-none mt-4 ml-10"
           onClick={submitEmail}
         >
           <b>Submit</b>
         </button>
+      </div>
+      <div className="w-2/5 ml-10 mt-4">
+        <ErrorBox errorMessage={errorMessage} />
       </div>
       <p className="text-white ml-10 mt-4 text-xl">{message}</p>
     </div>

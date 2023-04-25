@@ -3,6 +3,7 @@ import DynamicSmile from "../components/DynamicSmile";
 import {useMutation} from "react-query";
 import {useApi} from "../contexts/ApiProvider";
 import {useParams} from "react-router-dom";
+import ErrorBox from "../components/ErrorBox";
 
 export default function ResetPassword() {
     const [hasError, setHasError] = useState(false);
@@ -48,12 +49,9 @@ export default function ResetPassword() {
     useEffect(() => {
         if (togglePassResetMutation.isError) {
             setHasError(true)
-            setMessage("Error resetting password. Check your internet connection")
+            setErrorMessage("Error resetting password. Check your internet connection")
         } else if (!hasSubmitted){
             setHasError(false)
-
-        } else {
-            setMessage("Password reset!")
         }
     }, [togglePassResetMutation.isError])
 
@@ -95,7 +93,8 @@ export default function ResetPassword() {
                     <b>Submit</b>
                 </button>
             </div>
-            <p className="text-white ml-10 mt-4 text-xl">{message}</p>
+            <ErrorBox errorMessage={errorMessage} />
+            <p className={`text-white ml-10 mt-4 text-xl ${message.length === 0 ? "collapse" : ""}`}>{message}</p>
         </div>
     );
 }

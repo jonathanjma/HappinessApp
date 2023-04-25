@@ -4,6 +4,7 @@ import { useUser } from "../contexts/UserProvider";
 import {Keys} from "../keys";
 import Warning from "../media/red-alert-icon.svg"
 import {useNavigate} from "react-router-dom";
+import ErrorBox from "./ErrorBox";
 
 export default function LSUForm(props) {
   const [email, setEmail] = useState("");
@@ -205,10 +206,7 @@ export default function LSUForm(props) {
           <div className="md:w-1/3"></div>
           <div className="md:w-2/3">
             {/* Error text */}
-            <div className={`bg-gray-100 rounded-xl p-1 shadow-md mb-8 ${errorMessage.length === 0 ? "collapse" : ""} flex-row flex`}>
-              <img src={Warning} className="w-5 h-5 ml-2 mt-auto mb-auto"/>
-              <p className={"text-red-500 leading-normal mt-3 ml-4 "}>{errorMessage}</p>
-            </div>
+            <ErrorBox errorMessage={errorMessage} />
             {/* Sign in button */}
             <button
               className="shadow bg-tangerine-500 hover:bg-tangerine-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"

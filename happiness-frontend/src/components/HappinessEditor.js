@@ -82,7 +82,6 @@ export default function HappinessEditor (props) {
                 />
 
                 {/* Happiness Comment Box */}
-                <>
             <textarea
                 id="large-input"
                 value={comment}
@@ -92,7 +91,6 @@ export default function HappinessEditor (props) {
                     setComment(e.target.value);
                 }}
             />
-                </>
 
                 {/* Submit button: */}
                 <>
