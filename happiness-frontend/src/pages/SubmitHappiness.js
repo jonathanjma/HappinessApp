@@ -113,7 +113,7 @@ export default function SubmitHappiness() {
   const submitNewHappiness = () => {
     // Weird math but avoids floating point rounding errors (hopefully)
     if (happiness % .5 !== 0) {
-      setHappiness(formatHappinessNum(happiness))
+      setHappiness(Math.round(happiness*2) / 2)
     }
     postHappinessMutation.mutate({
       value: happiness,
