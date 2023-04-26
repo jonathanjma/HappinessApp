@@ -73,13 +73,7 @@ export default function HappinessEditor(props) {
             }
           }}
           onBlur={() => {
-            if ((happiness * 10) % 10 >= 5) {
-              setHappiness(Math.floor(happiness) + 0.5);
-            } else if (isNaN(happiness)) {
-              setHappiness(5);
-            } else {
-              setHappiness(Math.floor(happiness));
-            }
+            setHappiness(formatHappinessNum(happiness))
           }}
         />
 
