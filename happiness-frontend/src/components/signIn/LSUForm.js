@@ -85,6 +85,7 @@ export default function LSUForm(props) {
       if (user.type !== Keys.SUCCESS) {
         console.log("Login error");
         setErrorMessage("Username password combination not found");
+        setHasError(true);
       } else {
         console.log("RELOADING:");
         window.location.reload();
@@ -218,9 +219,7 @@ export default function LSUForm(props) {
           <div className="md:w-1/3"></div>
           <div className="md:w-2/3">
             {/* Error boxes */}
-            <div className={`${props.isLoggingIn ? "collapse" : ""}`}>
-              <ErrorBox errorMessage={errorMessage} />
-            </div>
+            <ErrorBox errorMessage={errorMessage} />
 
             {/* Sign in button */}
             <button
