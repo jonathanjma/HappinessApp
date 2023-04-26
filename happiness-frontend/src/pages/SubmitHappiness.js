@@ -313,9 +313,5 @@ export function happinessColor(happiness) {
   }
 }
 export function formatHappinessNum(happiness) {
-  if ((happiness * 10) % 10 >= 5) {
-    return (Math.floor(happiness) + 0.5).toFixed(1);
-  } else {
-    return Math.floor(happiness).toFixed(1);
-  }
+  return (Math.round(happiness * 2) / 2).toFixed(1)
 }
