@@ -112,8 +112,8 @@ export default function SubmitHappiness() {
 
   const submitNewHappiness = () => {
     // Weird math but avoids floating point rounding errors (hopefully)
-    if (happiness % .5 !== 0) {
-      setHappiness(formatHappinessNum(happiness))
+    if (happiness % 0.5 !== 0) {
+      setHappiness(formatHappinessNum(happiness));
     }
     postHappinessMutation.mutate({
       value: happiness,
@@ -293,25 +293,31 @@ function initializeDateList(dateList) {
 }
 
 export function happinessColor(happiness) {
-  switch (true) {
-    case happiness < 1.0:
-      return "bg-red-700";
-    case happiness < 2.0:
-      return "bg-red-600";
-    case happiness < 3.0:
-      return "bg-yellow-500";
-    case happiness < 4.0:
-      return "bg-yellow-400";
-    case happiness < 6.0:
-      return "bg-yellow-300";
-    case happiness < 8.0:
-      return "bg-green-400";
-    case happiness < 10.0:
-      return "bg-green-500";
-    default:
-      return "bg-green-600";
-  }
+  let colors = [
+    "bg-[#a81414]",
+    "bg-[#c91a0d]",
+    "bg-[#cf250a]",
+    "bg-[#cc510c]",
+    "bg-[#e46400]",
+    "bg-[#ff7700]",
+    "bg-[#e57f00]",
+    "bg-[#e69000]",
+    "bg-[#e7a100]",
+    "bg-[#e8b100]",
+    "bg-[#ffdd0b]",
+    "bg-[#d8de00]",
+    "bg-[#b5dc00]",
+    "bg-[#94d900]",
+    "bg-[#88cf01]",
+    "bg-[#76c002]",
+    "bg-[#62b004]",
+    "bg-[#4d9e05]",
+    "bg-[#368c07]",
+    "bg-[#1a7409]",
+    "bg-[#0b6b00]",
+  ];
+  return colors[Math.floor(happiness / 0.5)];
 }
 export function formatHappinessNum(happiness) {
-  return (Math.round(happiness * 2) / 2).toFixed(1)
+  return (Math.round(happiness * 2) / 2).toFixed(1);
 }

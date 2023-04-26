@@ -1,27 +1,5 @@
+import { happinessColor } from "../../pages/SubmitHappiness";
 // month value represents month (0-based index, Jan = 0, Feb = 1, etc)
-
-export function ReturnColor(level) {
-  let happiness = level * 10;
-  if (happiness < 10) {
-    return "bg-red-700";
-  } else if (happiness < 20) {
-    return "bg-red-600";
-  } else if (happiness < 30) {
-    return "bg-yellow-500";
-  } else if (happiness < 40) {
-    return "bg-yellow-400";
-  } else if (happiness < 60) {
-    return "bg-yellow-300";
-  } else if (happiness < 70) {
-    return "bg-yellow-300";
-  } else if (happiness < 80) {
-    return "bg-green-400";
-  } else if (happiness < 100) {
-    return "bg-green-500";
-  } else {
-    return "bg-green-600";
-  }
-}
 
 export default function MonthView({
   happinessData,
@@ -43,7 +21,7 @@ export default function MonthView({
             <>
               <div
                 className={
-                  ReturnColor(data.value) +
+                  happinessColor(data.value) +
                   " flex w-full justify-center items-center h-full md:h-3/4"
                 }
                 onClick={() => setCard(data)}
