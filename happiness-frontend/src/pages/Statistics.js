@@ -1,10 +1,10 @@
-import Stat from "../components/Stat";
-import Graph from "../components/Graph";
-import { TimeButtonTitle } from "../pages/Group.js";
+import Stat from "../components/statGraphs/Stat";
+import Graph from "../components/statGraphs/Graph";
+import { TimeButtonTitle } from "./Group";
 import { useState, useEffect } from "react";
 import { Spinner } from "react-bootstrap";
 import { useUser } from "../contexts/UserProvider";
-import { GetRangeHappiness } from "../components/GetHappinessData";
+import { GetRangeHappiness } from "../components/happinessHistory/GetHappinessData";
 
 export default function Statistics() {
   const { user: userState } = useUser();

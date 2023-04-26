@@ -2,7 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Statistics from "./pages/Statistics";
 import Profile from "./pages/Profile";
 import Header from "./components/Header";
-import Welcome from "./pages/authentication/Welcome";
+import Welcome from "./pages/Welcome";
 import Container from "react-bootstrap/Container";
 import Settings from "./pages/Settings";
 import History from "./pages/History";
@@ -34,14 +34,22 @@ export default function App() {
                   </PublicRoute>
                 }
               />
-              <Route path="/reset-pass"
-                     element={<PublicRoute>
-                         <RequestResetPassword newPassword={false}/>
-                     </PublicRoute>} />
-              <Route path="/reset-pass/change-pass/:token"
-                     element={<PublicRoute>
-                         <ResetPassword newPassword={true}/>
-                     </PublicRoute>} />
+              <Route
+                path="/reset-pass"
+                element={
+                  <PublicRoute>
+                    <RequestResetPassword newPassword={false} />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/reset-pass/change-pass/:token"
+                element={
+                  <PublicRoute>
+                    <ResetPassword newPassword={true} />
+                  </PublicRoute>
+                }
+              />
               <Route
                 path="*"
                 element={

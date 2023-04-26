@@ -1,4 +1,4 @@
-import BigHistoryCard from "./BigHistoryCard";
+import BigHistoryCard from "../happinessHistory/BigHistoryCard";
 import { Fragment, useRef } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 

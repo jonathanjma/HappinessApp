@@ -1,6 +1,6 @@
-import WelcomeCarousel from "../../components/WelcomeCarousel";
+import WelcomeCarousel from "../components/WelcomeCarousel";
 import { Link } from "react-router-dom";
-import LSUModal from "../../components/signInComponents/LSUModal";
+import LSUModal from "../components/signIn/LSUModal";
 
 export default function Welcome(props) {
   let logIn = () => {

@@ -1,5 +1,5 @@
-import Stat from "../components/Stat";
-import Graph from "../components/Graph";
+import Stat from "../statGraphs/Stat";
+import Graph from "../statGraphs/Graph";
 
 export default function GroupStats({ groupData, happinessData, selected }) {
   const users = groupData.users.sort((u1, u2) => u1.id - u2.id);

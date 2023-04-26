@@ -1,4 +1,4 @@
-import { useApi } from "../contexts/ApiProvider";
+import { useApi } from "../../contexts/ApiProvider";
 import { useQuery } from "react-query";
 
 // Gets list of Happiness objects for given user (from the past 7 days)

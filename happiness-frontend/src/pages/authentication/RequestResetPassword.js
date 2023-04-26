@@ -1,53 +1,55 @@
-import DynamicSmile from "../../components/submitHappinessComponents/DynamicSmile";
-import {useEffect, useState} from "react";
-import {useMutation} from "react-query";
-import {useApi} from "../../contexts/ApiProvider";
-import {useParams} from "react-router-dom";
+import DynamicSmile from "../../components/submitHappiness/DynamicSmile";
+import { useEffect, useState } from "react";
+import { useMutation } from "react-query";
+import { useApi } from "../../contexts/ApiProvider";
+import { useParams } from "react-router-dom";
 import PublicRoute from "../../components/PublicRoute";
-import ErrorBox from "../../components/signInComponents/ErrorBox";
+import ErrorBox from "../../components/signIn/ErrorBox";
 
 export default function RequestResetPassword(props) {
-
   const [email, setEmail] = useState("");
   const [emailUnsubmitted, setEmailUnsubmitted] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [message, setMessage] = useState("");
-  const { token } = useParams()
-  const api = useApi()
+  const { token } = useParams();
+  const api = useApi();
   const toggleEmailMutation = useMutation({
     mutationFn: (value) => {
       return api.post("/user/initiate_password_reset/", {
-        "email": value
-      })
+        email: value,
+      });
     },
-  })
-
+  });
 
   useEffect(() => {
     if (toggleEmailMutation.isError) {
-      setHasError(true)
-      setErrorMessage("Error sending email. Are you sure an account is associated with that email?")
+      setHasError(true);
+      setErrorMessage(
+        "Error sending email. Are you sure an account is associated with that email?"
+      );
       setMessage("");
     } else if (toggleEmailMutation.isSuccess) {
-      setHasError(false)
-      setMessage("Email sent. Emails can take up to a few minutes to be received.");
+      setHasError(false);
+      setMessage(
+        "Email sent. Emails can take up to a few minutes to be received."
+      );
       setErrorMessage("");
     }
-  }, [toggleEmailMutation.isError, toggleEmailMutation.isSuccess])
+  }, [toggleEmailMutation.isError, toggleEmailMutation.isSuccess]);
   let submitEmail = () => {
     if (
       email === "" ||
       !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email)
     ) {
       setHasError(true);
-      setErrorMessage("Email invalid")
+      setErrorMessage("Email invalid");
     } else {
-      setMessage("Email sending...")
+      setMessage("Email sending...");
       setEmailUnsubmitted(false);
       setHasError(false);
-      console.log("Mutating email")
-      toggleEmailMutation.mutate(email)
+      console.log("Mutating email");
+      toggleEmailMutation.mutate(email);
     }
   };
 

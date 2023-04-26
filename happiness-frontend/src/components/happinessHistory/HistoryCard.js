@@ -1,5 +1,5 @@
 import { useState } from "react";
-import DayPreview from "./DayPreview";
+import DayPreview from "../statGraphs/DayPreview";
 
 export default function HistoryCard({ data, user }) {
   const parts = data.timestamp.split("-");

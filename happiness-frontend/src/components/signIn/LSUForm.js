@@ -40,11 +40,6 @@ export default function LSUForm(props) {
       setErrorMessage("Username is empty");
       return;
     }
-    if (username.trim() !== username) {
-      setHasError(true);
-      setErrorMessage("Username cannot start or end with spaces.")
-      return;
-    }
     // Tests email
     if (!emailRegex.test(email)) {
       setHasError(true);
