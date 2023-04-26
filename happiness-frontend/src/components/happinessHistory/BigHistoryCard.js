@@ -44,7 +44,7 @@ export default function BigHistoryCard({ data, user }) {
         <div className="w-full justify-center">
           <div className="flex justify-center px-4">
             <p className="text-center text-2xl font-medium m-2 text-raisin-600 mt-3">
-              Happiness: {data.value}
+              Happiness: {data.value.toFixed(1)}
             </p>
           </div>
           <CommentShow data={data} />

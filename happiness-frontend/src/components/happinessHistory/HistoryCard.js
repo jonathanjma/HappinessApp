@@ -25,7 +25,7 @@ export default function HistoryCard({ data, user }) {
         <div className="flex w-full flex-wrap justify-center items-center rounded-xl pt-2.5">
           <div className="flex items-center justify-center">
             <p className="text-center text-4xl font-medium text-raisin-600">
-              {data.value}
+              {data.value.toFixed(1)}
             </p>
           </div>
         </div>

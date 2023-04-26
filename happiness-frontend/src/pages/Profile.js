@@ -73,12 +73,16 @@ export default function Profile() {
                         <>
                           {errorUG ? (
                             <p className="text-md font-medium text-raisin-600 m-3">
-                              Error: Could not load happiness.
+                              Error: Could not load groups.
                             </p>
                           ) : (
-                            <p className="text-center text-raisin-600 text-md font-medium m-2 sm:w-full">
-                              Groups: {dataUG.length}
-                            </p>
+                            <>
+                              <Link to="/groups" className="no-underline">
+                                <p className="text-center text-raisin-600 text-md font-medium m-2 sm:w-full">
+                                  Groups: {dataUG.length}
+                                </p>
+                              </Link>
+                            </>
                           )}
                         </>
                       )}
@@ -126,7 +130,7 @@ export default function Profile() {
                                 </p>
                               )}
                               <p className="text-2xl text-rhythm-500 font-medium text-center">
-                                {dataC[0].value}
+                                {dataC[0].value.toFixed(1)}
                               </p>
                             </div>
                             {dataC[0].comment ? (
