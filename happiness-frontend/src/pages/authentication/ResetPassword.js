@@ -10,8 +10,8 @@ export default function ResetPassword() {
     const [hasError, setHasError] = useState(false);
     const [message, setMessage] = useState("");
     const [password, setPassword] = useState("");
-    const [hasSubmitted, setHasSubmitted] = useState(false)
-    const { token } = useParams()
+    const [hasSubmitted, setHasSubmitted] = useState(false);
+    const { token } = useParams();
     const api = useApi();
     const togglePassResetMutation = useMutation({
         mutationFn: (value) => {
