@@ -1,5 +1,5 @@
-import GroupCard from "../components/GroupCard";
-import NewGroupModal from "../components/NewGroupModal";
+import GroupCard from "../components/groups/GroupCard";
+import NewGroupModal from "../components/groups/NewGroupModal";
 import { useQuery } from "react-query";
 import { useApi } from "../contexts/ApiProvider";
 import { Spinner } from "react-bootstrap";

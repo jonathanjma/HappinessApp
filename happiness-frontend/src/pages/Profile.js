@@ -1,7 +1,7 @@
-import Stat from "../components/Stat";
-import Graph from "../components/Graph";
-import Histories from "../components/Histories";
-import DayPreview from "../components/DayPreview";
+import Stat from "../components/statGraphs/Stat";
+import Graph from "../components/statGraphs/Graph";
+import Histories from "../components/happinessHistory/Histories";
+import DayPreview from "../components/statGraphs/DayPreview";
 import { useState } from "react";
 import { useQuery } from "react-query";
 import { useUser } from "../contexts/UserProvider";
@@ -9,7 +9,7 @@ import { Spinner, Button } from "react-bootstrap";
 import {
   PrevWeekData,
   GetCountHappiness,
-} from "../components/GetHappinessData";
+} from "../components/happinessHistory/GetHappinessData";
 import { useApi } from "../contexts/ApiProvider";
 import { Link } from "react-router-dom";
 

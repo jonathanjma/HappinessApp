@@ -1,9 +1,9 @@
 import { Button } from "react-bootstrap";
 import Form from "react-bootstrap/Form";
-import InputField from "../components/InputField";
+import InputField from "../InputField";
 import React, { useRef, useState } from "react";
 import Modal from "react-bootstrap/Modal";
-import { useApi } from "../contexts/ApiProvider";
+import { useApi } from "../../contexts/ApiProvider";
 
 export default function NewGroupModal() {
   const [show, setShow] = useState(false);

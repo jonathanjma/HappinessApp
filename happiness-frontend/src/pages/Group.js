@@ -1,12 +1,12 @@
 import { useParams } from "react-router-dom";
 import { Fragment, useEffect, useState } from "react";
 import { Tab } from "@headlessui/react";
-import GroupManage from "../components/GroupManage";
+import GroupManage from "../components/groups/GroupManage";
 import { useApi } from "../contexts/ApiProvider";
 import { useQuery } from "react-query";
-import TableView from "../components/TableView";
-import GroupStats from "../components/GroupStats";
-import { GetRangeHappiness } from "../components/GetHappinessData";
+import TableView from "../components/groups/TableView";
+import GroupStats from "../components/groups/GroupStats";
+import { GetRangeHappiness } from "../components/happinessHistory/GetHappinessData";
 import { Spinner } from "react-bootstrap";
 
 function TabButton({ text }) {

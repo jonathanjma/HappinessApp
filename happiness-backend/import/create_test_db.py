@@ -7,11 +7,11 @@ import requests
 # date of earliest happiness entry
 since = datetime.datetime(2022, 8, 15)
 backend_url = "https://happiness-app-backend.herokuapp.com"
+#backend_url = "http://localhost:5000"
 
 # false: only import happiness
 # true: create test users/group and import happiness
 create_users_groups = False
-
 
 if create_users_groups:
     new_user1 = requests.post(f'{backend_url}/api/user/',
@@ -32,6 +32,31 @@ if create_users_groups:
                                   "username": "zach",
                                   "password": "zach"
                               })
+    # requests.post(f'{backend_url}/api/user/',
+    #               json={
+    #                   "email": "aaron@cornell.edu",
+    #                   "username": "aaron",
+    #                   "password": "aaron"
+    #               })
+    # requests.post(f'{backend_url}/api/user/',
+    #               json={
+    #                   "email": "sasha@cornell.edu",
+    #                   "username": "sasha",
+    #                   "password": "sasha"
+    #               })
+    # requests.post(f'{backend_url}/api/user/',
+    #               json={
+    #                   "email": "andrew@cornell.edu",
+    #                   "username": "andrew",
+    #                   "password": "andrew"
+    #               })
+    # requests.post(f'{backend_url}/api/user/',
+    #               json={
+    #                   "email": "shashank@cornell.edu",
+    #                   "username": "shashank",
+    #                   "password": "shashank"
+    #               })
+
     assert new_user1.status_code == new_user2.status_code == new_user3.status_code == 201
     print('users created')
 

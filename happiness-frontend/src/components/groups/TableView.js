@@ -1,6 +1,6 @@
 import { useState } from "react";
-import BigHistoryCard from "./BigHistoryCard";
-import { ReturnColor } from "./MonthView";
+import BigHistoryCard from "../happinessHistory/BigHistoryCard";
+import { ReturnColor } from "../happinessHistory/MonthView";
 
 // Sets border styles if table cell marks beginning of new week
 const weekEdge = (isBound) => {

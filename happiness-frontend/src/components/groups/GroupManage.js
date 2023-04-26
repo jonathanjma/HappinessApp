@@ -1,10 +1,10 @@
-import InputField from "./InputField";
+import InputField from "../InputField";
 import { Button, Card, CloseButton, Image, Stack } from "react-bootstrap";
 import Form from "react-bootstrap/Form";
 import React, { useRef, useState } from "react";
-import { useApi } from "../contexts/ApiProvider";
-import { useUser } from "../contexts/UserProvider";
-import ConfirmModal from "./ConfirmModal";
+import { useApi } from "../../contexts/ApiProvider";
+import { useUser } from "../../contexts/UserProvider";
+import ConfirmModal from "../ConfirmModal";
 import { useNavigate } from "react-router-dom";
 
 // Group Management: changing group name, adding and deleting group users, deleting group
@@ -50,7 +50,11 @@ export default function GroupManage({ groupID, groupData }) {
     // Check that user input is non-empty, user is not already in group, and user is valid
     if (!newUser) {
       setUserAddError("Username cannot be empty.");
-    } else if (groupUsers.find((u) => u.username === newUser) !== undefined) {
+    } else if (
+      groupUsers.find(
+        (u) => u.username.toLowerCase() === newUser.toLowerCase()
+      ) !== undefined
+    ) {
       setUserAddError("User is already a member.");
     } else {
       api

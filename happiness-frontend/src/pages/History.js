@@ -1,12 +1,12 @@
-import Histories from "../components/Histories";
+import Histories from "../components/happinessHistory/Histories";
 import { Tab } from "@headlessui/react";
 import { useState, Fragment, useEffect } from "react";
-import MonthView from "../components/MonthView";
-import { GetRangeHappiness } from "../components/GetHappinessData";
+import MonthView from "../components/happinessHistory/MonthView";
+import { GetRangeHappiness } from "../components/happinessHistory/GetHappinessData";
 import { useUser } from "../contexts/UserProvider";
 import { Spinner } from "react-bootstrap";
-import Stat from "../components/Stat";
-import BigHistoryCard from "../components/BigHistoryCard";
+import Stat from "../components/statGraphs/Stat";
+import BigHistoryCard from "../components/happinessHistory/BigHistoryCard";
 
 export default function History() {
   const { user: userState } = useUser();

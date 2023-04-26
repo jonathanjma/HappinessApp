@@ -3,14 +3,14 @@ import React, { useEffect, useState } from "react";
 import "../App.css";
 import SubmittedHappinessIcon from "../media/submitted-happiness-icon.svg";
 import EditIcon from "../media/pencil-square-outline-icon.png";
-import DynamicSmile from "../components/DynamicSmile";
-import DateDropdown from "../components/DateDropdown";
+import DynamicSmile from "../components/submitHappiness/DynamicSmile";
+import DateDropdown from "../components/submitHappiness/DateDropdown";
 import { useApi } from "../contexts/ApiProvider";
 import { useQuery, useMutation } from "react-query";
 import { useUser } from "../contexts/UserProvider";
 import { Spinner } from "react-bootstrap";
 import { PageState } from "../keys";
-import HappinessEditor from "../components/HappinessEditor";
+import HappinessEditor from "../components/submitHappiness/HappinessEditor";
 
 export default function SubmitHappiness() {
   // happiness represents how happy the user is on a scale of 0 to 10.
@@ -140,11 +140,11 @@ export default function SubmitHappiness() {
         onClick={() => {
           if (pageState === PageState.EDITING) {
             setPageState(PageState.SUBMITTED);
-            console.log("Pre edit happiness: " + preEditHappiness);
+            // console.log("Pre edit happiness: " + preEditHappiness);
             setHappiness(preEditHappiness);
           } else {
             setPageState(PageState.EDITING);
-            console.log("Pre edit happinesss: " + preEditHappiness);
+            // console.log("Pre edit happinesss: " + preEditHappiness);
             setPreEditHappiness(happiness);
           }
         }}
@@ -168,7 +168,7 @@ export default function SubmitHappiness() {
       </span>
     );
   }
-  console.log(`Page state = ${pageState}`);
+  // console.log(`Page state = ${pageState}`);
 
   switch (pageState) {
     case PageState.SUBMITTED:
@@ -199,7 +199,6 @@ export default function SubmitHappiness() {
         </div>
       );
     case PageState.UNSUBMITTED:
-      console.log("this case");
       return (
         <div
           className={`min-h-screen duration-500 bg-size-200 ${happinessColor(

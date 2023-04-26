@@ -5,6 +5,7 @@ Helper file containing functions for accessing data in our database
 """
 
 from api.models import User
+from sqlalchemy import func
 
 
 def get_user_by_id(id):
@@ -20,7 +21,7 @@ def get_user_by_username(username):
     :param username: Username of the User object one is searching for.
     :return: A user object that has the same username as the username that was passed in.
     """
-    return User.query.filter(User.username == username).first()
+    return User.query.filter(User.username.ilike(username)).first()
 
 
 def get_user_by_email(email):
