@@ -77,7 +77,9 @@ export default function HappinessEditor(props) {
             }
           }}
           onBlur={() => {
-            setHappiness(formatHappinessNum(happiness))
+            if (happiness != 10) {
+              setHappiness(formatHappinessNum(happiness))
+            }
           }}
         />
 
