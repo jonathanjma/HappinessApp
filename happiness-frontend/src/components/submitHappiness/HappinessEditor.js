@@ -68,6 +68,7 @@ export default function HappinessEditor(props) {
           value={happiness}
           placeholder=""
           onChange={(e) => {
+            setHappiness(e.target.value)
             if (e.target.value < 0) {
               setHappiness(0);
             }
