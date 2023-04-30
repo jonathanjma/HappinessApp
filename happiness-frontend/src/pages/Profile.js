@@ -30,6 +30,16 @@ export default function Profile() {
   const [isLoadingH, dataH, errorH] = PrevWeekData(true, me.id);
   const [isLoadingC, dataC, errorC] = GetCountHappiness(4, me);
 
+  let userCreated = "";
+  if (me.created !== null) {
+    // formatted date into array
+    let forDa = new Date(me.created)
+      .toLocaleDateString("sv")
+      .substring(0, 10)
+      .split("-");
+    userCreated =
+      "Member since " + forDa[1] + "/" + forDa[2] + "/" + forDa[0].substring(2);
+  }
   const [dShow, setDShow] = useState(false);
   return (
     <>
@@ -45,7 +55,7 @@ export default function Profile() {
               <div className="relative flex flex-wrap justify-center w-full bg-buff-300 rounded-t-xl">
                 <div className="absolute -sm:absolute sm:relative left-4 top-4 sm:flex items-center md:px-4 md:w-1/3 sm:mx-4">
                   <img
-                    className="mb-4 justify-center max-w-[65px] max-h-[65px] sm:min-h-[125px] sm:max-h-[125px] sm:min-w-[125px] sm:max-w-[125px] block mx-auto rounded-full sm:mx-0 sm:shrink-0"
+                    className="mb-4 justify-center max-w-[65px] max-h-[65px] md:min-h-[125px] md:max-h-[125px] md:min-w-[125px] md:max-w-[125px] block mx-auto rounded-full sm:mx-0 sm:shrink-0"
                     src={me.profile_picture}
                     alt="profile"
                   />
@@ -54,14 +64,7 @@ export default function Profile() {
                   <p className="text-center text-2xl font-medium m-2 text-raisin-600">
                     {me.username}
                   </p>
-                  <p className="text-center text-raisin-600">
-                    {me.created !== null
-                      ? "Member since " +
-                        new Date(me.created)
-                          .toLocaleDateString("sv")
-                          .substring(0, 10)
-                      : ""}
-                  </p>
+                  <p className="text-center text-raisin-600">{userCreated}</p>
                   <div className="flex flex-wrap justify-center items-center @container">
                     <div className="justify-center">
                       {isLoadingUG ? (
@@ -70,12 +73,16 @@ export default function Profile() {
                         <>
                           {errorUG ? (
                             <p className="text-md font-medium text-raisin-600 m-3">
-                              Error: Could not load happiness.
+                              Error: Could not load groups.
                             </p>
                           ) : (
-                            <p className="text-center text-raisin-600 text-md font-medium m-2 sm:w-full">
-                              Groups: {dataUG.length}
-                            </p>
+                            <>
+                              <Link to="/groups" className="no-underline">
+                                <p className="text-center text-raisin-600 text-md font-medium m-2 sm:w-full">
+                                  Groups: {dataUG.length}
+                                </p>
+                              </Link>
+                            </>
                           )}
                         </>
                       )}
@@ -123,7 +130,7 @@ export default function Profile() {
                                 </p>
                               )}
                               <p className="text-2xl text-rhythm-500 font-medium text-center">
-                                {dataC[0].value}
+                                {dataC[0].value.toFixed(1)}
                               </p>
                             </div>
                             {dataC[0].comment ? (
