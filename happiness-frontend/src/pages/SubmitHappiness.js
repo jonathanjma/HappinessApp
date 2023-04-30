@@ -295,28 +295,18 @@ function initializeDateList(dateList) {
 export function happinessColor(happiness) {
   let colors = [
     "bg-[#ff0000]",
-    "bg-[#c91a0d]",
     "bg-[#ff4628]",
-    "bg-[#cc510c]",
     "bg-[#ff8423]",
-    "bg-[#ff7700]",
     "bg-[#ff9d23]",
-    "bg-[#e69000]",
     "bg-[#ffbf2a]",
-    "bg-[#e8b100]",
     "bg-[#ffdd0b]",
-    "bg-[#d8de00]",
-    "bg-[#cbee0c]",
-    "bg-[#94d900]",
-    "bg-[#a4e800]",
-    "bg-[#76c002]",
-    "bg-[#85e404]",
-    "bg-[#4d9e05]",
-    "bg-[#31cf00]",
-    "bg-[#1a7409]",
-    "bg-[#00bf50]",
+    "bg-[#94e000]",
+    "bg-[#68c600]",
+    "bg-[#12b500]",
+    "bg-[#009f05]",
+    "bg-[#007e17]",
   ];
-  return colors[2 * Math.floor(happiness)];
+  return colors[Math.floor(happiness)];
   // return colors[Math.floor(happiness / 0.5)];
 }
 export function formatHappinessNum(happiness) {
