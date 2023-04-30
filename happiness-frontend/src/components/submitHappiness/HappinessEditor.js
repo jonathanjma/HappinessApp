@@ -72,6 +72,9 @@ export default function HappinessEditor(props) {
             if (e.target.value < 0) {
               setHappiness(0);
             }
+            if (e.target.value.length > 3) {
+              setHappiness(e.target.value.toString().substring(0, 3))
+            }
           }}
           onBlur={() => {
             setHappiness(formatHappinessNum(happiness))
