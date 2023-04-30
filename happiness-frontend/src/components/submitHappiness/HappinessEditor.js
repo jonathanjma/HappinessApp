@@ -64,6 +64,7 @@ export default function HappinessEditor(props) {
         <input
           className="mt-10 w-24 h-20 text-4xl text-center rounded-2xl bg-gray-100 focus:border-raisin-600 border-raisin-100 border-2 focus:border-4 md:hidden"
           type="number"
+          inputMode="decimal"
           value={happiness}
           placeholder=""
           onChange={(e) => {
