@@ -7,7 +7,7 @@ from itsdangerous import URLSafeTimedSerializer
 
 from api.app import db
 from api.errors import error_response
-from api.models import User
+from api.models import User, Token
 from api.schema import TokenSchema
 
 token = Blueprint('token', __name__)
@@ -48,15 +48,17 @@ def token_auth_error(status):
 @other_responses({401: "Unauthorized"})
 def get_token():
     """
-    Get Token
-    Creates a session token for a user to access the Happiness App API. (Logs them in) \n
-    Returns: a new session token for the user
-    """
-
-    session_token = basic_auth.current_user().get_token()
+  Get Token
+  Creates a session token for a user to access the Happiness App API. (Logs them in) \n
+  This session token is added to the token table for users. \n
+  Returns: a new session token for the user
+  """
+    user = basic_auth.current_user()
+    m_token = Token(token=user.get_token(), user_id=user.id)
+    db.session.add(m_token)
     db.session.commit()
 
-    return {'session_token': session_token}, 201
+    return {'session_token': m_token}, 201
 
 
 @token.delete('/')

@@ -2,7 +2,6 @@ import hashlib
 import os
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import func
 
 from api.app import db
 
@@ -213,3 +212,17 @@ class Happiness(db.Model):
         self.value = kwargs.get("value")
         self.comment = kwargs.get("comment")
         self.timestamp = kwargs.get("timestamp")
+
+
+class Token(db.Model):
+    """
+   Model for the token table. Has a many-to-one relationship with users table.
+   """
+    __tablename__ = "token"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    token = db.Column(db.String, nullable=False, unique=True)
+
+    def __init__(self, **kwargs):
+        self.user_id = kwargs.get("user_id")
+        self.token = kwargs.get("token")
