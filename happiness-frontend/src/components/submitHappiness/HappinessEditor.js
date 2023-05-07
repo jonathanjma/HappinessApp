@@ -90,8 +90,8 @@ export default function HappinessEditor(props) {
           ref={commentBox}
           id="large-input"
           value={comment}
-          className={`md:w-5/12 w-3/4 px-4 py-2 bg-gray-200 rounded mt-10 border-raisin-100 outline-none focus:border-raisin-200 border-2 focus:border-4 text-left`}
-          style={{ height: `${commentBox.current == undefined ? 120 : Math.max(commentBox.current.scrollHeight, 120)}px`, scrollbarColor: "#9191b6" }}
+          className={`md:w-5/12 w-3/4 px-4 py-2 bg-gray-200 rounded mt-10 border-raisin-100 outline-none focus:border-raisin-200 border-2 focus:border-4 ${comment.length > 0 ? 'text-left' : 'text-center'}`}
+          style={{ height: `${commentBox.current == undefined ? 60 : Math.max(commentBox.current.scrollHeight, 60)}px`, scrollbarColor: "#9191b6" }}
           placeholder="Add a comment about the day"
           onChange={(e) => {
             setComment(e.target.value);
