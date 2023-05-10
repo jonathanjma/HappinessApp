@@ -30,7 +30,6 @@ export default function DayPreview({ open, setOpen, data = undefined, users }) {
           className="relative z-10"
           initialFocus={cancelButtonRef}
           onClose={() => {
-            console.log("hey");
             setOpen(false);
           }}
         >
