@@ -6,6 +6,18 @@
     padding: 0;
 }
 
+:root {
+    --headerHeight : 60px
+}
+
+.header {
+    height: var(--headerHeight)
+}
+
+.fullbg {
+    height: calc(100vh - var(--headerHeight))!important
+}
+
 .dropdown-toggle::after {
     position: absolute;
     top: 50%;

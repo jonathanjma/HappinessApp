@@ -13,7 +13,7 @@ export default function Header() {
   const me = userState.user;
 
   return (
-    <Navbar bg="light" sticky="top">
+    <Navbar bg="light" sticky="top" className="header">
       <Container fluid="md">
         <Navbar.Brand>
           <Nav.Link as={NavLink} to="/">
@@ -23,7 +23,7 @@ export default function Header() {
         </Navbar.Brand>
         <Nav className="flex items-center">
           <Nav.Link as={NavLink} to="/statistics">
-            Statistics
+            Stats
           </Nav.Link>
           <Nav.Link as={NavLink} to="/groups">
             Groups

@@ -18,10 +18,10 @@ import RequestResetPassword from "./pages/authentication/RequestResetPassword";
 import ResetPassword from "./pages/authentication/ResetPassword";
 
 export default function App() {
-  const bgStyle = "max-w-7xl mx-auto min-h-screen px-3 py-2";
+  const bgStyle = "max-w-7xl mx-auto px-3 py-2";
 
   return (
-    <Container fluid className="App bg-buff-50">
+    <Container fluid className="App bg-buff-50 min-h-screen">
       <BrowserRouter>
         <ApiProvider>
           <UserProvider>
