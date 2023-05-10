@@ -181,7 +181,8 @@ export default function Profile() {
                         </p>
                       ) : (
                         <>
-                          <div className="flex flex-wrap justify-center items-center m-4 md:ml-4 max-w-[400px] max-h-[400px]">
+                          <p className="mt-4 sm:w-full text-center font-medium text-2xl text-raisin-600">Weekly Statistics</p>
+                          <div className="flex flex-wrap justify-center items-center mx-2 md:ml-4 max-w-[400px] max-h-[400px]">
                             <Graph data={dataH} users={[me]} time="Weekly" />
                           </div>
                           <div className="flex flex-wrap justify-center items-center md:max-w-[205px] sm:max-w-[400px] mr-2">
