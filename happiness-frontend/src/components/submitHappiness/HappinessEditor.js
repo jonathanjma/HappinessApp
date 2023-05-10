@@ -21,7 +21,7 @@ export default function HappinessEditor(props) {
 
   return (
     <div
-      className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
+      className={`duration-500 bg-size-200 ${happinessColor(
         happiness
       )}`}
     >

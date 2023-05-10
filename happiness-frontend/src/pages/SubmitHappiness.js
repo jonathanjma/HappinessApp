@@ -178,7 +178,7 @@ export default function SubmitHappiness() {
     case PageState.SUBMITTED:
       return (
         <div
-          className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
+          className={`content duration-500 bg-size-200 ${happinessColor(
             happiness
           )}`}
         >
@@ -205,7 +205,7 @@ export default function SubmitHappiness() {
     case PageState.UNSUBMITTED:
       return (
         <div
-          className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
+          className={`content duration-500 bg-size-200 ${happinessColor(
             happiness
           )}`}
         >
@@ -232,7 +232,7 @@ export default function SubmitHappiness() {
     case PageState.EDITING:
       return (
         <div
-          className={`min-h-screen duration-500 bg-size-200 ${happinessColor(
+          className={`content duration-500 bg-size-200 ${happinessColor(
             happiness
           )}`}
         >
