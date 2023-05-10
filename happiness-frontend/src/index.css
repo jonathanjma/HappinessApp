@@ -14,7 +14,7 @@
     height: var(--headerHeight)
 }
 
-.content {
+.fullbg {
     height: calc(100vh - var(--headerHeight))!important
 }
 
