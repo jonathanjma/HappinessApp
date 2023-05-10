@@ -23,7 +23,7 @@ export default function Header() {
         </Navbar.Brand>
         <Nav className="flex items-center">
           <Nav.Link as={NavLink} to="/statistics">
-            Statistics
+            Stats
           </Nav.Link>
           <Nav.Link as={NavLink} to="/groups">
             Groups
