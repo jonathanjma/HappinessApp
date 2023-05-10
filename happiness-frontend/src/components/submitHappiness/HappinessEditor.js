@@ -64,16 +64,22 @@ export default function HappinessEditor(props) {
         <input
           className="mt-10 w-24 h-20 text-4xl text-center rounded-2xl bg-gray-100 focus:border-raisin-600 border-raisin-100 border-2 focus:border-4 md:hidden"
           type="number"
+          inputMode="decimal"
           value={happiness}
           placeholder=""
           onChange={(e) => {
-            setHappiness(parseFloat(e.target.value));
+            setHappiness(e.target.value)
             if (e.target.value < 0) {
               setHappiness(0);
             }
+            if (e.target.value.length > 3) {
+              setHappiness(e.target.value.toString().substring(0, 3))
+            }
           }}
           onBlur={() => {
-            setHappiness(formatHappinessNum(happiness))
+            if (happiness != 10) {
+              setHappiness(formatHappinessNum(happiness))
+            }
           }}
         />
 

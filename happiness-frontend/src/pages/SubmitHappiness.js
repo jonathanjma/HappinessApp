@@ -116,7 +116,7 @@ export default function SubmitHappiness() {
       setHappiness(formatHappinessNum(happiness));
     }
     postHappinessMutation.mutate({
-      value: happiness,
+      value: formatHappinessNum(happiness),
       comment: comment,
       timestamp: formatDate(dateList[selectedIndex]),
     });
@@ -125,8 +125,11 @@ export default function SubmitHappiness() {
   };
 
   const editHappiness = () => {
+    if (happiness % .5 !== 0) {
+      setHappiness(formatHappinessNum(happiness))
+    }
     editHappinessMutation.mutate({
-      value: happiness,
+      value: formatHappinessNum(happiness),
       comment: comment,
     });
     setPageState(PageState.SUBMITTED);
