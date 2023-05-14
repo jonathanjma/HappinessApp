@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import "../App.css";
 import SubmittedHappinessIcon from "../media/submitted-happiness-icon.svg";
 import EditIcon from "../media/pencil-square-outline-icon.png";
+import TrashIcon from "../media/recycle-bin-line-icon.svg"
 import DynamicSmile from "../components/submitHappiness/DynamicSmile";
 import DateDropdown from "../components/submitHappiness/DateDropdown";
 import { useApi } from "../contexts/ApiProvider";
@@ -53,6 +54,12 @@ export default function SubmitHappiness() {
     },
   });
 
+  const deleteHappinessMutation = useMutation({
+    mutationFn: () => {
+      return api.delete(`/happiness/${happinessId}`);
+    },
+  });
+
   const editHappinessMutation = useMutation({
     mutationFn: (newHappiness) => {
       return api.put(`/happiness/${happinessId}`, newHappiness);
@@ -81,11 +88,14 @@ export default function SubmitHappiness() {
 
   // When they change date we need to check again if happiness is submitted.
   useEffect(() => {
+    console.log("Checking data")
     checkSubmitted();
-  }, [selectedIndex]);
+  }, [selectedIndex, data]);
+
 
   // Logic for checking whether happiness was submitted.
   const checkSubmitted = () => {
+    console.log("Began submitted check")
     if (isLoading) {
       return;
     }
@@ -99,6 +109,7 @@ export default function SubmitHappiness() {
       if (happinessEntry.timestamp === formatDate(dateList[selectedIndex])) {
         setHappiness(happinessEntry.value);
         setComment(happinessEntry.comment);
+        console.log("set happiness id")
         setHappinessId(happinessEntry.id);
         wasFound = true;
         setPageState(PageState.SUBMITTED);
@@ -110,7 +121,7 @@ export default function SubmitHappiness() {
     }
   };
 
-  const submitNewHappiness = () => {
+  const submitNewHappiness = async () => {
     // Weird math but avoids floating point rounding errors (hopefully)
     if (happiness % 0.5 !== 0) {
       setHappiness(formatHappinessNum(happiness));
@@ -120,18 +131,24 @@ export default function SubmitHappiness() {
       comment: comment,
       timestamp: formatDate(dateList[selectedIndex]),
     });
+    console.log("awaiting refetch")
+    await refetch();
+    console.log("Refetched")
     setPageState(PageState.SUBMITTED);
     // submittedDays.push(formatDate(dateList[selectedIndex]));
   };
 
-  const editHappiness = () => {
+  const editHappiness = async () => {
     if (happiness % .5 !== 0) {
       setHappiness(formatHappinessNum(happiness))
     }
-    editHappinessMutation.mutate({
+    await editHappinessMutation.mutate({
       value: formatHappinessNum(happiness),
       comment: comment,
     });
+    console.log("awaiting refetch")
+    await refetch();
+    console.log("refetched")
     setPageState(PageState.SUBMITTED);
   };
 
@@ -158,6 +175,18 @@ export default function SubmitHappiness() {
       />
     );
   };
+
+  const DeleteButton = () => {
+    return (
+      <img src={TrashIcon} className="bg-white p-2 ml-3 rounded-md hover:scale-110 hover:shadow-xl duration-100 hover:cursor-pointer border-2 border-solid" width={50} height={50} onClick={async () => {
+        console.log(`delete happiness ${happinessId}`)
+        await deleteHappinessMutation.mutate();
+        console.log("Finished deleting, refetching")
+        await refetch();
+        console.log("finished refetching.")
+      }} />
+    )
+  }
 
   if (isLoading) {
     return (
@@ -192,6 +221,7 @@ export default function SubmitHappiness() {
               dateList={dateList}
             />
             <EditButton />
+            <DeleteButton />
           </div>
           {/* Items */}
           <div className="flex flex-col justify-center items-center">
@@ -246,6 +276,7 @@ export default function SubmitHappiness() {
               dateList={dateList}
             />
             <EditButton />
+            <DeleteButton />
           </div>
           <HappinessEditor
             happiness={happiness}
