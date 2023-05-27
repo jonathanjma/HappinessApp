@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 
 import "../App.css";
 import SubmittedHappinessIcon from "../media/submitted-happiness-icon.svg";
@@ -12,6 +12,27 @@ import { useUser } from "../contexts/UserProvider";
 import { Spinner } from "react-bootstrap";
 import { PageState } from "../keys";
 import HappinessEditor from "../components/submitHappiness/HappinessEditor";
+import ConfirmModal from "../components/ConfirmModal";
+
+const ACTIONS = {
+  SUBMIT_HAPPINESS: "submit",
+  EDIT_HAPPINESS: "edit",
+  DELETE_HAPPINESS: "delete",
+}
+
+function reducer(happiness, action) {
+  switch (action) {
+    case ACTIONS.SUBMIT_HAPPINESS:
+      return happiness // TODO
+    case ACTIONS.EDIT_HAPPINESS:
+      return happiness // TODO
+    case ACTIONS.DELETE_HAPPINESS:
+      return happiness // TODO
+    default:
+      return happiness
+  }
+}
+
 
 export default function SubmitHappiness() {
   // happiness represents how happy the user is on a scale of 0 to 10.
@@ -22,12 +43,15 @@ export default function SubmitHappiness() {
   const dateList = [];
   initializeDateList(dateList);
 
+  // const [happiness, dispatch] = useReducer(reducer, [])
+
   const [pageState, setPageState] = useState(PageState.UNSUBMITTED);
   const [happiness, setHappiness] = useState(5.0);
   const [comment, setComment] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [preEditHappiness, setPreEditHappiness] = useState(0);
-  const [happinessId, setHappinessId] = useState(0);
+  const [happinessId, setHappinessId] = useState(-1);
+  const [confirmDeleteShowing, setConfirmDeleteShowing] = useState(false)
   // When the user submits a day, we will store locally the submitted days so the UI can update accordingly.
   // This only stores submitted days in current session, when user refreshes the query will run again anyway.
   // const [submittedDays, setSubmittedDays] = useState([]);
@@ -177,14 +201,34 @@ export default function SubmitHappiness() {
   };
 
   const DeleteButton = () => {
+    const formatFullDate = (date) => {
+      const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+    }
     return (
-      <img src={TrashIcon} className="bg-white p-2 ml-3 rounded-md hover:scale-110 hover:shadow-xl duration-100 hover:cursor-pointer border-2 border-solid" width={50} height={50} onClick={async () => {
-        console.log(`delete happiness ${happinessId}`)
-        await deleteHappinessMutation.mutate();
-        console.log("Finished deleting, refetching")
-        await refetch();
-        console.log("finished refetching.")
-      }} />
+      <>
+        <img src={TrashIcon} className="bg-white p-2 ml-3 rounded-md hover:scale-110 hover:shadow-xl duration-100 hover:cursor-pointer border-2 border-solid" width={50} height={50} onClick={() => {
+          setConfirmDeleteShowing(true)
+        }} />
+        <ConfirmModal
+          heading={<div className="font-semibold font-sans text-2xl">Are you sure you want to continue?</div>}
+          body={<>
+            <p>
+              You are deleting happiness for {" "}
+              <b>{`${formatFullDate(dateList[selectedIndex])}`}</b>
+
+            </p>
+          </>}
+          show={confirmDeleteShowing}
+          setShow={setConfirmDeleteShowing}
+          onConfirm={async () => {
+            console.log("Deleting happiness")
+            await deleteHappinessMutation.mutate();
+            refetch();
+          }}
+        />
+      </>
+
     )
   }
 
