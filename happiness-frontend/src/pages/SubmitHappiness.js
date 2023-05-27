@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 
 import "../App.css";
 import SubmittedHappinessIcon from "../media/submitted-happiness-icon.svg";
 import EditIcon from "../media/pencil-square-outline-icon.png";
+import TrashIcon from "../media/recycle-bin-line-icon.svg"
 import DynamicSmile from "../components/submitHappiness/DynamicSmile";
 import DateDropdown from "../components/submitHappiness/DateDropdown";
 import { useApi } from "../contexts/ApiProvider";
@@ -11,6 +12,27 @@ import { useUser } from "../contexts/UserProvider";
 import { Spinner } from "react-bootstrap";
 import { PageState } from "../keys";
 import HappinessEditor from "../components/submitHappiness/HappinessEditor";
+import ConfirmModal from "../components/ConfirmModal";
+
+const ACTIONS = {
+  SUBMIT_HAPPINESS: "submit",
+  EDIT_HAPPINESS: "edit",
+  DELETE_HAPPINESS: "delete",
+}
+
+function reducer(happiness, action) {
+  switch (action) {
+    case ACTIONS.SUBMIT_HAPPINESS:
+      return happiness // TODO
+    case ACTIONS.EDIT_HAPPINESS:
+      return happiness // TODO
+    case ACTIONS.DELETE_HAPPINESS:
+      return happiness // TODO
+    default:
+      return happiness
+  }
+}
+
 
 export default function SubmitHappiness() {
   // happiness represents how happy the user is on a scale of 0 to 10.
@@ -21,12 +43,15 @@ export default function SubmitHappiness() {
   const dateList = [];
   initializeDateList(dateList);
 
+  // const [happiness, dispatch] = useReducer(reducer, [])
+
   const [pageState, setPageState] = useState(PageState.UNSUBMITTED);
   const [happiness, setHappiness] = useState(5.0);
   const [comment, setComment] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [preEditHappiness, setPreEditHappiness] = useState(0);
-  const [happinessId, setHappinessId] = useState(0);
+  const [happinessId, setHappinessId] = useState(-1);
+  const [confirmDeleteShowing, setConfirmDeleteShowing] = useState(false)
   // When the user submits a day, we will store locally the submitted days so the UI can update accordingly.
   // This only stores submitted days in current session, when user refreshes the query will run again anyway.
   // const [submittedDays, setSubmittedDays] = useState([]);
@@ -50,6 +75,12 @@ export default function SubmitHappiness() {
   const postHappinessMutation = useMutation({
     mutationFn: (newHappiness) => {
       return api.post("/happiness/", newHappiness);
+    },
+  });
+
+  const deleteHappinessMutation = useMutation({
+    mutationFn: () => {
+      return api.delete(`/happiness/${happinessId}`);
     },
   });
 
@@ -81,11 +112,14 @@ export default function SubmitHappiness() {
 
   // When they change date we need to check again if happiness is submitted.
   useEffect(() => {
+    console.log("Checking data")
     checkSubmitted();
-  }, [selectedIndex]);
+  }, [selectedIndex, data]);
+
 
   // Logic for checking whether happiness was submitted.
   const checkSubmitted = () => {
+    console.log("Began submitted check")
     if (isLoading) {
       return;
     }
@@ -99,6 +133,7 @@ export default function SubmitHappiness() {
       if (happinessEntry.timestamp === formatDate(dateList[selectedIndex])) {
         setHappiness(happinessEntry.value);
         setComment(happinessEntry.comment);
+        console.log("set happiness id")
         setHappinessId(happinessEntry.id);
         wasFound = true;
         setPageState(PageState.SUBMITTED);
@@ -110,7 +145,7 @@ export default function SubmitHappiness() {
     }
   };
 
-  const submitNewHappiness = () => {
+  const submitNewHappiness = async () => {
     // Weird math but avoids floating point rounding errors (hopefully)
     if (happiness % 0.5 !== 0) {
       setHappiness(formatHappinessNum(happiness));
@@ -120,18 +155,24 @@ export default function SubmitHappiness() {
       comment: comment,
       timestamp: formatDate(dateList[selectedIndex]),
     });
+    console.log("awaiting refetch")
+    await refetch();
+    console.log("Refetched")
     setPageState(PageState.SUBMITTED);
     // submittedDays.push(formatDate(dateList[selectedIndex]));
   };
 
-  const editHappiness = () => {
+  const editHappiness = async () => {
     if (happiness % .5 !== 0) {
       setHappiness(formatHappinessNum(happiness))
     }
-    editHappinessMutation.mutate({
+    await editHappinessMutation.mutate({
       value: formatHappinessNum(happiness),
       comment: comment,
     });
+    console.log("awaiting refetch")
+    await refetch();
+    console.log("refetched")
     setPageState(PageState.SUBMITTED);
   };
 
@@ -158,6 +199,38 @@ export default function SubmitHappiness() {
       />
     );
   };
+
+  const DeleteButton = () => {
+    const formatFullDate = (date) => {
+      const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+    }
+    return (
+      <>
+        <img src={TrashIcon} className="bg-white p-2 ml-3 rounded-md hover:scale-110 hover:shadow-xl duration-100 hover:cursor-pointer border-2 border-solid" width={50} height={50} onClick={() => {
+          setConfirmDeleteShowing(true)
+        }} />
+        <ConfirmModal
+          heading={<div className="font-semibold font-sans text-2xl">Are you sure you want to continue?</div>}
+          body={<>
+            <p>
+              You are deleting happiness for {" "}
+              <b>{`${formatFullDate(dateList[selectedIndex])}`}</b>
+
+            </p>
+          </>}
+          show={confirmDeleteShowing}
+          setShow={setConfirmDeleteShowing}
+          onConfirm={async () => {
+            console.log("Deleting happiness")
+            await deleteHappinessMutation.mutate();
+            refetch();
+          }}
+        />
+      </>
+
+    )
+  }
 
   if (isLoading) {
     return (
@@ -192,6 +265,7 @@ export default function SubmitHappiness() {
               dateList={dateList}
             />
             <EditButton />
+            <DeleteButton />
           </div>
           {/* Items */}
           <div className="flex flex-col justify-center items-center">
@@ -246,6 +320,7 @@ export default function SubmitHappiness() {
               dateList={dateList}
             />
             <EditButton />
+            <DeleteButton />
           </div>
           <HappinessEditor
             happiness={happiness}
