@@ -14,25 +14,6 @@ import { PageState } from "../keys";
 import HappinessEditor from "../components/submitHappiness/HappinessEditor";
 import ConfirmModal from "../components/ConfirmModal";
 
-const ACTIONS = {
-  SUBMIT_HAPPINESS: "submit",
-  EDIT_HAPPINESS: "edit",
-  DELETE_HAPPINESS: "delete",
-}
-
-function reducer(happiness, action) {
-  switch (action) {
-    case ACTIONS.SUBMIT_HAPPINESS:
-      return happiness // TODO
-    case ACTIONS.EDIT_HAPPINESS:
-      return happiness // TODO
-    case ACTIONS.DELETE_HAPPINESS:
-      return happiness // TODO
-    default:
-      return happiness
-  }
-}
-
 
 export default function SubmitHappiness() {
   // happiness represents how happy the user is on a scale of 0 to 10.
@@ -43,15 +24,14 @@ export default function SubmitHappiness() {
   const dateList = [];
   initializeDateList(dateList);
 
-  // const [happiness, dispatch] = useReducer(reducer, [])
-
   const [pageState, setPageState] = useState(PageState.UNSUBMITTED);
   const [happiness, setHappiness] = useState(5.0);
   const [comment, setComment] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [preEditHappiness, setPreEditHappiness] = useState(0);
   const [happinessId, setHappinessId] = useState(-1);
-  const [confirmDeleteShowing, setConfirmDeleteShowing] = useState(false)
+  const [confirmDeleteShowing, setConfirmDeleteShowing] = useState(false);
+  const [confirmSubmitShowing, setConfirmSubmitShowing] = useState(false);
   // When the user submits a day, we will store locally the submitted days so the UI can update accordingly.
   // This only stores submitted days in current session, when user refreshes the query will run again anyway.
   // const [submittedDays, setSubmittedDays] = useState([]);
@@ -102,13 +82,13 @@ export default function SubmitHappiness() {
   // Checks if happiness is submitted after the query is finished
   useEffect(() => {
     if (isError) {
-      return;
+      setPageState(PageState.ERROR);
     }
     if (isLoading) {
-      return;
+      setPageState(PageState.LOADING);
     }
     checkSubmitted();
-  }, [isLoading]);
+  }, [isLoading, isError]);
 
   // When they change date we need to check again if happiness is submitted.
   useEffect(() => {
@@ -119,7 +99,6 @@ export default function SubmitHappiness() {
 
   // Logic for checking whether happiness was submitted.
   const checkSubmitted = () => {
-    console.log("Began submitted check")
     if (isLoading) {
       return;
     }
@@ -145,6 +124,20 @@ export default function SubmitHappiness() {
     }
   };
 
+  useEffect(() => {
+    async function updateScreen() {
+      if (postHappinessMutation.isSuccess || editHappinessMutation.isSuccess
+        || deleteHappinessMutation.isSuccess) {
+        setPageState(PageState.LOADING);
+        await refetch();
+        checkSubmitted();
+        setPageState(PageState.SUBMITTED);
+      }
+    }
+    updateScreen();
+  }, [postHappinessMutation.isSuccess, editHappinessMutation.isSuccess, deleteHappinessMutation.isSuccess])
+  // TODO happiness id's are not being updated properly, causing delete
+  // request to try to delete the wrong id
   const submitNewHappiness = async () => {
     // Weird math but avoids floating point rounding errors (hopefully)
     if (happiness % 0.5 !== 0) {
@@ -155,25 +148,16 @@ export default function SubmitHappiness() {
       comment: comment,
       timestamp: formatDate(dateList[selectedIndex]),
     });
-    console.log("awaiting refetch")
-    await refetch();
-    console.log("Refetched")
-    setPageState(PageState.SUBMITTED);
-    // submittedDays.push(formatDate(dateList[selectedIndex]));
   };
 
   const editHappiness = async () => {
     if (happiness % .5 !== 0) {
       setHappiness(formatHappinessNum(happiness))
     }
-    await editHappinessMutation.mutate({
+    editHappinessMutation.mutate({
       value: formatHappinessNum(happiness),
       comment: comment,
     });
-    console.log("awaiting refetch")
-    await refetch();
-    console.log("refetched")
-    setPageState(PageState.SUBMITTED);
   };
 
   const EditButton = () => {
@@ -201,10 +185,7 @@ export default function SubmitHappiness() {
   };
 
   const DeleteButton = () => {
-    const formatFullDate = (date) => {
-      const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
-      return date.toLocaleDateString('en-US', options);
-    }
+
     return (
       <>
         <img src={TrashIcon} className="bg-white p-2 ml-3 rounded-md hover:scale-110 hover:shadow-xl duration-100 hover:cursor-pointer border-2 border-solid" width={50} height={50} onClick={() => {
@@ -223,8 +204,10 @@ export default function SubmitHappiness() {
           setShow={setConfirmDeleteShowing}
           onConfirm={async () => {
             console.log("Deleting happiness")
-            await deleteHappinessMutation.mutate();
-            refetch();
+            deleteHappinessMutation.mutate();
+            setPageState(PageState.LOADING)
+            await refetch();
+            setPageState(PageState.UNSUBMITTED);
           }}
         />
       </>
@@ -286,6 +269,7 @@ export default function SubmitHappiness() {
             happiness
           )}`}
         >
+
           <div className="flex items-center">
             <DateDropdown
               selectedIndex={selectedIndex}
@@ -301,7 +285,29 @@ export default function SubmitHappiness() {
             pageMessage={"How are you feeling today?"}
             pageState={pageState}
             setPageState={setPageState}
-            onSubmitClick={submitNewHappiness}
+            onSubmitClick={() => {
+              const hours = (new Date()).getHours();
+              if (hours < 11 && selectedIndex === 0) {
+                setConfirmSubmitShowing(true);
+              } else {
+                submitNewHappiness();
+              }
+            }}
+          />
+          <ConfirmModal
+            heading={<div className="font-semibold font-sans text-2xl">Are you sure you want to continue?</div>}
+            body={<>
+              <p>
+                You are already submitting happiness at
+                {`${(new Date()).getHours() === 0 ? ` 12:${(new Date().getMinutes())} AM ` : ` ${(new Date()).getHours()}:${new Date().getMinutes()} AM `}`}
+                for <br /> <b>{`${formatFullDate(dateList[selectedIndex])}`}</b> . Are you sure?
+              </p>
+            </>}
+            show={confirmSubmitShowing}
+            setShow={setConfirmSubmitShowing}
+            onConfirm={async () => {
+              submitNewHappiness();
+            }}
           />
         </div>
       );
@@ -334,6 +340,7 @@ export default function SubmitHappiness() {
           />
         </div>
       );
+    default: <>Error: you weren't supposed to see this. Screenshot this and send to the devs :/</>
   }
 }
 
@@ -342,6 +349,10 @@ function formatDate(date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+const formatFullDate = (date) => {
+  const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
 }
 
 function initializeDateList(dateList) {
