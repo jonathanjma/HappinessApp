@@ -197,7 +197,7 @@ class Token(db.Model):
         """
         self.user_id = kwargs.get("user_id")
         self.session_token = hashlib.sha1(os.urandom(64)).hexdigest()
-        self.session_expiration = datetime.utcnow() + timedelta(weeks=1)
+        self.session_expiration = datetime.utcnow() + timedelta(weeks=3)
 
     def verify(self):
         """
