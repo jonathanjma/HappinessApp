@@ -43,7 +43,7 @@ export default function Header() {
               <NavDropdown.Item as={NavLink} to={"/profile/" + me.id}>
                 Profile
               </NavDropdown.Item>
-              <NavDropdown.Item as={NavLink} to="/history">
+              <NavDropdown.Item as={NavLink} to={"/history/" + me.id}>
                 History
               </NavDropdown.Item>
               <NavDropdown.Divider />

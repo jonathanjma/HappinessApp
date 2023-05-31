@@ -34,11 +34,12 @@ export default function Profile() {
     api.get("/user/" + userID).then((res) => res.data)
   );
 
-  // gets user groups (only if viewing own profile)
+  // gets user groups (only shown if viewing own profile)
   const {
     isLoading: isLoadingUG,
     data: dataUG,
     error: errorUG,
+    refetch: refetchUG,
   } = useQuery("get user groups", () =>
     api.get("/user/groups").then((res) => res.data)
   );
@@ -48,9 +49,8 @@ export default function Profile() {
 
   // refetches user when ID changed
   useEffect(() => {
-    refetchU();
-    refetchH();
-    refetchC();
+    console.log("refetching!!");
+    refetchU().then(refetchH()).then(refetchC()).then(refetchUG());
   }, [userID]);
 
   console.log(user);
@@ -224,7 +224,7 @@ export default function Profile() {
                     <>
                       <Histories dataList={dataC} userList={[user]} />
                       <div className="m-3 flex justify-center">
-                        <Link to="/history">
+                        <Link to={"/history/" + userID}>
                           <Button variant="outline-secondary">show all</Button>
                         </Link>
                       </div>

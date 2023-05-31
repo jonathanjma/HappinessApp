@@ -98,7 +98,7 @@ export default function App() {
                         }
                       />
                       <Route
-                        path="/history"
+                        path="/history/:userID"
                         element={
                           <div className={bgStyle}>
                             <History />
