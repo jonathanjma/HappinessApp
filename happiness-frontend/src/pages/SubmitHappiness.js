@@ -137,8 +137,6 @@ export default function SubmitHappiness() {
     }
     updateScreen();
   }, [postHappinessMutation.isSuccess, editHappinessMutation.isSuccess, deleteHappinessMutation.isSuccess])
-  // TODO happiness id's are not being updated properly, causing delete
-  // request to try to delete the wrong id
   const submitNewHappiness = async () => {
     // Weird math but avoids floating point rounding errors (hopefully)
     if (happiness % 0.5 !== 0) {

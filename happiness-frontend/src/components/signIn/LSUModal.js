@@ -4,7 +4,7 @@ import LSUForm from "./LSUForm";
 
 export default function LSUModal() {
   const [show, setShow] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(true); //TODO use this
+  const [isLoggingIn, setIsLoggingIn] = useState(true);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -45,7 +45,7 @@ export default function LSUModal() {
           <LSUForm isLoggingIn={isLoggingIn} />
         </Modal.Body>
         <Modal.Footer>
-          <a className="mr-auto underline" onClick={() => {}} href={"/reset-pass"}>
+          <a className="mr-auto underline" onClick={() => { }} href={"/reset-pass"}>
             Forgot your password?
           </a>
           <button
