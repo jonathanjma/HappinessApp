@@ -1,13 +1,12 @@
 from apifairy import authenticate, response, other_responses
-from flask import Blueprint
-from flask import current_app
+from flask import Blueprint, request
 from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
-from api.users_dao import get_user_by_username
-from itsdangerous import URLSafeTimedSerializer
+
+from api.responses import failure_response
+from api.users_dao import get_user_by_username, get_user_by_id, get_token
 
 from api.app import db
 from api.errors import error_response
-from api.models import User
 from api.schema import TokenSchema
 
 token = Blueprint('token', __name__)
@@ -32,9 +31,9 @@ def basic_auth_error(status):
 @token_auth.verify_token
 def verify_token(session_token):
     if session_token:
-        user = User.query.filter_by(session_token=session_token).first()
-        if user and user.verify_session_token():
-            return user
+        token = get_token(session_token)
+        if token and token.verify():
+            return get_user_by_id(token.user_id)
 
 
 @token_auth.error_handler
@@ -45,29 +44,31 @@ def token_auth_error(status):
 @token.post('/')
 @authenticate(basic_auth)
 @response(TokenSchema)
-@other_responses({401: "Unauthorized"})
-def get_token():
+def new_token():
     """
     Get Token
-    Creates a session token for a user to access the Happiness App API. (Logs them in) \n
+    Creates a new session token for a user to access the Happiness App API. (Logs them in) \n
     Returns: a new session token for the user
     """
-
-    session_token = basic_auth.current_user().get_token()
+    token = basic_auth.current_user().create_token()
+    db.session.add(token)
     db.session.commit()
 
-    return {'session_token': session_token}, 201
+    return token, 201
 
 
 @token.delete('/')
 @authenticate(token_auth)
+@other_responses({401: "Invalid token"})
 def revoke_token():
     """
     Revoke Token
     Expires a user's API access token. Equivalent to "logging out".
     """
+    token = get_token(request.headers['Authorization'].split()[1])
+    if token and token.user_id == token_auth.current_user().id:
+        token.revoke()
+        db.session.commit()
+        return '', 204
 
-    token_auth.current_user().revoke_token()
-    db.session.commit()
-
-    return '', 204
+    return failure_response('Invalid token', 401)
