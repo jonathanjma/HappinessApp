@@ -288,7 +288,7 @@ export default function SubmitHappiness() {
             setPageState={setPageState}
             onSubmitClick={() => {
               const hours = (new Date()).getHours();
-              if (hours < 24 && selectedIndex === 0) {
+              if (hours < 12 && selectedIndex === 0) {
                 setConfirmSubmitShowing(true);
               } else {
                 submitNewHappiness();
