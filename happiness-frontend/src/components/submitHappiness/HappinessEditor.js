@@ -91,7 +91,7 @@ export default function HappinessEditor(props) {
           id="large-input"
           value={comment}
           className={`md:w-5/12 w-3/4 px-4 py-2 bg-gray-200 rounded mt-10 border-raisin-100 outline-none focus:border-raisin-200 border-2 focus:border-4 text-left`}
-          style={{ height: `${commentBox.current == undefined ? 60 : Math.max(commentBox.current.scrollHeight, 60)}px`, scrollbarColor: "#9191b6" }}
+          style={{ height: `${commentBox.current == undefined ? 100 : Math.max(commentBox.current.scrollHeight, `100`)}px`, scrollbarColor: "#9191b6" }}
           placeholder="Add a comment about the day, briefly summaring the main events"
           onChange={(e) => {
             setComment(e.target.value);

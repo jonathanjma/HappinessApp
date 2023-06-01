@@ -121,6 +121,7 @@ export default function SubmitHappiness() {
     if (!wasFound) {
       setPageState(PageState.UNSUBMITTED);
       setHappiness(5);
+      setComment("");
     }
   };
 
@@ -287,7 +288,7 @@ export default function SubmitHappiness() {
             setPageState={setPageState}
             onSubmitClick={() => {
               const hours = (new Date()).getHours();
-              if (hours < 11 && selectedIndex === 0) {
+              if (hours < 24 && selectedIndex === 0) {
                 setConfirmSubmitShowing(true);
               } else {
                 submitNewHappiness();
