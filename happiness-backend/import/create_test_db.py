@@ -5,7 +5,7 @@ import datetime
 import requests
 
 # date of earliest happiness entry
-since = datetime.datetime(2023, 4, 15)
+since = datetime.datetime(2022, 8, 15)
 port=3000
 
 # false: only import happiness
@@ -58,7 +58,7 @@ all_user_data = list(
     filter(lambda x: datetime.datetime.strptime(x['timestamp'], "%Y-%m-%d") >= since,
            all_user_data))
 
-import_data = requests.post('http://localhost:5000/api/happiness/import',
+import_data = requests.post('https://happiness-app-backend.herokuapp.com/api/happiness/import',
                             headers={"Content-Type": "application/json"},
                             data=json.dumps(all_user_data))
 print(import_data.text)
