@@ -1,5 +1,5 @@
 import { useState } from "react";
-import DayPreview from "./DayPreview";
+import DayPreview from "../statGraphs/DayPreview";
 
 export default function HistoryCard({ data, user }) {
   const parts = data.timestamp.split("-");
@@ -12,7 +12,6 @@ export default function HistoryCard({ data, user }) {
         className="w-full justify-center min-h-[100px] max-w-[146px] md:max-w-[230px] mx-2.5 mt-4 bg-cultured-50 rounded-xl shadow-lg space-y-2"
         onClick={() => {
           setDShow(true);
-          console.log("plpl");
         }}
       >
         <div className="flex w-full flex-wrap justify-center items-center bg-buff-300 px-2 py-3 rounded-t-xl h-2/5">
@@ -25,7 +24,7 @@ export default function HistoryCard({ data, user }) {
         <div className="flex w-full flex-wrap justify-center items-center rounded-xl pt-2.5">
           <div className="flex items-center justify-center">
             <p className="text-center text-4xl font-medium text-raisin-600">
-              {data.value}
+              {data.value.toFixed(1)}
             </p>
           </div>
         </div>

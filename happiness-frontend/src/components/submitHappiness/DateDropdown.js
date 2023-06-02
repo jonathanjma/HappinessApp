@@ -8,7 +8,7 @@ export default function DateDropdown(props) {
   return (
     <>
       {/* Header div */}
-      <div className="mr-auto flex flex-col ml-3 mt-3 drop-shadow-md ">
+      <div className="flex flex-col ml-3 mt-3 drop-shadow-md ">
         <div className="h-1/2 w-full bg-red-500 p-2 rounded-t-2xl ">
           <p className="md:text-2xl text-xl text-white text-center font-medium -mb-1">
             {getWeekDay(dateList[props.selectedIndex])}

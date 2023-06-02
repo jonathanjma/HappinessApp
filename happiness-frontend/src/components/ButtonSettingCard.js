@@ -12,13 +12,16 @@ export default function ButtonSettingCard(props) {
       props.isSensitive: tells whether a confirmation should come up before the setting is changed.
       */
   const doAction = () => {
-    switch (props.key) {
+    console.log(`Do action, key is ${props.id}`)
+    switch (props.id) {
       case 7:
         Logout().then(() => {window.location.reload()})
         break
       case 8:
         DeleteUser().then(() => {window.location.reload()})
         break
+      default:
+        console.log("default")
     }
   };
   const clicked = () => {
@@ -27,7 +30,7 @@ export default function ButtonSettingCard(props) {
       confirmAlert({
         title: "Are you sure you want to " + props.name.toLowerCase() + "?",
         message: "This cannot be undone.",
-        buttons: [
+        buttons: [ 
           {
             label: "Yes",
             onClick: doAction,

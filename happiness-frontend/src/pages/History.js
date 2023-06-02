@@ -1,12 +1,12 @@
-import Histories from "../components/Histories";
+import Histories from "../components/happinessHistory/Histories";
 import { Tab } from "@headlessui/react";
 import { useState, Fragment, useEffect } from "react";
-import MonthView from "../components/MonthView";
-import { GetRangeHappiness } from "../components/GetHappinessData";
+import MonthView from "../components/happinessHistory/MonthView";
+import { GetRangeHappiness } from "../components/happinessHistory/GetHappinessData";
 import { useUser } from "../contexts/UserProvider";
 import { Spinner } from "react-bootstrap";
-import Stat from "../components/Stat";
-import BigHistoryCard from "../components/BigHistoryCard";
+import Stat from "../components/statGraphs/Stat";
+import BigHistoryCard from "../components/happinessHistory/BigHistoryCard";
 
 export default function History() {
   const { user: userState } = useUser();
@@ -192,7 +192,7 @@ export default function History() {
                   <div className="font-medium relative w-full text-center text-2xl py-2 my-0 bg-buff-200 max-h-[60px]">
                     <button
                       type="button"
-                      className="absolute top-3 left-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
+                      className="absolute top-3 left-4 w-[50px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
                       onClick={() => {
                         setStMonth((start) => {
                           start.setMonth(start.getMonth() - 1);
@@ -222,7 +222,7 @@ export default function History() {
                     </p>
                     <button
                       type="button"
-                      className="absolute top-3 right-4 w-[40px] md:w-[60px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
+                      className="absolute top-3 right-4 w-[50px] h-[40px] rounded-lg text-cultured-50 bg-raisin-600 text-xl"
                       onClick={() => {
                         setStMonth((st) => {
                           st.setMonth(st.getMonth() + 1);

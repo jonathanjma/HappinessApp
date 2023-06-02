@@ -5,13 +5,17 @@ from flask import json, request
 from api import users_dao
 from api import email_methods
 from api.app import db
+from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
 from api.responses import success_response, failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     UsernameSchema, UserEmailSchema, SimpleUserSchema
 from api.token import token_auth
 
+
 import threading
+
+from sqlalchemy import func
 
 user = Blueprint('user', __name__)
 
@@ -33,8 +37,8 @@ def create_user(req):
     similar_user = users_dao.get_user_by_email(email)
     if similar_user is not None:
         return failure_response("Provided data already exists", 400)
-    similar_user = users_dao.get_user_by_username(username)
-    if similar_user is not None:
+    similar_user2 = users_dao.get_user_by_username(username)
+    if similar_user2 is not None:
         return failure_response("Provide data already exists", 400)
     current_user = User(email=email, password=password, username=username)
     db.session.add(current_user)
@@ -186,7 +190,10 @@ def reset_password(token):
     """
     if request.method == "POST":
         # Reset password to desired password
-        current_user = User.verify_reset_password(token)
+        email = confirm_email_token(token)
+        if email is False:
+            return failure_response("Token expired", 400)
+        current_user = users_dao.get_user_by_email(confirm_email_token(token))
         if not current_user:
             return failure_response("Password reset token verification failed, token may be expired", 401)
 

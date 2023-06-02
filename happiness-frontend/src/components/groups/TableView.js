@@ -1,6 +1,6 @@
 import { useState } from "react";
-import BigHistoryCard from "./BigHistoryCard";
-import { ReturnColor } from "./MonthView";
+import BigHistoryCard from "../happinessHistory/BigHistoryCard";
+import { happinessColor } from "../../pages/SubmitHappiness";
 
 // Sets border styles if table cell marks beginning of new week
 const weekEdge = (isBound) => {
@@ -19,7 +19,7 @@ function TableCell({ entry, setCard, boundary }) {
     <td
       className={
         "border-collapse border-y p-1.5 text-center text-md font-medium text-raisin-600 " +
-        (entry !== undefined ? ReturnColor(entry.value) : "bg-gray-400") +
+        (entry !== undefined ? happinessColor(entry.value) : "bg-gray-400") +
         weekEdge(boundary) +
         (entry !== undefined && entry.comment ? "has_comment" : "")
       }
@@ -173,7 +173,7 @@ export default function TableView({ groupData, happinessData, start, end }) {
                 <td
                   className={
                     "text-center text-md font-medium text-raisin-600 border-collapse p-1.5 " +
-                    (!isNaN(avg) ? ReturnColor(avg) : "bg-gray-400") +
+                    (!isNaN(avg) ? happinessColor(avg) : "bg-gray-400") +
                     weekEdge(weekBounds.includes(date))
                   }
                   key={date}

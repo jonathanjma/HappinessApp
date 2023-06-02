@@ -1,8 +1,7 @@
 import hashlib
 import os
 from datetime import datetime, timedelta
-
-import bcrypt
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from api.app import db
 
@@ -29,15 +28,9 @@ class User(db.Model):
     password = db.Column(db.String, nullable=False)
     created = db.Column(db.DateTime)
     profile_picture = db.Column(db.String, nullable=False)
-    # If the user has not yet set a profile picture the field gets set to "default"
     settings = db.relationship("Setting", cascade="delete")
 
-    # Session information
-    session_token = db.Column(db.String, nullable=False, unique=True)
-    session_expiration = db.Column(db.DateTime, nullable=False)
-
-    groups = db.relationship(
-        "Group", secondary=group_users, back_populates="users")
+    groups = db.relationship("Group", secondary=group_users, back_populates="users")
 
     def __init__(self, **kwargs):
         """
@@ -47,12 +40,10 @@ class User(db.Model):
         self.email = kwargs.get("email")
 
         # Convert raw password into encrypted string that can still be decrypted, but we cannot decrypt it.
-        self.password = bcrypt.hashpw(kwargs.get("password").encode("utf8"),
-                                      bcrypt.gensalt(rounds=13))
+        self.password = generate_password_hash(kwargs.get("password"))
         self.username = kwargs.get("username")
         self.profile_picture = kwargs.get("profile_picture", self.avatar_url())
         self.created = datetime.today()
-        self.get_token()
 
     def avatar_url(self):
         digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
@@ -74,33 +65,16 @@ class User(db.Model):
         """
         Verifies the password of a user
         """
-        return bcrypt.checkpw(password.encode("utf8"), self.password)
+        return check_password_hash(self.password, password)
 
-    def _urlsafe_base_64(self):
-        """
-        Randomly generates hashed tokens (used for session tokens)
-        """
-        return hashlib.sha1(os.urandom(64)).hexdigest()
+    def set_password(self, pwd):
+        self.password = generate_password_hash(pwd)
 
-    def get_token(self):
+    def create_token(self):
         """
         Generates a new session token for a user
         """
-        self.session_token = self._urlsafe_base_64()
-        self.session_expiration = datetime.utcnow() + timedelta(weeks=1)
-        return self.session_token
-
-    def revoke_token(self):
-        """
-        Expires the session token of a user
-        """
-        self.session_expiration = datetime.utcnow() - timedelta(seconds=1)
-
-    def verify_session_token(self):
-        """
-        Verifies the session token of a user
-        """
-        return self.session_expiration > datetime.utcnow()
+        return Token(user_id=self.id)
 
     def has_mutual_group(self, user_to_check):
         """
@@ -162,14 +136,14 @@ class Group(db.Model):
         """
         self.name = kwargs.get("name")
 
-    # TODO error if username not valid
     def add_users(self, new_users):
         """
         Adds users to a group
         Requires a list of usernames to add
+        Users to be added must exist and not already be in the group
         """
         for username in new_users:
-            user = User.query.filter(User.username == username).first()
+            user = User.query.filter(User.username.ilike(username)).first()
             if user is not None and user not in self.users:
                 self.users.append(user)
 
@@ -177,18 +151,12 @@ class Group(db.Model):
         """
         Removes users to a group
         Requires a list of usernames to remove
+        Users to be removed must exist and already be in the group
         """
         for username in users_to_remove:
-            user = User.query.filter(User.username == username).first()
+            user = User.query.filter(User.username.ilike(username)).first()
             if user is not None and user in self.users:
                 self.users.remove(user)
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "users": [u.serialize() for u in self.users]
-        }
 
 
 class Happiness(db.Model):
@@ -199,7 +167,7 @@ class Happiness(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     value = db.Column(db.Float)
-    comment = db.Column(db.String(700))
+    comment = db.Column(db.String)
     timestamp = db.Column(db.DateTime)
 
     def __init__(self, **kwargs):
@@ -211,3 +179,34 @@ class Happiness(db.Model):
         self.value = kwargs.get("value")
         self.comment = kwargs.get("comment")
         self.timestamp = kwargs.get("timestamp")
+
+
+class Token(db.Model):
+    """
+   Model for the token table. Has a many-to-one relationship with users table.
+   """
+    __tablename__ = "token"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    session_token = db.Column(db.String, nullable=False, unique=True)
+    session_expiration = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, **kwargs):
+        """
+        Generates a new session token for a user
+        """
+        self.user_id = kwargs.get("user_id")
+        self.session_token = hashlib.sha1(os.urandom(64)).hexdigest()
+        self.session_expiration = datetime.utcnow() + timedelta(weeks=3)
+
+    def verify(self):
+        """
+        Verifies a user's session token
+        """
+        return self.session_expiration > datetime.utcnow()
+
+    def revoke(self):
+        """
+        Expires a user's session token
+        """
+        self.session_expiration = datetime.utcnow() - timedelta(seconds=1)

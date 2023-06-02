@@ -1,12 +1,12 @@
 import { useParams } from "react-router-dom";
 import { Fragment, useEffect, useState } from "react";
 import { Tab } from "@headlessui/react";
-import GroupManage from "../components/GroupManage";
+import GroupManage from "../components/groups/GroupManage";
 import { useApi } from "../contexts/ApiProvider";
 import { useQuery } from "react-query";
-import TableView from "../components/TableView";
-import GroupStats from "../components/GroupStats";
-import { GetRangeHappiness } from "../components/GetHappinessData";
+import TableView from "../components/groups/TableView";
+import GroupStats from "../components/groups/GroupStats";
+import { GetRangeHappiness } from "../components/happinessHistory/GetHappinessData";
 import { Spinner } from "react-bootstrap";
 
 function TabButton({ text }) {
@@ -29,7 +29,14 @@ function TabButton({ text }) {
 }
 
 // Title for tab with buttons to change the currently viewed time range
-function TimeButtonTitle({ text, radioValue, setStart, setEnd }) {
+// size is the text size of the main tab
+export function TimeButtonTitle({
+  text,
+  radioValue,
+  setStart,
+  setEnd,
+  size = "sm:text-3xl text-2xl",
+}) {
   return (
     <div className="flex items-center justify-center">
       {/* View earlier time period button */}
@@ -58,9 +65,7 @@ function TimeButtonTitle({ text, radioValue, setStart, setEnd }) {
         &lt;
       </button>
       {/* Title text */}
-      <p className="lg:text-3xl text-2xl font-medium m-3 text-raisin-600">
-        {text}
-      </p>
+      <p className={"font-medium m-3 text-raisin-600 " + size}>{text}</p>
       {/* View later time period button */}
       <button
         type="button"

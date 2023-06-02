@@ -22,7 +22,7 @@ def upgrade():
                               autoincrement=True, nullable=False),
                     sa.Column('user_id', sa.Integer(), nullable=True),
                     sa.Column('value', sa.Float(), nullable=True),
-                    sa.Column('comment', sa.String(length=700), nullable=True),
+                    sa.Column('comment', sa.String(), nullable=True),
                     sa.Column('timestamp', sa.DateTime(), nullable=True),
                     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
                     sa.PrimaryKeyConstraint('id')

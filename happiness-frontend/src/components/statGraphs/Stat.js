@@ -17,7 +17,7 @@ export default function Stat(props) {
         vals.push(e);
       }
     });
-    vals.sort();
+    vals.sort((a, b) => a - b);
     return vals;
   }
   const vals = getSortedVals(props.data);
@@ -31,12 +31,12 @@ export default function Stat(props) {
   function median(vals) {
     if (vals.length % 2 === 0) {
       return (
-        (vals[Math.round(vals.length / 2) - 1] +
-          vals[Math.round(vals.length / 2)]) /
+        (vals[Math.floor(vals.length / 2) - 1] +
+          vals[Math.floor(vals.length / 2)]) /
         2
       );
     }
-    return vals[Math.round(vals.length / 2)];
+    return vals[Math.floor(vals.length / 2)];
   }
   function mode(vals) {
     let max = 0,
@@ -89,12 +89,12 @@ export default function Stat(props) {
   }
 
   let calcs = {
-    mean: mean(vals),
-    median: median(vals),
-    mode: mode(vals),
-    stdev: stdev(vals),
-    min: min(vals),
-    max: max(vals),
+    mean: mean(vals).toFixed(2),
+    median: median(vals).toFixed(2),
+    mode: mode(vals).toFixed(1),
+    stdev: stdev(vals).toFixed(2),
+    min: min(vals).toFixed(1),
+    max: max(vals).toFixed(1),
   };
 
   let val = Object.keys(trans)[props.val];

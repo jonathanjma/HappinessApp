@@ -14,6 +14,7 @@ from gspread.utils import column_letter_to_index, ExportFormat
 # -------------------------------------------------------
 # alex, zach, me, aaron, steven, sasha, andrew, rushika
 # import_config = [(1, (4, 4)), (2, (8, 8)), (3, (10, 10)), (8, (5, 5)), (7, (6, 6)), (38, (None, 16)), (11, (9, 9)), (53, (None, 14))]
+import_config = []
 cornell_sheet = True
 
 # toucansandfish, ansh, justin

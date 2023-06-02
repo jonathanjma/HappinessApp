@@ -65,7 +65,7 @@ export default function ChartPreview({
                           as="h3"
                           className="flex w-full justify-center font-medium text-xl leading-6 text-raisin-600"
                         >
-                          Graph
+                          {chartData.time} Happiness
                         </Dialog.Title>
                         <div className="flex w-full justify-center min-h-[400px] md:min-h-[450px] mt-2">
                           <LineChart

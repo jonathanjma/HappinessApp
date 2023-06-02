@@ -14,12 +14,14 @@ import UserProvider from "./contexts/UserProvider";
 import PrivateRoute from "./components/PrivateRoute";
 import PublicRoute from "./components/PublicRoute";
 import SubmitHappiness from "./pages/SubmitHappiness";
+import RequestResetPassword from "./pages/authentication/RequestResetPassword";
+import ResetPassword from "./pages/authentication/ResetPassword";
 
 export default function App() {
-  const bgStyle = "max-w-7xl mx-auto min-h-screen px-3 py-2";
+  const bgStyle = "max-w-7xl mx-auto px-3 py-2";
 
   return (
-    <Container fluid className="App bg-buff-50">
+    <Container fluid className="App bg-buff-50 min-h-screen">
       <BrowserRouter>
         <ApiProvider>
           <UserProvider>
@@ -29,6 +31,22 @@ export default function App() {
                 element={
                   <PublicRoute>
                     <Welcome />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/reset-pass"
+                element={
+                  <PublicRoute>
+                    <RequestResetPassword newPassword={false} />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/reset-pass/change-pass/:token"
+                element={
+                  <PublicRoute>
+                    <ResetPassword newPassword={true} />
                   </PublicRoute>
                 }
               />
@@ -87,7 +105,6 @@ export default function App() {
                           </div>
                         }
                       />
-
                       <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                   </PrivateRoute>
