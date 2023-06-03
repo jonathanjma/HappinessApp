@@ -298,8 +298,8 @@ export default function SubmitHappiness() {
             body={<>
               <p>
                 You are already submitting happiness at
-                {`${(new Date()).getHours() === 0 ? ` 12:${(new Date().getMinutes())} AM ` : ` ${(new Date()).getHours()}:${new Date().getMinutes()} AM `}`}
-                for <br /> <b>{`${formatFullDate(dateList[selectedIndex])}`}</b> . Are you sure?
+                {`${(new Date()).getHours() === 0 ? ` 12:${(new Date().getMinutes()).toString().padStart(2, '0')} AM ` : ` ${(new Date()).getHours()}:${new Date().getMinutes().toString().padStart(2, '0')} AM `}`}
+                for <b>{`${formatFullDate(dateList[selectedIndex])}`}</b> . Are you sure?
               </p>
             </>}
             show={confirmSubmitShowing}
