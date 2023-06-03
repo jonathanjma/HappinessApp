@@ -13,6 +13,13 @@ group_users = db.Table(
     db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
 )
 
+# Group Invites association table
+group_invites = db.Table(
+    "group_invites",
+    db.Model.metadata,
+    db.Column("group_id", db.Integer, db.ForeignKey("group.id", ondelete='cascade')),
+    db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
+)
 
 class User(db.Model):
     """
@@ -30,6 +37,7 @@ class User(db.Model):
     settings = db.relationship("Setting", cascade="delete")
 
     groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
+    invites = db.relationship("Group", secondary=group_invites, back_populates="pending_users")
 
     def __init__(self, **kwargs):
         """
@@ -47,18 +55,6 @@ class User(db.Model):
     def avatar_url(self):
         digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
         return f'https://www.gravatar.com/avatar/{digest}?d=identicon'
-
-    def serialize(self):
-        """
-        Serializes user object into readable JSON.
-        Omits email password, and session information for security reasons
-        """
-        return {
-            "id": self.id,
-            "username": self.username,
-            "profile picture": self.profile_picture,
-            "settings": [setting.serialize() for setting in self.settings]
-        }
 
     def verify_password(self, password):
         """
@@ -105,17 +101,6 @@ class Setting(db.Model):
         self.value = kwargs.get("value")
         self.user_id = kwargs.get("user_id")
 
-    def serialize(self):
-        """
-        Serializes a user settings object for returning JSON
-        """
-        return {
-            "id": self.id,
-            "key": self.key,
-            "value": self.value,
-            "user_id": self.user_id,
-        }
-
 
 class Group(db.Model):
     """
@@ -124,12 +109,14 @@ class Group(db.Model):
     __tablename__ = "group"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
+
     users = db.relationship("User", secondary=group_users, back_populates="groups")
+    pending_users = db.relationship("User", secondary=group_invites, back_populates="invites")
 
     def __init__(self, **kwargs):
         """
         Initializes a group.
-        Requires that kwargs argument name
+        Requires that kwargs contains name
         """
         self.name = kwargs.get("name")
 

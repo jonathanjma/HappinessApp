@@ -3,6 +3,8 @@ from marshmallow import post_dump
 from api.app import ma
 from api.models import User, Group, Happiness, Setting
 
+class EmptySchema(ma.Schema):
+    pass
 
 class SettingsSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -42,25 +44,23 @@ class SimpleUserSchema(ma.Schema):
     profile_picture = ma.Str(required=True)
 
 class TokenSchema(ma.Schema):
-    session_token = ma.Str()
+    session_token = ma.Str(required=True)
 
 
 class UsernameSchema(ma.Schema):
-    username = ma.Str()
+    username = ma.Str(required=True)
 
 
-class UserEmailSchema(ma.Schema):
-    email = ma.Email()  # This is probably bad practice (I am still learning)
+class PasswordResetReqSchema(ma.Schema):
+    email = ma.Email(required=True)  # This is probably bad practice (I am still learning)
 
+class PasswordResetSchema(ma.Schema):
+    password = ma.Str(required=True)
 
 class CreateUserSchema(ma.Schema):
     email = ma.Str(required=True)
     username = ma.Str(required=True)
     password = ma.Str(required=True)
-
-
-class GetUserByIdSchema(ma.Schema):
-    id = ma.Integer()
 
 
 class GroupSchema(ma.SQLAlchemySchema):
