@@ -2,6 +2,7 @@ from apifairy import authenticate, response, other_responses
 from flask import Blueprint, request
 from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 
+from api.models import Token
 from api.responses import failure_response
 from api.users_dao import get_user_by_username, get_user_by_id, get_token
 
@@ -52,6 +53,7 @@ def new_token():
     """
     token = basic_auth.current_user().create_token()
     db.session.add(token)
+    Token.clean()
     db.session.commit()
 
     return token, 201

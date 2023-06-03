@@ -9,8 +9,7 @@ from api.app import db
 group_users = db.Table(
     "group_users",
     db.Model.metadata,
-    db.Column("group_id", db.Integer, db.ForeignKey(
-        "group.id", ondelete='cascade')),
+    db.Column("group_id", db.Integer, db.ForeignKey("group.id", ondelete='cascade')),
     db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
 )
 
@@ -30,7 +29,7 @@ class User(db.Model):
     profile_picture = db.Column(db.String, nullable=False)
     settings = db.relationship("Setting", cascade="delete")
 
-    groups = db.relationship("Group", secondary=group_users, back_populates="users")
+    groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
 
     def __init__(self, **kwargs):
         """
@@ -81,10 +80,9 @@ class User(db.Model):
         Checks to see if another user shares a happiness group with the user
         :param user_to_check the user object to check if it is in the same group.
         """
-        for group in self.groups:
-            if user_to_check in group.users:
-                return True
-        return False
+
+        # checks if intersection of user's groups and user_to_check's groups is non-empty
+        return self.groups.intersect(user_to_check.groups).count() > 0
 
 
 class Setting(db.Model):
@@ -126,8 +124,7 @@ class Group(db.Model):
     __tablename__ = "group"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
-    users = db.relationship(
-        "User", secondary=group_users, back_populates="groups")
+    users = db.relationship("User", secondary=group_users, back_populates="groups")
 
     def __init__(self, **kwargs):
         """
@@ -183,8 +180,8 @@ class Happiness(db.Model):
 
 class Token(db.Model):
     """
-   Model for the token table. Has a many-to-one relationship with users table.
-   """
+    Model for the token table. Has a many-to-one relationship with users table.
+    """
     __tablename__ = "token"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
@@ -192,21 +189,21 @@ class Token(db.Model):
     session_expiration = db.Column(db.DateTime, nullable=False)
 
     def __init__(self, **kwargs):
-        """
-        Generates a new session token for a user
-        """
+        """Generates a new session token for a user."""
         self.user_id = kwargs.get("user_id")
         self.session_token = hashlib.sha1(os.urandom(64)).hexdigest()
         self.session_expiration = datetime.utcnow() + timedelta(weeks=3)
 
     def verify(self):
-        """
-        Verifies a user's session token
-        """
+        """Verifies a user's session token."""
         return self.session_expiration > datetime.utcnow()
 
     def revoke(self):
-        """
-        Expires a user's session token
-        """
+        """Expires a user's session token."""
         self.session_expiration = datetime.utcnow() - timedelta(seconds=1)
+
+    @staticmethod
+    def clean():
+        """Remove any tokens that have been expired for more than a day."""
+        yesterday = datetime.utcnow() - timedelta(days=1)
+        db.session.execute(Token.delete().where(Token.refresh_expiration < yesterday))
