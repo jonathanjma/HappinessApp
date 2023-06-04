@@ -5,10 +5,11 @@ from dotenv import load_dotenv
 load_dotenv()
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+
 class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', '').replace(
         'postgres://', 'postgresql://') or \
-        'sqlite:///' + os.path.join(basedir, 'app.db')
+                              'sqlite:///' + os.path.join(basedir, 'app.db')
 
     # API documentation
     APIFAIRY_TITLE = 'Happiness App API'
@@ -27,6 +28,13 @@ class Config:
     MAIL_USE_SSL = True
     MAIL_USERNAME = "noreply.happiness.app"
     MAIL_PASSWORD = os.environ.get("SECRET_APP_PASSWORD")
+
+    # AWS Profile Picture Storage
+    AWS_ACCESS = os.environ.get("AWS_ACCESS")
+    AWS_SECRET = os.environ.get("AWS_SECRET")
+    AWS_BUCKET_NAME = os.environ.get("AWS_BUCKET_NAME")
+    AWS_REGION = os.environ.get("AWS_REGION")
+
 
 class TestConfig:
     TESTING = True

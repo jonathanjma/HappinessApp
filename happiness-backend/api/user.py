@@ -1,9 +1,15 @@
+import threading
+import uuid
+from datetime import datetime
+
+import boto3
+import filetype
 from apifairy import authenticate, response, body, other_responses
 from flask import Blueprint
-from flask import json, request
+from flask import json, request, current_app
 
-from api import users_dao
 from api import email_methods
+from api import users_dao
 from api.app import db
 from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
@@ -11,11 +17,6 @@ from api.responses import success_response, failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     UsernameSchema, UserEmailSchema, SimpleUserSchema
 from api.token import token_auth
-
-
-import threading
-
-from sqlalchemy import func
 
 user = Blueprint('user', __name__)
 
@@ -68,6 +69,7 @@ def get_user_by_id(user_id):
 
     return friend_user
 
+
 @user.get('/username/<username>')
 @authenticate(token_auth)
 @response(SimpleUserSchema)
@@ -82,6 +84,7 @@ def get_user_by_username(username):
     if user_lookup is None:
         return failure_response("User not found", 404)
     return user_lookup
+
 
 @user.get('/groups')
 @authenticate(token_auth)
@@ -243,3 +246,47 @@ def get_self():
     Returns: the user object corresponding to the currently logged in user.
     """
     return token_auth.current_user()
+
+
+@user.post('/pfp/')
+@authenticate(token_auth)
+@response(SimpleUserSchema)
+@other_responses({400: "Image not provided."})
+def add_pfp():
+    """
+    Add Profile Picture
+    Route to change the user's profile picture. 
+    Takes an image from the request body, which should be the in the form of binary file data.
+    """
+
+    # Check valid user and valid image file
+
+    current_user = token_auth.current_user()
+    data = request.get_data()
+    if not data:
+        return failure_response("Image not provided.", 400)
+    if not filetype.is_image(data):
+        return failure_response("Image not provided.", 400)
+
+    # Connect to boto3
+
+    boto_kwargs = {
+        "aws_access_key_id": current_app.config["AWS_ACCESS"],
+        "aws_secret_access_key": current_app.config["AWS_SECRET"],
+        "region_name": current_app.config["AWS_REGION"]
+    }
+    s3 = boto3.Session(**boto_kwargs).client("s3")
+
+    # Create unique file name and upload image to AWS:
+
+    file_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4()}.{(filetype.guess(data)).extension}"
+    res = s3.put_object(Bucket=current_app.config["AWS_BUCKET_NAME"], Body=data, Key=file_name, ACL="public-read")
+
+    # Construct image URL and mutate user object to reflect new profile image URL:
+
+    img_url = (f"https://{current_app.config['AWS_BUCKET_NAME']}.s3." +
+               f"{current_app.config['AWS_REGION']}.amazonaws.com/{file_name}")
+    current_user.profile_picture = img_url
+    db.session.commit()
+
+    return current_user
