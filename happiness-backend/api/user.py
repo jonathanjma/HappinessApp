@@ -63,7 +63,7 @@ def get_user_by_id(user_id):
     friend_user = users_dao.get_user_by_id(user_id)
     if friend_user is None:
         return failure_response("User not found", 404)
-    if not current_user.has_mutual_group(friend_user):
+    if friend_user.id != current_user.id and not current_user.has_mutual_group(friend_user):
         return failure_response("Not Allowed: you do not share a group with this user", 403)
 
     return friend_user

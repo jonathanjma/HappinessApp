@@ -25,6 +25,18 @@ export default function History() {
     api.get("/user/" + userID).then((res) => res.data)
   );
 
+  const [pageLoading, setPageLoading] = useState(true);
+  useEffect(() => {
+    const refetchAll = async () => {
+      setPageLoading(true);
+      console.log("refetching!!");
+      await refetchU();
+      setPageLoading(false);
+      // setPageLoading(false);
+    };
+    refetchAll();
+  }, [userID]);
+
   // initializes dates corresponding to start and end of current week
   const [start, setStart] = useState(new Date());
   const [end, setEnd] = useState(new Date());

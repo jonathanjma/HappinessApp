@@ -30,9 +30,12 @@ export default function Profile() {
     data: user,
     error: errorU,
     refetch: refetchU,
-  } = useQuery("get user from user id", () =>
-    api.get("/user/" + userID).then((res) => res.data)
+  } = useQuery(
+    "get user from user id",
+    () => api.get("/user/" + userID).then((res) => res.data),
+    { fetchPolicy: "cache-and-network" }
   );
+  const [pageLoading, setPageLoading] = useState(true);
 
   // gets user groups (only shown if viewing own profile)
   const {
@@ -49,12 +52,18 @@ export default function Profile() {
 
   // refetches user when ID changed
   useEffect(() => {
-    console.log("refetching!!");
-    refetchU().then(refetchH()).then(refetchC()).then(refetchUG());
+    const refetchAll = async () => {
+      setPageLoading(true);
+      console.log("refetching!!");
+      await refetchU();
+      await refetchH();
+      await refetchC();
+      await refetchUG();
+      setPageLoading(false);
+      // setPageLoading(false);
+    };
+    refetchAll();
   }, [userID]);
-
-  console.log(user);
-  console.log(dataH);
 
   let userCreated = "";
   if (user !== undefined && user.created !== null) {
@@ -70,7 +79,11 @@ export default function Profile() {
   return (
     <>
       <div className="flex flex-wrap justify-center">
-        {isLoadingUG || isLoadingC || isLoadingH || isLoadingU ? (
+        {isLoadingUG ||
+        isLoadingC ||
+        isLoadingH ||
+        isLoadingU ||
+        pageLoading ? (
           <Spinner animation="border" />
         ) : (
           <>

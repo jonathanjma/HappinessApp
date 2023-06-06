@@ -1,6 +1,7 @@
 import { useState } from "react";
 import BigHistoryCard from "../happinessHistory/BigHistoryCard";
 import { happinessColor } from "../../pages/SubmitHappiness";
+import { Link } from "react-router-dom";
 
 // Sets border styles if table cell marks beginning of new week
 const weekEdge = (isBound) => {
@@ -79,7 +80,12 @@ export default function TableView({ groupData, happinessData, start, end }) {
     const entries = [];
     entries.push(
       <td className="border-collapse border py-1.5 px-2" key={user.id}>
-        {user.username}
+        <Link
+          to={"/profile/" + user.id}
+          className="no-underline text-raisin-600"
+        >
+          {user.username}
+        </Link>
       </td>
     );
     for (let date of allDates) {
