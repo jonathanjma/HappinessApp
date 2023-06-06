@@ -2,7 +2,7 @@ import DateDropdown from "./DateDropdown";
 import EditIcon from "../../media/pencil-square-outline-icon.png";
 import { PageState } from "../../keys";
 import DynamicSmile from "./DynamicSmile";
-import React from "react";
+import React, { useRef } from "react";
 import {
   formatHappinessNum,
   happinessColor,
@@ -18,6 +18,8 @@ export default function HappinessEditor(props) {
   const setComment = props.setComment;
   const pageMessage = props.pageMessage;
   const onSubmitClick = props.onSubmitClick;
+  const commentBox = useRef();
+  console.log(`Comment box = ${commentBox.current}`);
 
   return (
     <div
@@ -48,7 +50,7 @@ export default function HappinessEditor(props) {
               setHappiness(e.target.value / 10);
             }}
             onMouseUp={(e) => {
-              setHappiness(formatHappinessNum(happiness));
+              setHappiness(prevHappiness => formatHappinessNum(prevHappiness));
             }}
             value={happiness * 10}
             className="w-40 md:w-72 h-2 rounded-lg appearance-none cursor-pointer dark:bg-white-300 scale-150 mt-20"
@@ -78,17 +80,19 @@ export default function HappinessEditor(props) {
           }}
           onBlur={() => {
             if (happiness != 10) {
-              setHappiness(formatHappinessNum(happiness))
+              setHappiness(prevHappiness => formatHappinessNum(prevHappiness))
             }
           }}
         />
 
         {/* Happiness Comment Box */}
         <textarea
+          ref={commentBox}
           id="large-input"
           value={comment}
-          className="md:w-5/12 w-3/4 p-4 bg-gray-200 rounded mt-10 border-raisin-100 outline-none focus:border-raisin-200 border-2 focus:border-4"
-          placeholder="Add a comment about the day"
+          className={`md:w-5/12 w-3/4 px-4 py-2 bg-gray-200 rounded mt-10 border-raisin-100 outline-none focus:border-raisin-200 border-2 focus:border-4 text-left`}
+          style={{ height: `${commentBox.current == undefined ? 100 : Math.max(commentBox.current.scrollHeight, `100`)}px`, scrollbarColor: "#9191b6" }}
+          placeholder="Add a comment about the day, briefly summarizing the main events"
           onChange={(e) => {
             setComment(e.target.value);
           }}

@@ -7,22 +7,22 @@ import ErrorBox from "../../components/signIn/ErrorBox";
 import PasswordErrorBox from "../../components/signIn/PasswordErrorBox";
 
 export default function ResetPassword() {
-    const [hasError, setHasError] = useState(false);
-    const [message, setMessage] = useState("");
-    const [password, setPassword] = useState("");
-    const [hasSubmitted, setHasSubmitted] = useState(false);
-    const { token } = useParams();
-    const api = useApi();
-    const togglePassResetMutation = useMutation({
-        mutationFn: (value) => {
-            return api.post(`/user/reset_password/${token}`, {
-                "password": value
-            })
-        }
-    })
-    const submitPassword = () => {
-        setHasSubmitted(true)
-        if (hasError || password.length === 0) return;
+  const [hasError, setHasError] = useState(false);
+  const [message, setMessage] = useState("");
+  const [password, setPassword] = useState("");
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const { token } = useParams();
+  const api = useApi();
+  const togglePassResetMutation = useMutation({
+    mutationFn: (value) => {
+      return api.post(`/user/reset_password/${token}`, {
+        "password": value
+      })
+    }
+  })
+  const submitPassword = () => {
+    setHasSubmitted(true)
+    if (hasError || password.length === 0) return;
 
     togglePassResetMutation.mutate(password);
   };
@@ -38,7 +38,7 @@ export default function ResetPassword() {
 
   useEffect(() => {
     if (togglePassResetMutation.isSuccess) {
-      setMessage("Password changed.");
+      setMessage("Password changed");
     }
   }, [togglePassResetMutation.isSuccess]);
 
@@ -66,11 +66,11 @@ export default function ResetPassword() {
       <div className="flex-row flex">
         <input
           type="password"
-          className={`bg-gray-200 ${
-            hasError ? "border-red-500 border-4" : "border-gray-400 border-2"
-          } rounded w-80 py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white mt-10 ml-10`}
+          className={`bg-gray-200 ${hasError ? "border-red-500 border-4" : "border-gray-400 border-2"
+            } rounded w-80 py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white mt-10 ml-10`}
           value={password}
           onChange={(e) => {
+            console.log("Password changed " + e.target.value);
             setPassword(e.target.value);
           }}
           placeholder="**************"
@@ -86,9 +86,8 @@ export default function ResetPassword() {
         <PasswordErrorBox password={password} setHasError={setHasError} />
       </div>
       <p
-        className={`text-white ml-10 mt-4 text-xl ${
-          message.length === 0 ? "collapse" : ""
-        }`}
+        className={`text-white ml-10 mt-4 text-xl ${message.length === 0 ? "collapse" : ""
+          }`}
       >
         {message}
       </p>
