@@ -251,7 +251,7 @@ def get_self():
 @user.post('/pfp/')
 @authenticate(token_auth)
 @response(SimpleUserSchema)
-@other_responses({400: "Image not provided."})
+@other_responses({400: "Invalid request"})
 def add_pfp():
     """
     Add Profile Picture
@@ -263,10 +263,15 @@ def add_pfp():
 
     current_user = token_auth.current_user()
     data = request.get_data()
+    # Check that data exists
     if not data:
-        return failure_response("Image not provided.", 400)
+        return failure_response("Invalid request", 400)
+    # Check that data is an image file
     if not filetype.is_image(data):
-        return failure_response("Image not provided.", 400)
+        return failure_response("Invalid request", 400)
+    # Check that data is under 10 megabytes
+    if len(data) > 10000000:
+        return failure_response("Invalid request", 400)
 
     # Connect to boto3
 
@@ -281,7 +286,8 @@ def add_pfp():
 
     file_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4()}.{(filetype.guess(data)).extension}"
     res = s3.put_object(Bucket=current_app.config["AWS_BUCKET_NAME"], Body=data, Key=file_name, ACL="public-read")
-
+    print(res)
+    print(f"size = {len(data)}")
     # Construct image URL and mutate user object to reflect new profile image URL:
 
     img_url = (f"https://{current_app.config['AWS_BUCKET_NAME']}.s3." +
