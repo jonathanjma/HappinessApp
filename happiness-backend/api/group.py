@@ -4,10 +4,10 @@ from apifairy import authenticate, body, arguments, response, other_responses
 from flask import Blueprint
 
 from api.app import db
-from api.groups_dao import get_group_by_id
-from api.happiness_dao import get_happiness_by_group_timestamp
+from api.dao.groups_dao import get_group_by_id
+from api.dao.happiness_dao import get_happiness_by_group_timestamp
 from api.models import Group
-from api.responses import failure_response
+from api.errors import failure_response
 from api.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
     HappinessGetTime
 from api.token import token_auth
@@ -99,13 +99,13 @@ def group_happiness(req, group_id):
 def edit_group(req, group_id):
     """
     Edit Group
-    Edit a happiness group by changing its name, adding users, or removing users.
+    Edit a happiness group by changing its name, inviting users, or removing users.
     User must be a member of the group they are editing. \n
-    Requires: valid group ID, at least one of: name, users to add, or users to remove \n
+    Requires: valid group ID, at least one of: name, users to invite, or users to remove \n
     Returns: JSON representation for the updated group
     """
 
-    new_name, add_users, remove_users = req.get('new_name'), req.get('add_users'), \
+    new_name, add_users, remove_users = req.get('name'), req.get('invite_users'), \
         req.get('remove_users')
     if new_name is None and add_users is None and remove_users is None:
         return failure_response('Insufficient Information', 400)
@@ -118,7 +118,7 @@ def edit_group(req, group_id):
     if new_name is not None and new_name != cur_group.name:
         cur_group.name = new_name
     if add_users is not None:
-        cur_group.add_users(add_users)
+        cur_group.invite_users(add_users)
     if remove_users is not None:
         cur_group.remove_users(remove_users)
 

@@ -6,7 +6,7 @@ import pytest
 
 from api import create_app
 from api.app import db
-from api.users_dao import *
+from api.dao.users_dao import *
 from config import TestConfig
 from flask import json
 

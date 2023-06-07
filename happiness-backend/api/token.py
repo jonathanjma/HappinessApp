@@ -3,11 +3,10 @@ from flask import Blueprint, request
 from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 
 from api.models import Token
-from api.responses import failure_response
-from api.users_dao import get_user_by_username, get_user_by_id, get_token
+from api.dao.users_dao import get_user_by_username, get_user_by_id, get_token
 
 from api.app import db
-from api.errors import error_response
+from api.errors import error_response, failure_response
 from api.schema import TokenSchema
 
 token = Blueprint('token', __name__)

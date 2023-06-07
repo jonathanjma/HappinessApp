@@ -5,9 +5,9 @@ import pytest
 
 from api import create_app
 from api.app import db
-from api.groups_dao import get_group_by_id
+from api.dao.groups_dao import get_group_by_id
 from api.models import Happiness
-from api.users_dao import *
+from api.dao.users_dao import *
 from config import TestConfig
 
 

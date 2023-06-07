@@ -1,14 +1,16 @@
 from apifairy import authenticate, response, body, other_responses
 from flask import Blueprint
 
-from api import users_dao
+from api.dao import users_dao
 from api import email_methods
 from api.app import db
+from api.dao.groups_dao import get_group_by_id
 from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
-from api.responses import failure_response
+from api.errors import failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
-    UsernameSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema
+    UsernameSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
+    UserGroupsSchema
 from api.token import token_auth
 
 import threading
@@ -81,15 +83,48 @@ def get_user_by_username(username):
 
 @user.get('/groups')
 @authenticate(token_auth)
-@response(GroupSchema(many=True))
+@response(UserGroupsSchema)
 def user_groups():
     """
     Get Groups
-    Gets the happiness groups the user is in. \n
-    Returns: a list of happiness groups that the user is in.
+    Returns: a list of happiness groups that the user is in as well as any they have been invited to join.
     """
-    return token_auth.current_user().groups
+    return {
+        'groups': token_auth.current_user().groups,
+        'group_invites': token_auth.current_user().invites
+    }
 
+@user.post('/accept_invite/<int:group_id>')
+@authenticate(token_auth)
+@response(EmptySchema, 204, 'Group invite accepted')
+@other_responses({404: 'Invalid Group Invite'})
+def accept_group_invite(group_id):
+    """
+    Accept Group Invite
+    Accepts an invite to join a happiness group \n
+    Requires: group ID is valid and corresponds to a group that has invited the user
+    """
+    group = get_group_by_id(group_id)
+    if group is not None and group in token_auth.current_user().invites:
+        group.add_user(token_auth.current_user())
+        return '', 204
+    return failure_response('Group Invite Not Found', 404)
+
+@user.post('/reject_invite/<int:group_id>')
+@authenticate(token_auth)
+@response(EmptySchema, 204, 'Group invite rejected')
+@other_responses({404: 'Invalid Group Invite'})
+def reject_group_invite(group_id):
+    """
+    Reject Group Invite
+    Rejects an invite to join a happiness group \n
+    Requires: group ID is valid and corresponds to a group that has invited the user
+    """
+    group = get_group_by_id(group_id)
+    if group is not None and group in token_auth.current_user().invites:
+        group.remove_users([token_auth.current_user().username])
+        return '', 204
+    return failure_response('Group Invite Not Found', 404)
 
 @user.delete('/')
 @authenticate(token_auth)
@@ -119,16 +154,16 @@ def add_user_setting(req):
     """
     current_user = token_auth.current_user()
     key, value = req.get("key"), req.get("value")
-    oldSetting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
-    if oldSetting is None:
-        newSetting = Setting(key=key, value=value, user_id=current_user.id)
-        db.session.add(newSetting)
+    old_setting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
+    if old_setting is None:
+        new_setting = Setting(key=key, value=value, user_id=current_user.id)
+        db.session.add(new_setting)
         db.session.commit()
-        return newSetting
+        return new_setting
 
-    oldSetting.value = value
+    old_setting.value = value
     db.session.commit()
-    return oldSetting
+    return old_setting
 
 
 @user.get('/settings/')

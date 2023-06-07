@@ -71,15 +71,19 @@ class GroupSchema(ma.SQLAlchemySchema):
     id = ma.auto_field(required=True)
     name = ma.auto_field(required=True)
     users = ma.Nested(SimpleUserSchema, many=True, required=True)
+    invited_users = ma.Nested(SimpleUserSchema, many=True, required=True)
 
+class UserGroupsSchema(ma.Schema):
+    groups = ma.Nested(GroupSchema, many=True, required=True)
+    group_invites = ma.Nested(GroupSchema, many=True, required=True)
 
 class CreateGroupSchema(ma.Schema):
     name = ma.Str(required=True)
 
 
 class EditGroupSchema(ma.Schema):
-    new_name = ma.Str()
-    add_users = ma.List(ma.Str(), many=True)
+    name = ma.Str()
+    invite_users = ma.List(ma.Str(), many=True)
     remove_users = ma.List(ma.Str(), many=True)
 
 

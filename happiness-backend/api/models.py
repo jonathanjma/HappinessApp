@@ -37,7 +37,7 @@ class User(db.Model):
     settings = db.relationship("Setting", cascade="delete")
 
     groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
-    invites = db.relationship("Group", secondary=group_invites, back_populates="pending_users")
+    invites = db.relationship("Group", secondary=group_invites, back_populates="invited_users")
 
     def __init__(self, **kwargs):
         """
@@ -57,9 +57,6 @@ class User(db.Model):
         return f'https://www.gravatar.com/avatar/{digest}?d=identicon'
 
     def verify_password(self, password):
-        """
-        Verifies the password of a user
-        """
         return check_password_hash(self.password, password)
 
     def set_password(self, pwd):
@@ -73,10 +70,8 @@ class User(db.Model):
 
     def has_mutual_group(self, user_to_check):
         """
-        Checks to see if another user shares a happiness group with the user
-        :param user_to_check the user object to check if it is in the same group.
+        Checks to see if the current users shares a happiness group user_to_check (a user object)
         """
-
         # checks if intersection of user's groups and user_to_check's groups is non-empty
         return self.groups.intersect(user_to_check.groups).count() > 0
 
@@ -84,7 +79,7 @@ class User(db.Model):
 class Setting(db.Model):
     """
     Settings model. Has a many-to-one relationship with User.
-    To store settings I chose to use the property bag method [1]
+    To store settings I chose to use the property bag method.
     """
     __tablename__ = "setting"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -111,36 +106,46 @@ class Group(db.Model):
     name = db.Column(db.String, nullable=False)
 
     users = db.relationship("User", secondary=group_users, back_populates="groups")
-    pending_users = db.relationship("User", secondary=group_invites, back_populates="invites")
+    invited_users = db.relationship("User", secondary=group_invites, back_populates="invites")
 
     def __init__(self, **kwargs):
         """
-        Initializes a group.
-        Requires that kwargs contains name
+        Creates a happiness group.
+        Required kwargs: name
         """
         self.name = kwargs.get("name")
 
-    def add_users(self, new_users):
+    def invite_users(self, users_to_invite):
         """
-        Adds users to a group
-        Requires a list of usernames to add
-        Users to be added must exist and not already be in the group
+        Invites a list of usernames to join a group
+        Requires: Users to be invited must exist and not already be in the group
         """
-        for username in new_users:
+        for username in users_to_invite:
             user = User.query.filter(User.username.ilike(username)).first()
-            if user is not None and user not in self.users:
-                self.users.append(user)
+            if user is not None and user not in self.users and user not in self.invited_users:
+                self.invited_users.append(user)
+
+    def add_user(self, user_to_add):
+        """
+        Adds a user object to a group
+        Requires: User must already have been invited to the group
+        """
+        if user_to_add in self.invited_users:
+            self.invited_users.remove(user_to_add)
+            self.users.append(user_to_add)
 
     def remove_users(self, users_to_remove):
         """
-        Removes users to a group
-        Requires a list of usernames to remove
-        Users to be removed must exist and already be in the group
+        Removes a list of usernames from a group
+        Requires: Users to be removed must exist and already be in or invited to the group
         """
         for username in users_to_remove:
             user = User.query.filter(User.username.ilike(username)).first()
-            if user is not None and user in self.users:
-                self.users.remove(user)
+            if user is not None:
+                if user in self.users:
+                    self.users.remove(user)
+                elif user in self.invited_users:
+                    self.invited_users.remove(user)
 
 
 class Happiness(db.Model):
@@ -167,7 +172,7 @@ class Happiness(db.Model):
 
 class Token(db.Model):
     """
-    Model for the token table. Has a many-to-one relationship with users table.
+    Token model. Has a many-to-one relationship with users table.
     """
     __tablename__ = "token"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

@@ -3,10 +3,10 @@ from datetime import datetime
 from apifairy import authenticate, body, arguments, response, other_responses
 from flask import Blueprint, request
 
-from api import happiness_dao, users_dao
+from api.dao import happiness_dao, users_dao
 from api.app import db
 from api.models import Happiness
-from api.responses import success_response, failure_response
+from api.errors import failure_response
 from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTime, HappinessGetCount
 from api.token import token_auth
 
@@ -154,4 +154,4 @@ def import_happiness():
     db.session.add_all(happiness_objs)
     db.session.commit()
 
-    return success_response(str(len(happiness_objs)) + ' happiness entries imported')
+    return str(len(happiness_objs)) + ' happiness entries imported'
