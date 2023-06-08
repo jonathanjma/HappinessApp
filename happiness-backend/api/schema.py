@@ -111,7 +111,7 @@ class HappinessEditSchema(ma.Schema):
 
 
 class HappinessGetTime(ma.Schema):
-    start = ma.Str()
+    start = ma.Str(required=True)
     end = ma.Str()
     id = ma.Int()
 

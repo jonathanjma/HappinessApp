@@ -16,11 +16,12 @@ group = Blueprint('group', __name__)
 
 # Makes sure requested group exists and user has permissions to view/edit it,
 # otherwise throws appropriate errors
-def check_group(cur_group):
+def check_group(cur_group, allow_invited=False):
     if cur_group is None:
         return failure_response('Group Not Found', 404)
     elif token_auth.current_user() not in cur_group.users:
-        return failure_response('Not Allowed', 403)
+        if not allow_invited or (allow_invited and token_auth.current_user() not in cur_group.invited_users):
+            return failure_response('Not Allowed', 403)
 
 
 @group.post('/')
@@ -52,14 +53,14 @@ def group_info(group_id):
     """
     Get Group Info
     Get a happiness group's name and data about its users.
-    User must be a member of the group they are viewing. \n
+    User must be a member of or have been invited to the group they are viewing. \n
     Requires: valid group ID \n
     Returns: JSON representation for the requested group
     """
 
     # Return 404 if invalid group or 403 if user is not in group
     cur_group = get_group_by_id(group_id)
-    check_group(cur_group)
+    check_group(cur_group, allow_invited=True)
 
     return cur_group
 
@@ -72,8 +73,8 @@ def group_info(group_id):
 def group_happiness(req, group_id):
     """
     Get Group Happiness
-    Gets the happiness of values of a group between a specified start and end date.
-    User must be a member of the group they are viewing. \n
+    Gets the happiness of values of a group between a specified start and end date (inclusive).
+    User must be a full member of the group they are viewing. \n
     Requires: valid group ID, the time represented by start date comes before the end date (which defaults to today) \n
     Returns: List of all happiness entries from users in the group between start and end date in sequential order
     """
@@ -100,7 +101,7 @@ def edit_group(req, group_id):
     """
     Edit Group
     Edit a happiness group by changing its name, inviting users, or removing users.
-    User must be a member of the group they are editing. \n
+    User must be a full member of the group they are editing. \n
     Requires: valid group ID, at least one of: name, users to invite, or users to remove \n
     Returns: JSON representation for the updated group
     """
@@ -137,7 +138,7 @@ def delete_group(group_id):
     """
     Delete Group
     Deletes a happiness group. Does not delete any user happiness information.
-    User must be a member of the group they are deleting. \n
+    User must be a full member of the group they are deleting. \n
     Requires: valid group ID
     """
 

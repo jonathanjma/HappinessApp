@@ -18,16 +18,16 @@ def init_client():
     with app.app_context():
         db.create_all()
 
-        user1 = User(email='test1@example.app',
-                     username='user1', password='test')
-        user2 = User(email='test2@example.app',
-                     username='user2', password='test')
-        user3 = User(email='test3@example.app',
-                     username='user3', password='test')
+        user1 = User(email='test1@example.app', username='user1', password='test')
+        user2 = User(email='test2@example.app', username='user2', password='test')
+        user3 = User(email='test3@example.app', username='user3', password='test')
         db.session.add_all([user1, user2, user3])
         db.session.commit()
+        tokens = [user1.create_token(), user2.create_token(), user3.create_token()]
+        db.session.add_all(tokens)
+        db.session.commit()
 
-        yield client, [user1.get_token(), user2.get_token(), user3.get_token()]
+        yield client, [tokens[0].session_token, tokens[1].session_token, tokens[2].session_token]
 
 def test_create_happiness(init_client):
     client, tokens = init_client

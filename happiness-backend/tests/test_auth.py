@@ -302,7 +302,7 @@ def test_get_user_by_id(client):
                                  headers={"Authorization": f"Bearer {bearer_token}"},
                                  )
     add_member_res = client.put('/api/group/1',
-                                json={"add_users": ["test"]},
+                                json={"invite_users": ["test"]},
                                 headers={"Authorization": f"Bearer {bearer_token}"},
                                 )
 

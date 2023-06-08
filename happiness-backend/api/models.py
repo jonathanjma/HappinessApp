@@ -1,6 +1,8 @@
 import hashlib
 import os
 from datetime import datetime, timedelta
+
+from sqlalchemy import delete
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from api.app import db
@@ -198,4 +200,4 @@ class Token(db.Model):
     def clean():
         """Remove any tokens that have been expired for more than a day."""
         yesterday = datetime.utcnow() - timedelta(days=1)
-        db.session.execute(Token.delete().where(Token.refresh_expiration < yesterday))
+        db.session.execute(delete(Token).where(Token.session_expiration < yesterday))

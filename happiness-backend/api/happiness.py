@@ -101,16 +101,15 @@ def delete_happiness(id):
 def get_happiness_time(req):
     """
     Get Happiness by Time Range
-    Gets the happiness of values of a given user between a specified start and end date.
+    Gets the happiness of values of a given user between a specified start and end date (inclusive).
     User must share a group with the user they are viewing. \n
-    Requires: the time represented by start comes before the end \n
+    Requires: start time is provided and comes before the end \n
     Returns: List of all happiness entries between start and end date in sequential order
     """
     user_id = token_auth.current_user().id
     my_user_obj = users_dao.get_user_by_id(user_id)
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
-    start, end, id = req.get(
-        "start", "2023-01-01"), req.get("end", today), req.get("id", user_id)
+    start, end, id = req.get("start"), req.get("end", today), req.get("id", user_id)
     stfor = datetime.strptime(start, "%Y-%m-%d")
     enfor = datetime.strptime(end, "%Y-%m-%d")
 

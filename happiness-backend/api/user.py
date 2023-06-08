@@ -8,7 +8,7 @@ from api.dao.groups_dao import get_group_by_id
 from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
 from api.errors import failure_response
-from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
+from api.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     UsernameSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
     UserGroupsSchema
 from api.token import token_auth
