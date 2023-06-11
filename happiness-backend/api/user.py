@@ -15,7 +15,7 @@ from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
 from api.responses import success_response, failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
-    UsernameSchema, UserEmailSchema, SimpleUserSchema
+    UsernameSchema, UserEmailSchema, SimpleUserSchema, FileUploadSchema
 from api.token import token_auth
 
 user = Blueprint('user', __name__)
@@ -251,6 +251,7 @@ def get_self():
 @user.post('/pfp/')
 @authenticate(token_auth)
 @response(SimpleUserSchema)
+@body(FileUploadSchema)
 @other_responses({400: "Invalid request"})
 def add_pfp():
     """
