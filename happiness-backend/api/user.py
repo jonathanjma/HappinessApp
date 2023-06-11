@@ -251,19 +251,20 @@ def get_self():
 @user.post('/pfp/')
 @authenticate(token_auth)
 @response(SimpleUserSchema)
-@body(FileUploadSchema)
+@body(FileUploadSchema, location='form')
 @other_responses({400: "Invalid request"})
-def add_pfp():
+def add_pfp(req):
     """
     Add Profile Picture
     Route to change the user's profile picture. 
-    Takes an image from the request body, which should be the in the form of binary file data.
+    Takes an image from the request body, which should be the in the form of binary file data in the form-data section
+    of the request body.
     """
 
     # Check valid user and valid image file
 
+    data = req["file"].read()
     current_user = token_auth.current_user()
-    data = request.get_data()
     # Check that data exists
     if not data:
         return failure_response("Invalid request", 400)
