@@ -5,9 +5,10 @@ from flask import Blueprint, request
 
 from api.dao import happiness_dao, users_dao
 from api.app import db
-from api.models import Happiness
+from api.models import Happiness, Comment
 from api.errors import failure_response
-from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTime, HappinessGetCount
+from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTime, HappinessGetCount, \
+    CommentSchema
 from api.token import token_auth
 
 happiness = Blueprint('happiness', __name__)
@@ -17,7 +18,7 @@ happiness = Blueprint('happiness', __name__)
 @authenticate(token_auth)
 @body(HappinessSchema)
 @response(HappinessSchema, 201)
-@other_responses({400: "Date already exists.", 400: "Invalid happiness value."})
+@other_responses({400: "Date already exists or Invalid happiness value."})
 def create_happiness(req):
     """
     Create Happiness Entry
@@ -35,8 +36,8 @@ def create_happiness(req):
         return failure_response("Date already exists.", 400)
 
     # validate happiness value
-    # if float(value * 2).is_integer or value < 0 or value > 10:
-    #     return failure_response("Invalid happiness value.", 400)
+    if not (value * 2).is_integer or value < 0 or value > 10:
+        return failure_response("Invalid happiness value.", 400)
 
     happiness = Happiness(user_id=current_user.id, value=value,
                           comment=comment, timestamp=datetime.strptime(timestamp, "%Y-%m-%d"))
@@ -107,16 +108,13 @@ def get_happiness_time(req):
     Returns: List of all happiness entries between start and end date in sequential order
     """
     user_id = token_auth.current_user().id
-    my_user_obj = users_dao.get_user_by_id(user_id)
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
     start, end, id = req.get("start"), req.get("end", today), req.get("id", user_id)
     stfor = datetime.strptime(start, "%Y-%m-%d")
     enfor = datetime.strptime(end, "%Y-%m-%d")
 
-    if user_id == id or my_user_obj.has_mutual_group(users_dao.get_user_by_id(id)):
-        query_data = happiness_dao.get_happiness_by_timestamp(
-            id, stfor, enfor)
-        return query_data
+    if user_id == id or token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(id)):
+        return happiness_dao.get_happiness_by_timestamp(id, stfor, enfor)
     return failure_response("Not Allowed.", 403)
 
 
@@ -134,14 +132,34 @@ def get_paginated_happiness(req):
     Returns: Specified number of happiness entries in reverse order.
     """
     user_id = token_auth.current_user().id
-    my_user_obj = users_dao.get_user_by_id(user_id)
-    page, count, id = req.get("page", 1), req.get(
-        "count", 10), req.get("id", user_id)
-    if user_id == id or my_user_obj.has_mutual_group(users_dao.get_user_by_id(id)):
-        query_data = happiness_dao.get_happiness_by_count(id, page, count)
-        return query_data
+    page, count, id = req.get("page", 1), req.get("count", 10), req.get("id", user_id)
+    if user_id == id or token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(id)):
+        return happiness_dao.get_happiness_by_count(id, page, count)
     return failure_response("Not Allowed.", 403)
 
+@happiness.post('/<int:id>/comment')
+@authenticate(token_auth)
+@body(CommentSchema)
+@response(HappinessSchema)
+@other_responses({403: "Not Allowed.", 404: "Happiness Not Found."})
+def create_comment(req, id):
+    """
+    Create Discussion Comment
+    Creates a happiness discussion comment for the specified happiness entry with the given text.
+    User must share a group with the user who created the happiness entry. \n
+    Requires: ID must be valid, comment text must be non-empty \n
+    Returns: Happiness entry with newly added discussion comment.
+    """
+    user_id = token_auth.current_user().id
+    query_data = happiness_dao.get_happiness_by_id(id)
+    if query_data:
+        if token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(query_data.user_id)):
+            comment = Comment(happiness_id=id, user_id=user_id, text=req.get("text"))
+            db.session.add(comment)
+            db.session.commit()
+            return query_data
+        return failure_response("Not Allowed.", 403)
+    return failure_response("Happiness Not Found.", 404)
 
 @happiness.post('/import')
 def import_happiness():

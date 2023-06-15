@@ -1,7 +1,8 @@
 from marshmallow import post_dump
 
 from api.app import ma
-from api.models import User, Group, Happiness, Setting
+from api.models import User, Group, Happiness, Setting, Comment
+
 
 class EmptySchema(ma.Schema):
     pass
@@ -86,6 +87,16 @@ class EditGroupSchema(ma.Schema):
     invite_users = ma.List(ma.Str(), many=True)
     remove_users = ma.List(ma.Str(), many=True)
 
+class CommentSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Comment
+        ordered = True
+
+    id = ma.auto_field(dump_only=True)
+    happiness_id = ma.auto_field(dump_only=True)
+    author = ma.Nested(SimpleUserSchema, dump_only=True)
+    text = ma.auto_field(required=True)
+    timestamp = ma.Str(dump_only=True)
 
 class HappinessSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -97,6 +108,7 @@ class HappinessSchema(ma.SQLAlchemySchema):
     value = ma.auto_field(required=True)
     comment = ma.auto_field()
     timestamp = ma.Str(required=True)
+    discussion_comments = ma.Nested(CommentSchema, many=True, required=True)
 
     @post_dump
     def fix_time(self, data, **kwargs):
