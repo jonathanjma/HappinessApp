@@ -68,6 +68,7 @@ def get_user_by_id(user_id):
 
     return friend_user
 
+
 @user.get('/username/<username>')
 @authenticate(token_auth)
 @response(SimpleUserSchema)
@@ -82,6 +83,7 @@ def get_user_by_username(username):
     if user_lookup is None:
         return failure_response("User not found", 404)
     return user_lookup
+
 
 @user.get('/groups')
 @authenticate(token_auth)
@@ -124,7 +126,8 @@ def add_user_setting(req):
     """
     current_user = token_auth.current_user()
     key, value = req.get("key"), req.get("value")
-    oldSetting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
+    oldSetting = Setting.query.filter(
+        Setting.user_id == current_user.id, Setting.key == key).first()
     if oldSetting is None:
         print("OLD SETTING NOT FOUND -----------------")
         newSetting = Setting(key=key, value=value, user_id=current_user.id)
@@ -229,8 +232,9 @@ def send_reset_password_email(req):
     email = req.get("email")
     user_by_email = users_dao.get_user_by_email(email)
     if user_by_email is None:
-        return failure_response("User associated with email address not found", 400)
-    threading.Thread(target=email_methods.send_password_reset_email, args=(user_by_email,)).start()
+        return failure_response("User associated with email address not found", 404)
+    threading.Thread(target=email_methods.send_password_reset_email,
+                     args=(user_by_email,)).start()
     return user_by_email
 
 

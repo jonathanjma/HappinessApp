@@ -30,7 +30,8 @@ class User(db.Model):
     profile_picture = db.Column(db.String, nullable=False)
     settings = db.relationship("Setting", cascade="delete")
 
-    groups = db.relationship("Group", secondary=group_users, back_populates="users")
+    groups = db.relationship(
+        "Group", secondary=group_users, back_populates="users")
 
     def __init__(self, **kwargs):
         """
