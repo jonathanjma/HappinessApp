@@ -5,9 +5,9 @@ import pytest
 
 from api import create_app
 from api.app import db
-from api.groups_dao import get_group_by_id
+from api.dao.groups_dao import get_group_by_id
 from api.models import Happiness
-from api.users_dao import *
+from api.dao.users_dao import *
 from config import TestConfig
 
 
@@ -24,24 +24,33 @@ def init_client():
         user3 = User(email='test3@example.app', username='user3', password='test')
         db.session.add_all([user1, user2, user3])
         db.session.commit()
+        tokens = [user1.create_token(), user2.create_token(), user3.create_token()]
+        db.session.add_all(tokens)
+        db.session.commit()
 
-        yield client, [user1.get_token(), user2.get_token(), user3.get_token()]
+        yield client, [tokens[0].session_token, tokens[1].session_token, tokens[2].session_token]
 
 
 def auth_header(token):
     return {'Authorization': f'Bearer {token}'}
 
 
-def in_group_modal(username, group):
-    return list(map(lambda x: x.username, group.users)).count(username) > 0
+def user_in_group_json_model(username, json, group):
+    return list(map(lambda x: x['username'], json['users'])).count(username) > 0 and \
+        list(map(lambda x: x.username, group.users)).count(username) > 0
 
 
-def in_group_json(username, json):
-    return list(map(lambda x: x['username'], json['users'])).count(username) > 0
+def invite_in_group_json_model(username, json, group):
+    return list(map(lambda x: x['username'], json['invited_users'])).count(username) > 0 and \
+        list(map(lambda x: x.username, group.invited_users)).count(username) > 0
 
 
-def in_user_modal(group_id, user):
+def group_in_user_modal(group_id, user):
     return list(map(lambda x: x.id, user.groups)).count(group_id) > 0
+
+
+def invite_in_user_modal(group_id, user):
+    return list(map(lambda x: x.id, user.invites)).count(group_id) > 0
 
 
 def test_create_group(init_client):
@@ -54,90 +63,126 @@ def test_create_group(init_client):
     assert group_create.status_code == 201
     new_group = get_group_by_id(1)
     assert new_group.name == group_create.json['name'] == 'test'
-    assert in_group_json('user1', group_create.json) and in_group_modal('user1', new_group)
+    assert user_in_group_json_model('user1', group_create.json, new_group)
 
 
-def test_edit_group(init_client):
+def test_edit_group_name(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': 'test'}, headers=auth_header(tokens[0]))
 
     bad_group_edit = client.put('/api/group/1', json={}, headers=auth_header(tokens[0]))
     assert bad_group_edit.status_code == 400
 
-    unauthorized_edit = client.put('/api/group/1', json={'new_name': 'sus'},
+    unauthorized_edit = client.put('/api/group/1', json={'name': 'sus'},
                                    headers=auth_header(tokens[1]))
     assert unauthorized_edit.status_code == 403
 
-    name_edit = client.put('/api/group/1', json={'new_name': 'successful'},
+    name_edit = client.put('/api/group/1', json={'name': 'successful'},
                            headers=auth_header(tokens[0]))
     assert name_edit.status_code == 200
     assert name_edit.json['name'] == get_group_by_id(1).name == 'successful'
 
-    add_users = client.put('/api/group/1', json={
-        'add_users': ['user2', 'user3']
+def test_edit_group_users(init_client):
+    client, tokens = init_client
+    client.post('/api/group/', json={'name': 'test'}, headers=auth_header(tokens[0]))
+
+    invite_users = client.put('/api/group/1', json={
+        'invite_users': ['user2', 'user3']
     }, headers=auth_header(tokens[0]))
-    assert add_users.status_code == 200
-    assert len(add_users.json['users']) == len(get_group_by_id(1).users) == 3
-    assert in_group_json('user2', add_users.json) and in_group_modal('user2', get_group_by_id(1))
-    assert in_group_json('user3', add_users.json) and in_group_modal('user3', get_group_by_id(1))
+    assert invite_users.status_code == 200
+    assert len(invite_users.json['invited_users']) == len(get_group_by_id(1).invited_users) == 2
+    assert invite_in_group_json_model('user2', invite_users.json, get_group_by_id(1))
+    assert invite_in_group_json_model('user3', invite_users.json, get_group_by_id(1))
+    assert not group_in_user_modal(1, get_user_by_id(2))
+    assert invite_in_user_modal(1, get_user_by_id(2))
+
+    unauthorized_edit = client.put('/api/group/1', json={'name': 'sus'},
+                                   headers=auth_header(tokens[1]))
+    assert unauthorized_edit.status_code == 403
+
+    bad_accept_invite = client.post('/api/user/accept_invite/5', headers=auth_header(tokens[1]))
+    assert bad_accept_invite.status_code == 404
+
+    accept_invite = client.post('/api/user/accept_invite/1', headers=auth_header(tokens[1]))
+    assert accept_invite.status_code == 204
+    get_group = client.get('/api/group/1', headers=auth_header(tokens[1]))
+    assert user_in_group_json_model('user2', get_group.json, get_group_by_id(1))
+    assert group_in_user_modal(1, get_user_by_id(2))
+
+    reject_invite = client.post('/api/user/reject_invite/1', headers=auth_header(tokens[2]))
+    assert reject_invite.status_code == 204
+    assert not invite_in_user_modal(1, get_user_by_id(3))
+
+    client.put('/api/group/1', json={'invite_users': ['user3']}, headers=auth_header(tokens[0]))
 
     remove_users = client.put('/api/group/1', json={
-        'remove_users': ['user1', 'user2']
+        'remove_users': ['user1', 'user3']
     }, headers=auth_header(tokens[0]))
     assert remove_users.status_code == 200
     assert len(remove_users.json['users']) == len(get_group_by_id(1).users) == 1
-    assert not in_group_json('user1', remove_users.json) and not in_group_modal('user1',
-                                                                                get_group_by_id(1))
-    assert not in_group_json('user2', remove_users.json) and not in_group_modal('user2',
-                                                                                get_group_by_id(1))
+    assert not user_in_group_json_model('user1', remove_users.json, get_group_by_id(1))
+    assert not user_in_group_json_model('user3', remove_users.json, get_group_by_id(1))
 
     remove_last_user = client.put('/api/group/1', json={
-        'remove_users': ['user3']
-    }, headers=auth_header(tokens[2]))
+        'remove_users': ['user2']
+    }, headers=auth_header(tokens[1]))
     assert remove_last_user.status_code == 200
     assert get_group_by_id(1) is None
-    assert not in_user_modal(1, get_user_by_id(3))
+    assert not group_in_user_modal(1, get_user_by_id(3))
 
 
 def test_group_info(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': ':-)'}, headers=auth_header(tokens[0]))
-    client.put('/api/group/1', json={
-        'add_users': ['user2']
-    }, headers=auth_header(tokens[0]))
+    client.put('/api/group/1', json={'invite_users': ['user2']}, headers=auth_header(tokens[0]))
 
-    bad_view = client.get('/api/group/1', headers=auth_header(tokens[2]))
-    assert bad_view.status_code == 403
+    unauthorized_view = client.get('/api/group/1', headers=auth_header(tokens[2]))
+    assert unauthorized_view.status_code == 403
 
     view = client.get('/api/group/1', headers=auth_header(tokens[1]))
     assert view.status_code == 200
     assert view.json['name'] == ':-)'
-    assert in_group_json('user1', view.json) and in_group_json('user2', view.json)
+    assert user_in_group_json_model('user1', view.json, get_group_by_id(1))
+    assert invite_in_group_json_model('user2', view.json, get_group_by_id(1))
 
+def test_mutual_groups(init_client):
+    client, tokens = init_client
+    client.post('/api/group/', json={'name': ':-)'}, headers=auth_header(tokens[0]))
+    assert not get_user_by_id(1).has_mutual_group(get_user_by_id(2))
+
+    client.put('/api/group/1', json={'invite_users': ['user2']}, headers=auth_header(tokens[0]))
+    assert not get_user_by_id(1).has_mutual_group(get_user_by_id(2))
+
+    client.post('/api/user/accept_invite/1', headers=auth_header(tokens[1]))
+    assert get_user_by_id(1).has_mutual_group(get_user_by_id(2))
+    assert get_user_by_id(2).has_mutual_group(get_user_by_id(1))
 
 def test_group_delete(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': ':-)'}, headers=auth_header(tokens[0]))
     client.put('/api/group/1', json={
-        'add_users': ['user2']
+        'invite_users': ['user2', 'user3']
     }, headers=auth_header(tokens[0]))
-    assert in_user_modal(1, get_user_by_id(1)) and in_user_modal(1, get_user_by_id(2))
+    client.post('/api/user/accept_invite/1', headers=auth_header(tokens[1]))
+    assert group_in_user_modal(1, get_user_by_id(1)) and group_in_user_modal(1, get_user_by_id(2)) \
+           and invite_in_user_modal(1, get_user_by_id(3))
 
-    bad_delete = client.delete('/api/group/1', headers=auth_header(tokens[2]))
-    assert bad_delete.status_code == 403
+    unauthorized_delete = client.delete('/api/group/1', headers=auth_header(tokens[2]))
+    assert unauthorized_delete.status_code == 403
 
     delete = client.delete('/api/group/1', headers=auth_header(tokens[1]))
     assert delete.status_code == 204
     assert get_group_by_id(1) is None
-    assert not in_user_modal(1, get_user_by_id(1)) and not in_user_modal(1, get_user_by_id(2))
+    assert not group_in_user_modal(1, get_user_by_id(1)) and not group_in_user_modal(1, get_user_by_id(2)) \
+           and not invite_in_user_modal(1, get_user_by_id(3))
 
 
 def test_group_happiness(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': ':-)'}, headers=auth_header(tokens[0]))
-    client.put('/api/group/1', json={
-        'add_users': ['user2']
-    }, headers=auth_header(tokens[0]))
+    get_group_by_id(1).invite_users(['user2', 'user3'])
+    get_group_by_id(1).add_user(get_user_by_id(2))
+    get_group_by_id(1).add_user(get_user_by_id(3))
 
     happiness_in = []
     for user_id in range(1, 4):  # 1-3
@@ -148,20 +193,14 @@ def test_group_happiness(init_client):
     db.session.add_all(happiness_in)
     db.session.commit()
 
-    get_group_happiness = client.get('/api/group/1/happiness', query_string={
-        'count': 30
+    get_happiness_day1 = client.get('/api/group/1/happiness', query_string={
+        'start': '2023-02-01',
+        'end': '2023-02-01'
     }, headers=auth_header(tokens[0]))
-    assert get_group_happiness.status_code == 200
-    assert len(get_group_happiness.json) == 14
+    assert get_happiness_day1.status_code == 200
+    assert len(get_happiness_day1.json) == 3
 
-    get_group_happiness_paginate = client.get('/api/group/1/happiness', query_string={
-        'count': 10,
-        'page': 1
+    get_happiness_week = client.get('/api/group/1/happiness', query_string={
+        'start': '2023-02-01'
     }, headers=auth_header(tokens[0]))
-    assert len(get_group_happiness_paginate.json) == 10
-
-    get_group_happiness_paginate2 = client.get('/api/group/1/happiness', query_string={
-        'count': 10,
-        'page': 2
-    }, headers=auth_header(tokens[0]))
-    assert len(get_group_happiness_paginate2.json) == 4
+    assert len(get_happiness_week.json) == 21

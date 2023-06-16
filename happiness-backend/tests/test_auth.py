@@ -6,7 +6,7 @@ import pytest
 
 from api import create_app
 from api.app import db
-from api.users_dao import *
+from api.dao.users_dao import *
 from config import TestConfig
 from flask import json
 
@@ -311,7 +311,7 @@ def test_get_user_by_id(client):
                                      "Authorization": f"Bearer {bearer_token}"},
                                  )
     add_member_res = client.put('/api/group/1',
-                                json={"add_users": ["test"]},
+                                json={"invite_users": ["test"]},
                                 headers={
                                     "Authorization": f"Bearer {bearer_token}"},
                                 )

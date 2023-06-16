@@ -3,6 +3,8 @@ from marshmallow import post_dump
 from api.app import ma
 from api.models import User, Group, Happiness, Setting
 
+class EmptySchema(ma.Schema):
+    pass
 
 class SettingsSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -42,25 +44,23 @@ class SimpleUserSchema(ma.Schema):
     profile_picture = ma.Str(required=True)
 
 class TokenSchema(ma.Schema):
-    session_token = ma.Str()
+    session_token = ma.Str(required=True)
 
 
 class UsernameSchema(ma.Schema):
-    username = ma.Str()
+    username = ma.Str(required=True)
 
 
-class UserEmailSchema(ma.Schema):
-    email = ma.Email()  # This is probably bad practice (I am still learning)
+class PasswordResetReqSchema(ma.Schema):
+    email = ma.Email(required=True)  # This is probably bad practice (I am still learning)
 
+class PasswordResetSchema(ma.Schema):
+    password = ma.Str(required=True)
 
 class CreateUserSchema(ma.Schema):
     email = ma.Str(required=True)
     username = ma.Str(required=True)
     password = ma.Str(required=True)
-
-
-class GetUserByIdSchema(ma.Schema):
-    id = ma.Integer()
 
 
 class GroupSchema(ma.SQLAlchemySchema):
@@ -71,15 +71,19 @@ class GroupSchema(ma.SQLAlchemySchema):
     id = ma.auto_field(required=True)
     name = ma.auto_field(required=True)
     users = ma.Nested(SimpleUserSchema, many=True, required=True)
+    invited_users = ma.Nested(SimpleUserSchema, many=True, required=True)
 
+class UserGroupsSchema(ma.Schema):
+    groups = ma.Nested(GroupSchema, many=True, required=True)
+    group_invites = ma.Nested(GroupSchema, many=True, required=True)
 
 class CreateGroupSchema(ma.Schema):
     name = ma.Str(required=True)
 
 
 class EditGroupSchema(ma.Schema):
-    new_name = ma.Str()
-    add_users = ma.List(ma.Str(), many=True)
+    name = ma.Str()
+    invite_users = ma.List(ma.Str(), many=True)
     remove_users = ma.List(ma.Str(), many=True)
 
 
@@ -107,7 +111,7 @@ class HappinessEditSchema(ma.Schema):
 
 
 class HappinessGetTime(ma.Schema):
-    start = ma.Str()
+    start = ma.Str(required=True)
     end = ma.Str()
     id = ma.Int()
 
