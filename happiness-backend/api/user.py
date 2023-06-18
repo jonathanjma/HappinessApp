@@ -127,18 +127,18 @@ def add_user_setting(req):
     """
     current_user = token_auth.current_user()
     key, value = req.get("key"), req.get("value")
-    oldSetting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
-    if oldSetting is None:
+    old_setting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
+    if old_setting is None:
         print("OLD SETTING NOT FOUND -----------------")
-        newSetting = Setting(key=key, value=value, user_id=current_user.id)
-        db.session.add(newSetting)
+        new_setting = Setting(key=key, value=value, user_id=current_user.id)
+        db.session.add(new_setting)
         db.session.commit()
-        return newSetting
+        return new_setting
 
-    oldSetting.value = value
+    old_setting.value = value
     db.session.commit()
     print("Old setting updated")
-    return oldSetting
+    return old_setting
 
 
 @user.get('/settings/')
@@ -232,7 +232,7 @@ def send_reset_password_email(req):
     email = req.get("email")
     user_by_email = users_dao.get_user_by_email(email)
     if user_by_email is None:
-        return failure_response("User associated with email address not found", 400)
+        return failure_response("User associated with email address not found", 404)
     threading.Thread(target=email_methods.send_password_reset_email, args=(user_by_email,)).start()
     return user_by_email
 
@@ -288,8 +288,7 @@ def add_pfp(req):
 
     file_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4()}.{(filetype.guess(data)).extension}"
     res = s3.put_object(Bucket=current_app.config["AWS_BUCKET_NAME"], Body=data, Key=file_name, ACL="public-read")
-    print(res)
-    print(f"size = {len(data)}")
+
     # Construct image URL and mutate user object to reflect new profile image URL:
 
     img_url = (f"https://{current_app.config['AWS_BUCKET_NAME']}.s3." +
