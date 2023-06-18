@@ -7,6 +7,7 @@ import filetype
 from apifairy import authenticate, response, body, other_responses
 from flask import Blueprint
 from flask import json, request, current_app
+from werkzeug.security import generate_password_hash
 
 from api import email_methods
 from api import users_dao
@@ -15,7 +16,7 @@ from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
 from api.responses import success_response, failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
-    UsernameSchema, UserEmailSchema, SimpleUserSchema, FileUploadSchema
+    UsernameSchema, UserEmailSchema, SimpleUserSchema, FileUploadSchema, UserInfoSchema
 from api.token import token_auth
 
 user = Blueprint('user', __name__)
@@ -176,6 +177,53 @@ def change_username(req):
     current_user.username = new_username
     db.session.commit()
     return current_user
+
+
+@user.post('/info/')
+@authenticate(token_auth)
+@body(UserInfoSchema)
+@response(SimpleUserSchema)
+@other_responses({400: "Provided data already exists."})
+def change_user_info(req):
+    """
+    Changes a user's info based on 3 different `data_type`(s): \n
+    "username" \n
+    "email" \n
+    "password" \n
+    Then the associated data must be put in the `data` field of the request.
+    """
+    data_type = req.get("data_type")
+    current_user = token_auth.current_user()
+
+    if data_type == "username":
+        # Change a user's username, which requires their username to be unique.
+
+        new_username = req.get("data")
+        similar_user = users_dao.get_user_by_username(new_username)
+        if similar_user is not None:
+            return failure_response("Provide data already exists", 400)
+
+        current_user.username = new_username
+        db.session.commit()
+        return current_user
+    elif data_type == "email":
+        # Changes a user's email, which requires their email to be unique.
+
+        new_email = req.get("data")
+        similar_user = users_dao.get_user_by_email(new_email)
+        if similar_user is not None:
+            return failure_response("Provided data already exists", 400)
+
+        current_user.email = new_email
+        db.session.commit()
+        return current_user
+    elif data_type == "password":
+        # Changes a user's password.
+
+        new_password = req.get("password")
+        current_user.password = generate_password_hash(new_password)
+        db.session.commit()
+        return current_user
 
 
 @user.route('/reset_password/<token>', methods=['GET', 'POST'])

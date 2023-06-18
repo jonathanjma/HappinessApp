@@ -123,3 +123,8 @@ class HappinessGetCount(ma.Schema):
 
 class FileUploadSchema(ma.Schema):
     file = FileField()
+
+
+class UserInfoSchema(ma.Schema):
+    data = ma.Str()
+    data_type = ma.Str()
