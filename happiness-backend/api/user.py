@@ -16,7 +16,7 @@ from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
 from api.responses import success_response, failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
-    UsernameSchema, UserEmailSchema, SimpleUserSchema, FileUploadSchema, UserInfoSchema
+    UserEmailSchema, SimpleUserSchema, FileUploadSchema, UserInfoSchema
 from api.token import token_auth
 
 user = Blueprint('user', __name__)
@@ -156,29 +156,6 @@ def get_user_settings():
     return settings
 
 
-@user.post('/username/')
-@authenticate(token_auth)
-@body(UsernameSchema)
-@response(UserSchema)
-@other_responses({400: "Provided data already exists."})
-def change_username(req):
-    """
-    Change Username \n
-    Changes a user's username to their newly desired username \n
-    Requires: Username is unique.
-    """
-    new_username = req.get("username")
-    current_user = token_auth.current_user()
-
-    similar_user = users_dao.get_user_by_username(new_username)
-    if similar_user is not None:
-        return failure_response("Provide data already exists", 400)
-
-    current_user.username = new_username
-    db.session.commit()
-    return current_user
-
-
 @user.post('/info/')
 @authenticate(token_auth)
 @body(UserInfoSchema)
@@ -220,7 +197,7 @@ def change_user_info(req):
     elif data_type == "password":
         # Changes a user's password.
 
-        new_password = req.get("password")
+        new_password = req.get("data")
         current_user.password = generate_password_hash(new_password)
         db.session.commit()
         return current_user
