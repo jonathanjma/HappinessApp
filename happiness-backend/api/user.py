@@ -163,6 +163,7 @@ def get_user_settings():
 @other_responses({400: "Provided data already exists."})
 def change_user_info(req):
     """
+    Change User Info
     Changes a user's info based on 3 different `data_type`(s): \n
     "username" \n
     "email" \n
