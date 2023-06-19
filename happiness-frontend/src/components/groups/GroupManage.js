@@ -145,21 +145,19 @@ export default function GroupManage({ groupID, groupData }) {
         </Button>
         <ConfirmModal
           heading="Leave Group"
-          body="Are you sure you want to leave the group?"
           show={leaveShow}
           setShow={setLeaveShow}
           onConfirm={leaveGroup}
-        />
+        >Are you sure you want to leave the group?</ConfirmModal>
         <Button variant="danger" onClick={() => setDeleteShow(true)}>
           Delete Group
         </Button>
         <ConfirmModal
           heading="Delete Group"
-          body="Are you sure you want to delete the group? (No happiness data will be deleted.)"
           show={deleteShow}
           setShow={setDeleteShow}
           onConfirm={deleteGroup}
-        />
+        >Are you sure you want to delete the group? (No happiness data will be deleted.)</ConfirmModal>
       </Stack>
       <p className="text-2xl font-medium m-3 text-raisin-600">Edit Users</p>
       <div className="grid md:grid-cols-3">
