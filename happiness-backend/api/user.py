@@ -61,10 +61,11 @@ def get_user_by_id(user_id):
     friend_user = users_dao.get_user_by_id(user_id)
     if friend_user is None:
         return failure_response("User not found", 404)
-    if not current_user.has_mutual_group(friend_user):
+    if friend_user.id != current_user.id and not current_user.has_mutual_group(friend_user):
         return failure_response("Not Allowed: you do not share a group with this user", 403)
 
     return friend_user
+
 
 @user.get('/username/<username>')
 @authenticate(token_auth)
@@ -81,6 +82,7 @@ def get_user_by_username(username):
         return failure_response("User not found", 404)
     return user_lookup
 
+
 @user.get('/groups')
 @authenticate(token_auth)
 @response(UserGroupsSchema)
@@ -93,6 +95,7 @@ def user_groups():
         'groups': token_auth.current_user().groups,
         'group_invites': token_auth.current_user().invites
     }
+
 
 @user.post('/accept_invite/<int:group_id>')
 @authenticate(token_auth)
@@ -110,6 +113,7 @@ def accept_group_invite(group_id):
         return '', 204
     return failure_response('Group Invite Not Found', 404)
 
+
 @user.post('/reject_invite/<int:group_id>')
 @authenticate(token_auth)
 @response(EmptySchema, 204, 'Group invite rejected')
@@ -125,6 +129,7 @@ def reject_group_invite(group_id):
         group.remove_users([token_auth.current_user().username])
         return '', 204
     return failure_response('Group Invite Not Found', 404)
+
 
 @user.delete('/')
 @authenticate(token_auth)
@@ -154,7 +159,8 @@ def add_user_setting(req):
     """
     current_user = token_auth.current_user()
     key, value = req.get("key"), req.get("value")
-    old_setting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
+    old_setting = Setting.query.filter(
+        Setting.user_id == current_user.id, Setting.key == key).first()
     if old_setting is None:
         new_setting = Setting(key=key, value=value, user_id=current_user.id)
         db.session.add(new_setting)
@@ -240,8 +246,9 @@ def send_reset_password_email(req):
     email = req.get("email")
     user_by_email = users_dao.get_user_by_email(email)
     if user_by_email is None:
-        return failure_response("User associated with email address not found", 400)
-    threading.Thread(target=email_methods.send_password_reset_email, args=(user_by_email,)).start()
+        return failure_response("User associated with email address not found", 404)
+    threading.Thread(target=email_methods.send_password_reset_email,
+                     args=(user_by_email,)).start()
     return '', 204
 
 

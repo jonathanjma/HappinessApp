@@ -144,7 +144,7 @@ def test_send_password_reset_email(client):
     r3 = client.post('/api/user/initiate_password_reset/', json={
         'email': 'test2@example.com'
     })
-    assert r2.status_code == 200 and r3.status_code == 200
+    assert r2.status_code == 204 and r3.status_code == 204
 
 
 @pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
@@ -163,14 +163,18 @@ def test_login_user(client):
         'password': 'test2',
     })
     user1_credentials = base64.b64encode(b"test:test").decode('utf-8')
-    user1_login_res = client.post('/api/token/', headers={"Authorization": f"Basic {user1_credentials}"})
+    user1_login_res = client.post(
+        '/api/token/', headers={"Authorization": f"Basic {user1_credentials}"})
     assert user1_login_res.status_code == 201
-    assert json.loads(user1_login_res.get_data()).get("session_token") is not None
+    assert json.loads(user1_login_res.get_data()).get(
+        "session_token") is not None
 
     user2_credentials = base64.b64encode(b"test2:test2").decode('utf-8')
-    user2_login_res = client.post('/api/token/', headers={"Authorization": f"Basic {user2_credentials}"})
+    user2_login_res = client.post(
+        '/api/token/', headers={"Authorization": f"Basic {user2_credentials}"})
     assert user2_login_res.status_code == 201
-    assert json.loads(user2_login_res.get_data()).get("session_token") is not None
+    assert json.loads(user2_login_res.get_data()).get(
+        "session_token") is not None
 
 
 @pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
@@ -183,12 +187,14 @@ def test_delete_user(client):
     user_credentials = base64.b64encode(b"test:test").decode('utf-8')
     assert user_create_response.status_code == 201
 
-    login_response = client.post('/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
+    login_response = client.post(
+        '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
     assert login_response.status_code == 201
     bearer_token = json.loads(login_response.get_data()).get("session_token")
     assert bearer_token is not None
 
-    delete_res = client.delete('/api/user/', headers={"Authorization": f"Bearer {bearer_token}"})
+    delete_res = client.delete(
+        '/api/user/', headers={"Authorization": f"Bearer {bearer_token}"})
     assert delete_res.status_code == 204
     assert (get_user_by_email("text@example.com") is None and get_user_by_username("test") is None
             and get_user_by_id(1) is None)
@@ -207,12 +213,12 @@ def test_add_user_setting(client):
                                          json={
                                              "key": k1,
                                              "value": v1
-                                         })
+    })
     add_mean_setting_res = client.post('/api/user/settings/', headers={"Authorization": f"Bearer {bearer_token}"},
                                        json={
                                            "key": k2,
                                            "value": v2
-                                       })
+    })
     assert add_median_setting_res.status_code == 201
     assert add_mean_setting_res.status_code == 201
 
@@ -227,7 +233,8 @@ def test_add_user_setting(client):
     v3 = True
     client, bearer_token2 = register_and_login_demo_user(client)
     add_stdev_setting_res = client.post('/api/user/settings/',
-                                        headers={"Authorization": f"Bearer {bearer_token2}"},
+                                        headers={
+                                            "Authorization": f"Bearer {bearer_token2}"},
                                         json={
                                             "key": k3,
                                             "value": v3
@@ -253,15 +260,16 @@ def test_get_user_settings(client):
                                          json={
                                              "key": k1,
                                              "value": v1
-                                         })
+    })
     add_mean_setting_res = client.post('/api/user/settings/', headers={"Authorization": f"Bearer {bearer_token}"},
                                        json={
                                            "key": k2,
                                            "value": v2
-                                       })
+    })
     assert add_median_setting_res.status_code == 201
     assert add_mean_setting_res.status_code == 201
-    get_settings_res = client.get("/api/user/settings/", headers={"Authorization": f"Bearer {bearer_token}"})
+    get_settings_res = client.get(
+        "/api/user/settings/", headers={"Authorization": f"Bearer {bearer_token}"})
     assert get_settings_res.status_code == 200
     settings = json.loads(get_settings_res.get_data())
 
@@ -279,10 +287,9 @@ def test_change_username(client):
     """
     client, bearer_token = register_and_login_demo_user(client)
     new_username = "Fiddle01"  # Could that name have any meaning associated with it? hmmm
-    user_name_change_res = client.post('/api/user/username/', headers={"Authorization": f"Bearer {bearer_token}"}
-                                       , json={
-            "username": new_username
-        })
+    user_name_change_res = client.post('/api/user/username/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
+        "username": new_username
+    })
     assert user_name_change_res.status_code == 200
     assert get_user_by_username(new_username) is not None
 
@@ -295,23 +302,39 @@ def test_get_user_by_id(client):
         'password': 'test',
     })
     assert create_user_res.status_code == 201
-    client, bearer_token = register_and_login_demo_user(client, uname_and_password="user2")
+    user1_credentials = base64.b64encode(b"test:test").decode('utf-8')
+    user1_login_res = client.post(
+        '/api/token/', headers={"Authorization": f"Basic {user1_credentials}"})
+    assert user1_login_res.status_code == 201
+    assert json.loads(user1_login_res.get_data()).get(
+        "session_token") is not None
+    user1_token = json.loads(user1_login_res.get_data()).get("session_token")
+
+    client, bearer_token = register_and_login_demo_user(
+        client, uname_and_password="user2")
 
     make_group_res = client.post('/api/group/',
                                  json={"name": "Epic group of awesome happiness"},
-                                 headers={"Authorization": f"Bearer {bearer_token}"},
+                                 headers={
+                                     "Authorization": f"Bearer {bearer_token}"},
                                  )
     add_member_res = client.put('/api/group/1',
                                 json={"invite_users": ["test"]},
-                                headers={"Authorization": f"Bearer {bearer_token}"},
+                                headers={
+                                    "Authorization": f"Bearer {bearer_token}"},
                                 )
+    user1_accept_res = client.post('/api/user/accept_invite/1', headers={
+        "Authorization": f"Bearer {user1_token}"})
 
     assert make_group_res.status_code == 201
 
     assert add_member_res.status_code == 200
 
+    assert user1_accept_res.status_code == 204
+
     # Try to get user1's information
-    get_user_by_id_res = client.get("/api/user/1", headers={"Authorization": f"Bearer {bearer_token}"})
+    get_user_by_id_res = client.get(
+        "/api/user/1", headers={"Authorization": f"Bearer {bearer_token}"})
     # Check that the request went through
     assert get_user_by_id_res.status_code == 200
 
@@ -332,7 +355,8 @@ def test_invalid_get_user_by_id(client):
     assert create_user_res.status_code == 201
     client, bearer_token = register_and_login_demo_user(client)
 
-    get_initial_user_res = client.get('/api/user/2', headers={"Authorization": f"Bearer {bearer_token}"})
+    get_initial_user_res = client.get(
+        '/api/user/1', headers={"Authorization": f"Bearer {bearer_token}"})
     assert get_initial_user_res.status_code == 403
 
 
@@ -371,10 +395,12 @@ def register_and_login_demo_user(client, email=None, uname_and_password=None):
         'password': uname_and_password,
     })
 
-    user_credentials = base64.b64encode((uname_and_password + ":" + uname_and_password).encode()).decode('utf-8')
+    user_credentials = base64.b64encode(
+        (uname_and_password + ":" + uname_and_password).encode()).decode('utf-8')
     assert user_create_response.status_code == 201
 
-    login_response = client.post('/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
+    login_response = client.post(
+        '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
     assert login_response.status_code == 201
     bearer_token = json.loads(login_response.get_data()).get("session_token")
     assert bearer_token is not None

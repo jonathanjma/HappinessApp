@@ -11,7 +11,8 @@ from api.app import db
 group_users = db.Table(
     "group_users",
     db.Model.metadata,
-    db.Column("group_id", db.Integer, db.ForeignKey("group.id", ondelete='cascade')),
+    db.Column("group_id", db.Integer, db.ForeignKey(
+        "group.id", ondelete='cascade')),
     db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
 )
 
@@ -19,9 +20,11 @@ group_users = db.Table(
 group_invites = db.Table(
     "group_invites",
     db.Model.metadata,
-    db.Column("group_id", db.Integer, db.ForeignKey("group.id", ondelete='cascade')),
+    db.Column("group_id", db.Integer, db.ForeignKey(
+        "group.id", ondelete='cascade')),
     db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
 )
+
 
 class User(db.Model):
     """
@@ -38,8 +41,10 @@ class User(db.Model):
     profile_picture = db.Column(db.String, nullable=False)
     settings = db.relationship("Setting", cascade="delete")
 
-    groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
-    invites = db.relationship("Group", secondary=group_invites, back_populates="invited_users")
+    groups = db.relationship(
+        "Group", secondary=group_users, back_populates="users", lazy='dynamic')
+    invites = db.relationship(
+        "Group", secondary=group_invites, back_populates="invited_users")
 
     def __init__(self, **kwargs):
         """
@@ -107,8 +112,10 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
 
-    users = db.relationship("User", secondary=group_users, back_populates="groups")
-    invited_users = db.relationship("User", secondary=group_invites, back_populates="invites")
+    users = db.relationship(
+        "User", secondary=group_users, back_populates="groups")
+    invited_users = db.relationship(
+        "User", secondary=group_invites, back_populates="invites")
 
     def __init__(self, **kwargs):
         """
@@ -224,4 +231,5 @@ class Token(db.Model):
     def clean():
         """Remove any tokens that have been expired for more than a day."""
         yesterday = datetime.utcnow() - timedelta(days=1)
-        db.session.execute(delete(Token).where(Token.session_expiration < yesterday))
+        db.session.execute(delete(Token).where(
+            Token.session_expiration < yesterday))
