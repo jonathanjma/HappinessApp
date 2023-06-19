@@ -25,15 +25,6 @@ group_invites = db.Table(
     db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
 )
 
-# Group Invites association table
-group_invites = db.Table(
-    "group_invites",
-    db.Model.metadata,
-    db.Column("group_id", db.Integer, db.ForeignKey(
-        "group.id", ondelete='cascade')),
-    db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
-)
-
 
 class User(db.Model):
     """

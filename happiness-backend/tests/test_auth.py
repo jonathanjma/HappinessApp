@@ -144,7 +144,7 @@ def test_send_password_reset_email(client):
     r3 = client.post('/api/user/initiate_password_reset/', json={
         'email': 'test2@example.com'
     })
-    assert r2.status_code == 200 and r3.status_code == 200
+    assert r2.status_code == 204 and r3.status_code == 204
 
 
 @pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
@@ -302,6 +302,14 @@ def test_get_user_by_id(client):
         'password': 'test',
     })
     assert create_user_res.status_code == 201
+    user1_credentials = base64.b64encode(b"test:test").decode('utf-8')
+    user1_login_res = client.post(
+        '/api/token/', headers={"Authorization": f"Basic {user1_credentials}"})
+    assert user1_login_res.status_code == 201
+    assert json.loads(user1_login_res.get_data()).get(
+        "session_token") is not None
+    user1_token = json.loads(user1_login_res.get_data()).get("session_token")
+
     client, bearer_token = register_and_login_demo_user(
         client, uname_and_password="user2")
 
@@ -315,10 +323,14 @@ def test_get_user_by_id(client):
                                 headers={
                                     "Authorization": f"Bearer {bearer_token}"},
                                 )
+    user1_accept_res = client.post('/api/user/accept_invite/1', headers={
+        "Authorization": f"Bearer {user1_token}"})
 
     assert make_group_res.status_code == 201
 
     assert add_member_res.status_code == 200
+
+    assert user1_accept_res.status_code == 204
 
     # Try to get user1's information
     get_user_by_id_res = client.get(

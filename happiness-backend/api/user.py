@@ -131,23 +131,6 @@ def reject_group_invite(group_id):
     return failure_response('Group Invite Not Found', 404)
 
 
-@user.post('/reject_invite/<int:group_id>')
-@authenticate(token_auth)
-@response(EmptySchema, 204, 'Group invite rejected')
-@other_responses({404: 'Invalid Group Invite'})
-def reject_group_invite(group_id):
-    """
-    Reject Group Invite
-    Rejects an invite to join a happiness group \n
-    Requires: group ID is valid and corresponds to a group that has invited the user
-    """
-    group = get_group_by_id(group_id)
-    if group is not None and group in token_auth.current_user().invites:
-        group.remove_users([token_auth.current_user().username])
-        return '', 204
-    return failure_response('Group Invite Not Found', 404)
-
-
 @user.delete('/')
 @authenticate(token_auth)
 def delete_user():
