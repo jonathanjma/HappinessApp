@@ -2,8 +2,10 @@ import pytest
 
 from api import create_app
 from api.app import db
-from api.dao.users_dao import *
+from api.dao.groups_dao import get_group_by_id
 from api.dao.happiness_dao import *
+from api.dao.users_dao import get_user_by_id
+from api.models import User
 from config import TestConfig
 import json
 from datetime import datetime
@@ -18,21 +20,22 @@ def init_client():
     with app.app_context():
         db.create_all()
 
-        user1 = User(email='test1@example.app',
-                     username='user1', password='test')
-        user2 = User(email='test2@example.app',
-                     username='user2', password='test')
-        user3 = User(email='test3@example.app',
-                     username='user3', password='test')
-        db.session.add_all([user1, user2, user3])
+        user1 = User(email='test1@example.app', username='user1', password='test')
+        user2 = User(email='test2@example.app', username='user2', password='test')
+        user3 = User(email='test3@example.app', username='user3', password='test')
+        user4 = User(email='test4@example.app', username='user4', password='test')
+        db.session.add_all([user1, user2, user3, user4])
         db.session.commit()
         tokens = [user1.create_token(), user2.create_token(),
-                  user3.create_token()]
+                  user3.create_token(), user4.create_token()]
         db.session.add_all(tokens)
         db.session.commit()
 
-        yield client, [tokens[0].session_token, tokens[1].session_token, tokens[2].session_token]
+        yield client, [tokens[0].session_token, tokens[1].session_token,
+                       tokens[2].session_token, tokens[3].session_token]
 
+def auth_header(token):
+    return {'Authorization': f'Bearer {token}'}
 
 def test_create_happiness(init_client):
     client, tokens = init_client
@@ -340,3 +343,57 @@ def test_get_happiness(init_client):
         'id': 4
     }, headers={"Authorization": f"Bearer {tokens[2]}"})
     assert bad_happiness_get_count.status_code == 403
+
+def test_discussion_comments(init_client):
+    client, tokens = init_client
+    client.post('/api/group/', json={'name': 'group 1'}, headers=auth_header(tokens[0]))
+    client.post('/api/group/', json={'name': 'group 2'}, headers=auth_header(tokens[0]))
+    get_group_by_id(1).invite_users(['user2'])
+    get_group_by_id(1).add_user(get_user_by_id(2))
+    get_group_by_id(2).invite_users(['user3'])
+    get_group_by_id(2).add_user(get_user_by_id(3))
+    client.post('/api/happiness/', json={
+        'value': 4.5,
+        'comment': 'bad day',
+        'timestamp': '2023-06-19'
+    },  headers=auth_header(tokens[0]))
+
+    create_comment = client.post('/api/happiness/1/comment', json={
+        'text': 'oh no what happened?'
+    },  headers=auth_header(tokens[1]))
+    create_comment2 = client.post('/api/happiness/1/comment', json={
+        'text': 'i messed up bad'
+    },  headers=auth_header(tokens[0]))
+    create_comment3 = client.post('/api/happiness/1/comment', json={
+        'text': 'is it related to your mom?'
+    },  headers=auth_header(tokens[2]))
+    assert create_comment.status_code == 201 and create_comment2.status_code == 201 \
+           and create_comment3.status_code == 201
+
+    unauthorized_comment = client.post('/api/happiness/1/comment', json={
+        'text': 'rip'
+    },  headers=auth_header(tokens[3]))
+    assert unauthorized_comment.status_code == 403
+
+    happiness_get = client.get('/api/group/1/happiness', query_string={
+        'start': '2023-06-19'
+    }, headers=auth_header(tokens[0]))
+    comments = happiness_get.json[0]['discussion_comments']
+    assert len(comments) == 3
+    assert comments[0]['happiness_id'] == comments[1]['happiness_id'] == 1
+    assert comments[0]['author']['id'] == 2 and comments[1]['author']['id'] == 1
+    assert comments[0]['text'] == 'oh no what happened?' and comments[1]['text'] == 'i messed up bad'
+
+    comment_access_u2 = client.get('/api/group/1/happiness', query_string={
+        'start': '2023-06-19'
+    }, headers=auth_header(tokens[1]))
+    comments = comment_access_u2.json[0]['discussion_comments']
+    assert len(comments) == 2
+    assert comments[0]['author']['id'] == 2 and comments[1]['author']['id'] == 1
+
+    comment_access_u3 = client.get('/api/group/2/happiness', query_string={
+        'start': '2023-06-19'
+    }, headers=auth_header(tokens[2]))
+    comments = comment_access_u3.json[0]['discussion_comments']
+    assert len(comments) == 2
+    assert comments[0]['author']['id'] == 1 and comments[1]['author']['id'] == 3
