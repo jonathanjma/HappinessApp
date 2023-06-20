@@ -239,7 +239,7 @@ def test_get_happiness(init_client):
     bad_happiness_get_other_response = client.get('/api/happiness/', query_string={
         'start': '2023-01-02',
         'end': '2023-01-30',
-        'id': 0
+        'id': 1
     }, headers={"Authorization": f"Bearer {bearer_token}"})
     assert bad_happiness_get_other_response.status_code == 403
 
