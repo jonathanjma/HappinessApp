@@ -1,21 +1,22 @@
+import threading
+import uuid
+from datetime import datetime
+
+import boto3
+import filetype
 from apifairy import authenticate, response, body, other_responses
 from flask import Blueprint
-from flask import json, request
+from flask import json, request, current_app
 
-from api import users_dao
 from api import email_methods
+from api import users_dao
 from api.app import db
 from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
 from api.responses import success_response, failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
-    UsernameSchema, UserEmailSchema, SimpleUserSchema
+    UsernameSchema, UserEmailSchema, SimpleUserSchema, FileUploadSchema
 from api.token import token_auth
-
-
-import threading
-
-from sqlalchemy import func
 
 user = Blueprint('user', __name__)
 
@@ -68,6 +69,7 @@ def get_user_by_id(user_id):
 
     return friend_user
 
+
 @user.get('/username/<username>')
 @authenticate(token_auth)
 @response(SimpleUserSchema)
@@ -82,6 +84,7 @@ def get_user_by_username(username):
     if user_lookup is None:
         return failure_response("User not found", 404)
     return user_lookup
+
 
 @user.get('/groups')
 @authenticate(token_auth)
@@ -124,18 +127,18 @@ def add_user_setting(req):
     """
     current_user = token_auth.current_user()
     key, value = req.get("key"), req.get("value")
-    oldSetting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
-    if oldSetting is None:
+    old_setting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
+    if old_setting is None:
         print("OLD SETTING NOT FOUND -----------------")
-        newSetting = Setting(key=key, value=value, user_id=current_user.id)
-        db.session.add(newSetting)
+        new_setting = Setting(key=key, value=value, user_id=current_user.id)
+        db.session.add(new_setting)
         db.session.commit()
-        return newSetting
+        return new_setting
 
-    oldSetting.value = value
+    old_setting.value = value
     db.session.commit()
     print("Old setting updated")
-    return oldSetting
+    return old_setting
 
 
 @user.get('/settings/')
@@ -229,7 +232,7 @@ def send_reset_password_email(req):
     email = req.get("email")
     user_by_email = users_dao.get_user_by_email(email)
     if user_by_email is None:
-        return failure_response("User associated with email address not found", 400)
+        return failure_response("User associated with email address not found", 404)
     threading.Thread(target=email_methods.send_password_reset_email, args=(user_by_email,)).start()
     return user_by_email
 
@@ -243,3 +246,54 @@ def get_self():
     Returns: the user object corresponding to the currently logged in user.
     """
     return token_auth.current_user()
+
+
+@user.post('/pfp/')
+@authenticate(token_auth)
+@response(SimpleUserSchema)
+@body(FileUploadSchema, location='form')
+@other_responses({400: "Invalid request"})
+def add_pfp(req):
+    """
+    Add Profile Picture
+    Route to change the user's profile picture. 
+    Takes an image from the request body, which should be the in the form of binary file data in the form-data section
+    of the request body.
+    """
+
+    # Check valid user and valid image file
+
+    data = req["file"].read()
+    current_user = token_auth.current_user()
+    # Check that data exists
+    if not data:
+        return failure_response("Invalid request", 400)
+    # Check that data is an image file
+    if not filetype.is_image(data):
+        return failure_response("Invalid request", 400)
+    # Check that data is under 10 megabytes
+    if len(data) > 10000000:
+        return failure_response("Invalid request", 400)
+
+    # Connect to boto3
+
+    boto_kwargs = {
+        "aws_access_key_id": current_app.config["AWS_ACCESS"],
+        "aws_secret_access_key": current_app.config["AWS_SECRET"],
+        "region_name": current_app.config["AWS_REGION"]
+    }
+    s3 = boto3.Session(**boto_kwargs).client("s3")
+
+    # Create unique file name and upload image to AWS:
+
+    file_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4()}.{(filetype.guess(data)).extension}"
+    res = s3.put_object(Bucket=current_app.config["AWS_BUCKET_NAME"], Body=data, Key=file_name, ACL="public-read")
+
+    # Construct image URL and mutate user object to reflect new profile image URL:
+
+    img_url = (f"https://{current_app.config['AWS_BUCKET_NAME']}.s3." +
+               f"{current_app.config['AWS_REGION']}.amazonaws.com/{file_name}")
+    current_user.profile_picture = img_url
+    db.session.commit()
+
+    return current_user

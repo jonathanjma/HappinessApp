@@ -1,3 +1,4 @@
+from apifairy.fields import FileField
 from marshmallow import post_dump
 
 from api.app import ma
@@ -33,6 +34,7 @@ class UserSchema(ma.SQLAlchemySchema):
     profile_picture = ma.auto_field()
     settings = ma.Nested(SettingsSchema, many=True, required=True)
 
+
 class SimpleUserSchema(ma.Schema):
     class Meta:
         ordered = True
@@ -40,6 +42,7 @@ class SimpleUserSchema(ma.Schema):
     id = ma.Int(required=True)
     username = ma.Str(required=True)
     profile_picture = ma.Str(required=True)
+
 
 class TokenSchema(ma.Schema):
     session_token = ma.Str()
@@ -116,3 +119,7 @@ class HappinessGetCount(ma.Schema):
     page = ma.Int()
     count = ma.Int()
     id = ma.Int()
+
+
+class FileUploadSchema(ma.Schema):
+    file = FileField()
