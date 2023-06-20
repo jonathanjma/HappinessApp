@@ -1,7 +1,9 @@
-from marshmallow import post_dump
+from marshmallow import post_dump, pre_dump
 
 from api.app import ma
-from api.models import User, Group, Happiness, Setting, Comment
+from api.auth import token_auth
+from api.dao.users_dao import get_user_by_id
+from api.models import User, Group, Happiness, Setting, Comment, clone_model
 
 
 class EmptySchema(ma.Schema):
@@ -108,14 +110,24 @@ class HappinessSchema(ma.SQLAlchemySchema):
     value = ma.auto_field(required=True)
     comment = ma.auto_field()
     timestamp = ma.Str(required=True)
-    discussion_comments = ma.Nested(CommentSchema, many=True, required=True)
+    discussion_comments = ma.Nested(CommentSchema, many=True, dump_only=True)
+
+    @pre_dump
+    def filter_comments(self, happiness_obj, **kwargs):
+        # only show comments if the commenter shares a group with the current user
+        cloned = Happiness(**clone_model(happiness_obj))
+        filtered = []
+        for comment in happiness_obj.discussion_comments:
+            if token_auth.current_user().has_mutual_group(get_user_by_id(comment.user_id)):
+                filtered.append(comment)
+        cloned.discussion_comments = filtered
+        return cloned
 
     @post_dump
     def fix_time(self, data, **kwargs):
         if data.get('timestamp'):
             data['timestamp'] = data['timestamp'].split()[0]
         return data
-
 
 class HappinessEditSchema(ma.Schema):
     value = ma.Float()

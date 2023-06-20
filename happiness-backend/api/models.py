@@ -168,7 +168,7 @@ class Happiness(db.Model):
     comment = db.Column(db.String)
     timestamp = db.Column(db.DateTime)
 
-    discussion_comments = db.relationship("Comment", cascade='delete')
+    discussion_comments = db.relationship("Comment", cascade='delete', lazy='dynamic')
 
     def __init__(self, **kwargs):
         """
@@ -233,3 +233,11 @@ class Token(db.Model):
         yesterday = datetime.utcnow() - timedelta(days=1)
         db.session.execute(delete(Token).where(
             Token.session_expiration < yesterday))
+
+def clone_model(model):
+    """Clone an arbitrary SQLAlchemy model object without its primary key value"""
+
+    table = model.__table__
+    non_pk_columns = [k for k in table.columns.keys() if k not in table.primary_key]
+    data = {c: getattr(model, c) for c in non_pk_columns}
+    return data

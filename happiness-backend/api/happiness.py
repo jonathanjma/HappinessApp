@@ -140,7 +140,7 @@ def get_paginated_happiness(req):
 @happiness.post('/<int:id>/comment')
 @authenticate(token_auth)
 @body(CommentSchema)
-@response(HappinessSchema)
+@response(HappinessSchema, 201)
 @other_responses({403: "Not Allowed.", 404: "Happiness Not Found."})
 def create_comment(req, id):
     """
