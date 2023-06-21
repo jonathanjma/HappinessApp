@@ -1,16 +1,14 @@
 import base64
-import string
 import random
+import string
 
 import pytest
+from flask import json
 
 from api import create_app
 from api.app import db
 from api.users_dao import *
 from config import TestConfig
-from flask import json
-
-COMPREHENSIVE_TEST = True
 
 
 @pytest.fixture
@@ -23,7 +21,6 @@ def client():
         yield client
 
 
-@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_create_user(client):
     """
     Tests the creation of one user. Ensures fields are properly set and response code is correct.
@@ -39,7 +36,6 @@ def test_create_user(client):
     assert user.username == 'test'
 
 
-@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_create_multiple_users(client):
     """
     Tests the creation of multiple users.
@@ -65,7 +61,6 @@ def test_create_multiple_users(client):
     assert u2.username == 'john'
 
 
-@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_create_invalid_users(client):
     """
     Tests to create invalid users with duplicate emails, usernames, or not enough parameters supplied.
@@ -99,7 +94,6 @@ def test_create_invalid_users(client):
     assert same_username_res.status_code == 400
 
 
-@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_send_invalid_password_reset_email(client):
     """
     Attempts to call send password reset method under invalid conditions.
@@ -122,7 +116,6 @@ def test_send_invalid_password_reset_email(client):
     assert r3.status_code == 404
 
 
-@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_send_password_reset_email(client):
     """
     Tests sending a password reset email to test@example.com
@@ -147,7 +140,6 @@ def test_send_password_reset_email(client):
     assert r2.status_code == 200 and r3.status_code == 200
 
 
-@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_login_user(client):
     """
     Tests logging in 2 users and getting their session tokens.
@@ -178,7 +170,6 @@ def test_login_user(client):
     assert json.loads(user2_login_res.get_data()).get("session_token") is not None
 
 
-@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_delete_user(client):
     user_create_response = client.post('/api/user/', json={
         'email': 'test@example.com',
@@ -199,7 +190,6 @@ def test_delete_user(client):
             and get_user_by_id(1) is None)
 
 
-@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_add_user_setting(client):
     """
     Tests adding two settings to a single user in an instance of the backend.
@@ -242,9 +232,7 @@ def test_add_user_setting(client):
     assert b3.get("key") == k3
     assert b3.get("value") == v3
 
-
-# @pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
-def test_get_user_settings(client):
+    # def test_get_user_settings(client):
     """
     Tests the get specific user setting and get all user settings operation.
     :param client: The client to perform the test with.
@@ -276,7 +264,6 @@ def test_get_user_settings(client):
     assert settings[1].get("value") == v2
 
 
-@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_change_username(client):
     """
     Tests to change the username of a randomly generated user.
@@ -284,15 +271,82 @@ def test_change_username(client):
     """
     client, bearer_token = register_and_login_demo_user(client)
     new_username = "Fiddle01"  # Could that name have any meaning associated with it? hmmm
-    user_name_change_res = client.post('/api/user/username/', headers={"Authorization": f"Bearer {bearer_token}"}
+    user_name_change_res = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
                                        , json={
-            "username": new_username
+            "data_type": "username",
+            "data": new_username
         })
     assert user_name_change_res.status_code == 200
     assert get_user_by_username(new_username) is not None
 
+    # Create a new account, attempt to change that account to a username that is already taken, should fail
+    client, bearer_token2 = register_and_login_demo_user(client)
+    user_name_change_res2 = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
+                                        , json={
+            "data_type": "username",
+            "data": "fiDdLe01"
+        })
+    assert user_name_change_res2.status_code == 400
+    # Then try changing it to a unique username, it should be a success
+    new_username2 = "fiDdLe02"
+    user_name_change_res3 = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
+                                        , json={
+            "data_type": "username",
+            "data": new_username2
+        })
+    assert user_name_change_res3.status_code == 200
+    assert get_user_by_username(new_username2) is not None
 
-@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
+
+def test_change_email(client):
+    """
+    Tests to change the email of a randomly generated user.
+    :param client: The client to perform this action on.
+    """
+    client, bearer_token = register_and_login_demo_user(client)
+    new_email = "Fiddle01@gmail.com"  # Could that name have any meaning associated with it? hmmm
+    user_name_change_res = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
+                                       , json={
+            "data_type": "email",
+            "data": new_email
+        })
+    assert user_name_change_res.status_code == 200
+    assert get_user_by_email(new_email) is not None
+
+    # Create a new account, attempt to change that account to an email that is already taken, should fail
+    client, bearer_token2 = register_and_login_demo_user(client)
+    user_name_change_res2 = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
+                                        , json={
+            "data_type": "email",
+            "data": "fiDdLe01@gmail.com"
+        })
+    assert user_name_change_res2.status_code == 400
+    # Then try changing it to a unique email, it should be a success
+    new_email2 = "Fiddle02@gmail.com"
+    user_name_change_res3 = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
+                                        , json={
+            "data_type": "email",
+            "data": new_email2
+        })
+    assert user_name_change_res3.status_code == 200
+    assert get_user_by_email(new_email2) is not None
+
+
+def test_change_password(client):
+    username = "Hello"
+    client, bearer_token = register_and_login_demo_user(client, uname_and_password=username)
+    new_password = "Password"
+    password_change_res1 = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
+                                       , json={
+            "data_type": "password",
+            "data": new_password
+        })
+    assert password_change_res1.status_code == 200
+    user_credentials = base64.b64encode((f"{username}:{new_password}".encode())).decode('utf-8')
+    login_res = client.post('/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
+    assert login_res.status_code == 201
+
+
 def test_get_user_by_id(client):
     create_user_res = client.post('/api/user/', json={
         'email': 'test@example.com',
@@ -327,7 +381,6 @@ def test_get_user_by_id(client):
     # assert body_res.get("profile_picture") == "default"
 
 
-@pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
 def test_invalid_get_user_by_id(client):
     create_user_res = client.post('/api/user/', json={
         'email': 'test@example.com',
