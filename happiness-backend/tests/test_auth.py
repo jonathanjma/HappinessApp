@@ -167,6 +167,11 @@ def test_login_user(client):
     assert user1_login_res.status_code == 201
     assert json.loads(user1_login_res.get_data()).get("session_token") is not None
 
+    user1_credentials2 = base64.b64encode(b"test@example.com:test").decode('utf-8')
+    user1_login_res2 = client.post('/api/token/', headers={"Authorization": f"Basic {user1_credentials2}"})
+    assert user1_login_res2.status_code == 201
+    assert json.loads(user1_login_res2.get_data()).get("session_token") is not None
+
     user2_credentials = base64.b64encode(b"test2:test2").decode('utf-8')
     user2_login_res = client.post('/api/token/', headers={"Authorization": f"Basic {user2_credentials}"})
     assert user2_login_res.status_code == 201
