@@ -43,8 +43,6 @@ class User(db.Model):
 
     groups = db.relationship(
         "Group", secondary=group_users, back_populates="users", lazy='dynamic')
-    invites = db.relationship(
-        "Group", secondary=group_invites, back_populates="invited_users")
 
     def __init__(self, **kwargs):
         """
@@ -114,8 +112,6 @@ class Group(db.Model):
 
     users = db.relationship(
         "User", secondary=group_users, back_populates="groups")
-    invited_users = db.relationship(
-        "User", secondary=group_invites, back_populates="invites")
 
     def __init__(self, **kwargs):
         """
@@ -124,24 +120,16 @@ class Group(db.Model):
         """
         self.name = kwargs.get("name")
 
-    def invite_users(self, users_to_invite):
+    def add_users(self, new_users):
         """
-        Invites a list of usernames to join a group
-        Requires: Users to be invited must exist and not already be in the group
+        Adds users to a group
+        Requires a list of usernames to add
+        Users to be added must exist and not already be in the group
         """
-        for username in users_to_invite:
+        for username in new_users:
             user = User.query.filter(User.username.ilike(username)).first()
-            if user is not None and user not in self.users and user not in self.invited_users:
-                self.invited_users.append(user)
-
-    def add_user(self, user_to_add):
-        """
-        Adds a user object to a group
-        Requires: User must already have been invited to the group
-        """
-        if user_to_add in self.invited_users:
-            self.invited_users.remove(user_to_add)
-            self.users.append(user_to_add)
+            if user is not None and user not in self.users:
+                self.users.append(user)
 
     def remove_users(self, users_to_remove):
         """
@@ -150,11 +138,8 @@ class Group(db.Model):
         """
         for username in users_to_remove:
             user = User.query.filter(User.username.ilike(username)).first()
-            if user is not None:
-                if user in self.users:
-                    self.users.remove(user)
-                elif user in self.invited_users:
-                    self.invited_users.remove(user)
+            if user is not None and user in self.users:
+                self.users.remove(user)
 
 
 class Happiness(db.Model):
