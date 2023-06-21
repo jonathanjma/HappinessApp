@@ -154,20 +154,27 @@ def add_user_setting(req):
     """
     Add Settings
     Adds a setting to the current user's property bag. \n
-    If the setting already exists in the property bag, it modifies the value of the setting. \n
+    If the setting already exists in the property bag, it can enable or disable the setting. \n
     Returns: A JSON success response that contains the added setting, or a failure response.
     """
     current_user = token_auth.current_user()
-    key, value = req.get("key"), req.get("value")
+    key, enabled, value = req.get("key"), req.get("enabled"), req.get("value")
     old_setting = Setting.query.filter(
         Setting.user_id == current_user.id, Setting.key == key).first()
     if old_setting is None:
-        new_setting = Setting(key=key, value=value, user_id=current_user.id)
+        if value is None:
+            new_setting = Setting(key=key, enabled=enabled,
+                                  user_id=current_user.id)
+        else:
+            new_setting = Setting(key=key, enabled=enabled,
+                                  value=value, user_id=current_user.id)
         db.session.add(new_setting)
         db.session.commit()
         return new_setting
 
-    old_setting.value = value
+    old_setting.enabled = enabled
+    if value is not None:
+        old_setting.value = value
     db.session.commit()
     return old_setting
 
@@ -179,7 +186,7 @@ def get_user_settings():
     """
     Get Settings
     Gets the settings of the current user by authorization token. \n
-    Returns: A JSON response of a list of key value pairs that contain setting keys and their values for the user.
+    Returns: A JSON response of a list of keys, booleans, and values that contain setting keys, whether they are enabled/disabled, and specific values for the user.
     """
     current_user = token_auth.current_user()
     settings = Setting.query.filter(Setting.user_id == current_user.id).all()

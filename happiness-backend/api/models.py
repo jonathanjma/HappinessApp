@@ -91,15 +91,17 @@ class Setting(db.Model):
     __tablename__ = "setting"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     key = db.Column(db.String, nullable=False)
-    value = db.Column(db.Boolean, nullable=False)
+    enabled = db.Column(db.Boolean, nullable=False)
+    value = db.Column(db.String)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
     def __init__(self, **kwargs):
         """
         Initializes a setting.
-        Requires that kwargs contains key, value, user_id
+        Requires that kwargs contains key, enabled val, user_id
         """
         self.key = kwargs.get("key")
+        self.enabled = kwargs.get("enabled")
         self.value = kwargs.get("value")
         self.user_id = kwargs.get("user_id")
 

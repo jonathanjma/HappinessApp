@@ -212,12 +212,12 @@ def test_add_user_setting(client):
     add_median_setting_res = client.post('/api/user/settings/', headers={"Authorization": f"Bearer {bearer_token}"},
                                          json={
                                              "key": k1,
-                                             "value": v1
+                                             "enabled": v1
     })
     add_mean_setting_res = client.post('/api/user/settings/', headers={"Authorization": f"Bearer {bearer_token}"},
                                        json={
                                            "key": k2,
-                                           "value": v2
+                                           "enabled": v2
     })
     assert add_median_setting_res.status_code == 201
     assert add_mean_setting_res.status_code == 201
@@ -226,8 +226,8 @@ def test_add_user_setting(client):
     b2 = json.loads(add_mean_setting_res.get_data())
     assert b1.get("key") == k1
     assert b2.get("key") == k2
-    assert b1.get("value") == v1
-    assert b2.get("value") == v2
+    assert b1.get("enabled") == v1
+    assert b2.get("enabled") == v2
     # Test to make sure the right users get the right setting:
     k3 = "STANDARD_DEVIATION"
     v3 = True
@@ -237,12 +237,37 @@ def test_add_user_setting(client):
                                             "Authorization": f"Bearer {bearer_token2}"},
                                         json={
                                             "key": k3,
-                                            "value": v3
+                                            "enabled": v3
                                         })
     assert add_stdev_setting_res.status_code == 201
     b3 = json.loads(add_stdev_setting_res.get_data())
     assert b3.get("key") == k3
-    assert b3.get("value") == v3
+    assert b3.get("enabled") == v3
+    assert b3.get("value") == None
+
+    k4 = "EMAIL NOTIFICATIONS"
+    v4 = False
+    add_email_notif_setting_res = client.post('/api/user/settings/',
+                                              headers={
+                                                  "Authorization": f"Bearer {bearer_token2}"},
+                                              json={
+                                                  "key": k4,
+                                                  "enabled": v4
+                                              })
+    assert add_email_notif_setting_res.status_code == 201
+    add_email_notif_time_res = client.post('/api/user/settings/',
+                                           headers={
+                                               "Authorization": f"Bearer {bearer_token2}"},
+                                           json={
+                                               "key": k4,
+                                               "enabled": not v4,
+                                               "value": "2000"
+                                           })
+    assert add_email_notif_time_res.status_code == 201
+    b4 = json.loads(add_email_notif_time_res.get_data())
+    assert b4.get("key") == k4
+    assert b4.get("enabled") == True
+    assert b4.get("value") == "2000"
 
 
 # @pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
@@ -259,12 +284,12 @@ def test_get_user_settings(client):
     add_median_setting_res = client.post('/api/user/settings/', headers={"Authorization": f"Bearer {bearer_token}"},
                                          json={
                                              "key": k1,
-                                             "value": v1
+                                             "enabled": v1
     })
     add_mean_setting_res = client.post('/api/user/settings/', headers={"Authorization": f"Bearer {bearer_token}"},
                                        json={
                                            "key": k2,
-                                           "value": v2
+                                           "enabled": v2
     })
     assert add_median_setting_res.status_code == 201
     assert add_mean_setting_res.status_code == 201
@@ -274,9 +299,9 @@ def test_get_user_settings(client):
     settings = json.loads(get_settings_res.get_data())
 
     assert settings[0].get("key") == k1
-    assert settings[0].get("value") == v1
+    assert settings[0].get("enabled") == v1
     assert settings[1].get("key") == k2
-    assert settings[1].get("value") == v2
+    assert settings[1].get("enabled") == v2
 
 
 @pytest.mark.skipif(not COMPREHENSIVE_TEST, reason="Warning: Comprehensive testing is turned off.")
