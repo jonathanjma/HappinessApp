@@ -78,6 +78,8 @@ class User(db.Model):
         Checks to see if the current users shares a happiness group user_to_check (a user object)
         """
         # checks if intersection of user's groups and user_to_check's groups is non-empty
+        if user_to_check is None:
+            return False
         return self.groups.intersect(user_to_check.groups).count() > 0
 
 
