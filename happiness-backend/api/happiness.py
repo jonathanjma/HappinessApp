@@ -5,6 +5,7 @@ from flask import Blueprint, request
 
 from api.dao import happiness_dao, users_dao
 from api.app import db
+from api.dao.users_dao import get_user_by_id
 from api.models import Happiness, Comment
 from api.errors import failure_response
 from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTime, HappinessGetCount, \
@@ -140,7 +141,7 @@ def get_paginated_happiness(req):
 @happiness.post('/<int:id>/comment')
 @authenticate(token_auth)
 @body(CommentSchema)
-@response(HappinessSchema, 201)
+@response(CommentSchema, 201)
 @other_responses({403: "Not Allowed.", 404: "Happiness Not Found."})
 def create_comment(req, id):
     """
@@ -148,16 +149,40 @@ def create_comment(req, id):
     Creates a happiness discussion comment for the specified happiness entry with the given text.
     User must share a group with the user who created the happiness entry. \n
     Requires: ID must be valid, comment text must be non-empty \n
-    Returns: Happiness entry with newly added discussion comment.
+    Returns: Comment created with the given information.
     """
     user_id = token_auth.current_user().id
-    query_data = happiness_dao.get_happiness_by_id(id)
-    if query_data:
-        if token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(query_data.user_id)):
+    happiness_obj = happiness_dao.get_happiness_by_id(id)
+    if happiness_obj:
+        if token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(happiness_obj.user_id)):
             comment = Comment(happiness_id=id, user_id=user_id, text=req.get("text"))
             db.session.add(comment)
             db.session.commit()
-            return query_data
+            return comment
+        return failure_response("Not Allowed.", 403)
+    return failure_response("Happiness Not Found.", 404)
+
+@happiness.get('/<int:id>/comments')
+@authenticate(token_auth)
+@response(CommentSchema(many=True))
+@other_responses({403: "Not Allowed.", 404: "Happiness Not Found."})
+def get_comments(id):
+    """
+    Get Discussion Comments
+    Gets all the discussion comments for a happiness entry. \n
+    User must share a group with the user who created the happiness entry. \n
+    Returns: List of discussion comments, only including the comments where
+    the commenter shares a group with the current user
+    """
+    happiness_obj = happiness_dao.get_happiness_by_id(id)
+    if happiness_obj:
+        if token_auth.current_user().has_mutual_group(get_user_by_id(happiness_obj.user_id)):
+            # only show comments if the commenter shares a group with the current user
+            filtered = []
+            for comment in happiness_obj.discussion_comments:
+                if token_auth.current_user().has_mutual_group(get_user_by_id(comment.user_id)):
+                    filtered.append(comment)
+            return filtered
         return failure_response("Not Allowed.", 403)
     return failure_response("Happiness Not Found.", 404)
 
