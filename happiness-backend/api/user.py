@@ -17,7 +17,7 @@ from api.models import User, Setting
 from api.errors import failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     SimpleUserSchema, FileUploadSchema, UserInfoSchema, PasswordResetReqSchema, \
-    EmptySchema
+    EmptySchema, PasswordResetSchema
 from api.token import token_auth
 
 user = Blueprint('user', __name__)
