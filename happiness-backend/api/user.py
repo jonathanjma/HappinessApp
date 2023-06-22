@@ -1,5 +1,13 @@
+import threading
+import uuid
+from datetime import datetime
+
+import boto3
+import filetype
 from apifairy import authenticate, response, body, other_responses
 from flask import Blueprint
+from flask import current_app
+from werkzeug.security import generate_password_hash
 
 from api.dao import users_dao
 from api import email_methods
@@ -8,10 +16,9 @@ from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
 from api.errors import failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
-    UsernameSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema
+    SimpleUserSchema, FileUploadSchema, UserInfoSchema, PasswordResetReqSchema, \
+    EmptySchema
 from api.token import token_auth
-
-import threading
 
 user = Blueprint('user', __name__)
 
@@ -120,8 +127,7 @@ def add_user_setting(req):
     """
     current_user = token_auth.current_user()
     key, value = req.get("key"), req.get("value")
-    old_setting = Setting.query.filter(
-        Setting.user_id == current_user.id, Setting.key == key).first()
+    old_setting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
     if old_setting is None:
         new_setting = Setting(key=key, value=value, user_id=current_user.id)
         db.session.add(new_setting)
@@ -147,27 +153,52 @@ def get_user_settings():
     return settings
 
 
-@user.post('/username/')
+@user.post('/info/')
 @authenticate(token_auth)
-@body(UsernameSchema)
-@response(UserSchema)
-@other_responses({400: "Username already exists."})
-def change_username(req):
+@body(UserInfoSchema)
+@response(SimpleUserSchema)
+@other_responses({400: "Provided data already exists."})
+def change_user_info(req):
     """
-    Change Username \n
-    Changes a user's username to their newly desired username \n
-    Requires: Username is unique.
+    Change User Info
+    Changes a user's info based on 3 different `data_type`(s): \n
+    "username" \n
+    "email" \n
+    "password" \n
+    Then the associated data must be put in the `data` field of the request.
     """
-    new_username = req.get("username")
+    data_type = req.get("data_type")
     current_user = token_auth.current_user()
 
-    similar_user = users_dao.get_user_by_username(new_username)
-    if similar_user is not None:
-        return failure_response("Provide data already exists", 400)
+    if data_type == "username":
+        # Change a user's username, which requires their username to be unique.
 
-    current_user.username = new_username
-    db.session.commit()
-    return current_user
+        new_username = req.get("data")
+        similar_user = users_dao.get_user_by_username(new_username)
+        if similar_user is not None:
+            return failure_response("Provide data already exists", 400)
+
+        current_user.username = new_username
+        db.session.commit()
+        return current_user
+    elif data_type == "email":
+        # Changes a user's email, which requires their email to be unique.
+
+        new_email = req.get("data")
+        similar_user = users_dao.get_user_by_email(new_email)
+        if similar_user is not None:
+            return failure_response("Provided data already exists", 400)
+
+        current_user.email = new_email
+        db.session.commit()
+        return current_user
+    elif data_type == "password":
+        # Changes a user's password.
+
+        new_password = req.get("data")
+        current_user.password = generate_password_hash(new_password)
+        db.session.commit()
+        return current_user
 
 
 @user.post('/reset_password/<token>')
@@ -222,3 +253,54 @@ def get_self():
     Returns: the user object corresponding to the currently logged-in user.
     """
     return token_auth.current_user()
+
+
+@user.post('/pfp/')
+@authenticate(token_auth)
+@response(SimpleUserSchema)
+@body(FileUploadSchema, location='form')
+@other_responses({400: "Invalid request"})
+def add_pfp(req):
+    """
+    Add Profile Picture
+    Route to change the user's profile picture.
+    Takes an image from the request body, which should be the in the form of binary file data in the form-data section
+    of the request body.
+    """
+
+    # Check valid user and valid image file
+
+    data = req["file"].read()
+    current_user = token_auth.current_user()
+    # Check that data exists
+    if not data:
+        return failure_response("Invalid request", 400)
+    # Check that data is an image file
+    if not filetype.is_image(data):
+        return failure_response("Invalid request", 400)
+    # Check that data is under 10 megabytes
+    if len(data) > 10000000:
+        return failure_response("Invalid request", 400)
+
+    # Connect to boto3
+
+    boto_kwargs = {
+        "aws_access_key_id": current_app.config["AWS_ACCESS"],
+        "aws_secret_access_key": current_app.config["AWS_SECRET"],
+        "region_name": current_app.config["AWS_REGION"]
+    }
+    s3 = boto3.Session(**boto_kwargs).client("s3")
+
+    # Create unique file name and upload image to AWS:
+
+    file_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4()}.{(filetype.guess(data)).extension}"
+    res = s3.put_object(Bucket=current_app.config["AWS_BUCKET_NAME"], Body=data, Key=file_name, ACL="public-read")
+
+    # Construct image URL and mutate user object to reflect new profile image URL:
+
+    img_url = (f"https://{current_app.config['AWS_BUCKET_NAME']}.s3." +
+               f"{current_app.config['AWS_REGION']}.amazonaws.com/{file_name}")
+    current_user.profile_picture = img_url
+    db.session.commit()
+
+    return current_user

@@ -69,3 +69,6 @@ webargs==8.2.0
 Werkzeug==2.2.2
 zipp==3.11.0
 postgres
+
+filetype~=1.2.0
+boto3~=1.26.146
