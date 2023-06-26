@@ -1,3 +1,4 @@
+from apifairy.fields import FileField
 from marshmallow import post_dump
 
 from api.app import ma
@@ -131,3 +132,12 @@ class HappinessGetCount(ma.Schema):
     page = ma.Int()
     count = ma.Int()
     id = ma.Int()
+
+
+class FileUploadSchema(ma.Schema):
+    file = FileField()
+
+
+class UserInfoSchema(ma.Schema):
+    data = ma.Str()
+    data_type = ma.Str()
