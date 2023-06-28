@@ -2,8 +2,11 @@ from apifairy.fields import FileField
 from marshmallow import post_dump
 
 from api.app import ma
-from api.models import User, Group, Happiness, Setting
+from api.models import User, Group, Happiness, Setting, Comment
 
+
+class EmptySchema(ma.Schema):
+    pass
 
 class SettingsSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -45,25 +48,23 @@ class SimpleUserSchema(ma.Schema):
 
 
 class TokenSchema(ma.Schema):
-    session_token = ma.Str()
+    session_token = ma.Str(required=True)
 
 
 class UsernameSchema(ma.Schema):
-    username = ma.Str()
+    username = ma.Str(required=True)
 
 
-class UserEmailSchema(ma.Schema):
-    email = ma.Email()  # This is probably bad practice (I am still learning)
+class PasswordResetReqSchema(ma.Schema):
+    email = ma.Email(required=True)  # This is probably bad practice (I am still learning)
 
+class PasswordResetSchema(ma.Schema):
+    password = ma.Str(required=True)
 
 class CreateUserSchema(ma.Schema):
     email = ma.Str(required=True)
     username = ma.Str(required=True)
     password = ma.Str(required=True)
-
-
-class GetUserByIdSchema(ma.Schema):
-    id = ma.Integer()
 
 
 class GroupSchema(ma.SQLAlchemySchema):
@@ -75,7 +76,6 @@ class GroupSchema(ma.SQLAlchemySchema):
     name = ma.auto_field(required=True)
     users = ma.Nested(SimpleUserSchema, many=True, required=True)
 
-
 class CreateGroupSchema(ma.Schema):
     name = ma.Str(required=True)
 
@@ -85,6 +85,16 @@ class EditGroupSchema(ma.Schema):
     add_users = ma.List(ma.Str(), many=True)
     remove_users = ma.List(ma.Str(), many=True)
 
+class CommentSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Comment
+        ordered = True
+
+    id = ma.auto_field(dump_only=True)
+    happiness_id = ma.auto_field(dump_only=True)
+    author = ma.Nested(SimpleUserSchema, dump_only=True)
+    text = ma.auto_field(required=True)
+    timestamp = ma.Str(dump_only=True)
 
 class HappinessSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -103,14 +113,13 @@ class HappinessSchema(ma.SQLAlchemySchema):
             data['timestamp'] = data['timestamp'].split()[0]
         return data
 
-
 class HappinessEditSchema(ma.Schema):
     value = ma.Float()
     comment = ma.Str()
 
 
 class HappinessGetTime(ma.Schema):
-    start = ma.Str()
+    start = ma.Str(required=True)
     end = ma.Str()
     id = ma.Int()
 

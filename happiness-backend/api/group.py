@@ -4,10 +4,10 @@ from apifairy import authenticate, body, arguments, response, other_responses
 from flask import Blueprint
 
 from api.app import db
-from api.groups_dao import get_group_by_id
-from api.happiness_dao import get_happiness_by_group_timestamp
+from api.dao.groups_dao import get_group_by_id
+from api.dao.happiness_dao import get_happiness_by_group_timestamp
 from api.models import Group
-from api.responses import failure_response
+from api.errors import failure_response
 from api.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
     HappinessGetTime
 from api.token import token_auth
@@ -52,7 +52,7 @@ def group_info(group_id):
     """
     Get Group Info
     Get a happiness group's name and data about its users.
-    User must be a member of the group they are viewing. \n
+    User must be a member of or have been invited to the group they are viewing. \n
     Requires: valid group ID \n
     Returns: JSON representation for the requested group
     """
@@ -72,8 +72,8 @@ def group_info(group_id):
 def group_happiness(req, group_id):
     """
     Get Group Happiness
-    Gets the happiness of values of a group between a specified start and end date.
-    User must be a member of the group they are viewing. \n
+    Gets the happiness of values of a group between a specified start and end date (inclusive).
+    User must be a full member of the group they are viewing. \n
     Requires: valid group ID, the time represented by start date comes before the end date (which defaults to today) \n
     Returns: List of all happiness entries from users in the group between start and end date in sequential order
     """
@@ -99,9 +99,9 @@ def group_happiness(req, group_id):
 def edit_group(req, group_id):
     """
     Edit Group
-    Edit a happiness group by changing its name, adding users, or removing users.
-    User must be a member of the group they are editing. \n
-    Requires: valid group ID, at least one of: name, users to add, or users to remove \n
+    Edit a happiness group by changing its name, inviting users, or removing users.
+    User must be a full member of the group they are editing. \n
+    Requires: valid group ID, at least one of: name, users to invite, or users to remove \n
     Returns: JSON representation for the updated group
     """
 
@@ -137,7 +137,7 @@ def delete_group(group_id):
     """
     Delete Group
     Deletes a happiness group. Does not delete any user happiness information.
-    User must be a member of the group they are deleting. \n
+    User must be a full member of the group they are deleting. \n
     Requires: valid group ID
     """
 

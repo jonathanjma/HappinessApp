@@ -6,17 +6,18 @@ import boto3
 import filetype
 from apifairy import authenticate, response, body, other_responses
 from flask import Blueprint
-from flask import json, request, current_app
+from flask import current_app
 from werkzeug.security import generate_password_hash
 
+from api.dao import users_dao
 from api import email_methods
-from api import users_dao
 from api.app import db
 from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
-from api.responses import success_response, failure_response
+from api.errors import failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
-    UserEmailSchema, SimpleUserSchema, FileUploadSchema, UserInfoSchema
+    SimpleUserSchema, FileUploadSchema, UserInfoSchema, PasswordResetReqSchema, \
+    EmptySchema, PasswordResetSchema
 from api.token import token_auth
 
 user = Blueprint('user', __name__)
@@ -65,7 +66,7 @@ def get_user_by_id(user_id):
     friend_user = users_dao.get_user_by_id(user_id)
     if friend_user is None:
         return failure_response("User not found", 404)
-    if not current_user.has_mutual_group(friend_user):
+    if friend_user.id != current_user.id and not current_user.has_mutual_group(friend_user):
         return failure_response("Not Allowed: you do not share a group with this user", 403)
 
     return friend_user
@@ -93,15 +94,13 @@ def get_user_by_username(username):
 def user_groups():
     """
     Get Groups
-    Gets the happiness groups the user is in. \n
-    Returns: a list of happiness groups that the user is in.
+    Returns: a list of happiness groups that the user is in as well as any they have been invited to join.
     """
     return token_auth.current_user().groups
 
 
 @user.delete('/')
 @authenticate(token_auth)
-@response(UserSchema)
 def delete_user():
     """
     Delete User
@@ -130,7 +129,6 @@ def add_user_setting(req):
     key, value = req.get("key"), req.get("value")
     old_setting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
     if old_setting is None:
-        print("OLD SETTING NOT FOUND -----------------")
         new_setting = Setting(key=key, value=value, user_id=current_user.id)
         db.session.add(new_setting)
         db.session.commit()
@@ -138,7 +136,6 @@ def add_user_setting(req):
 
     old_setting.value = value
     db.session.commit()
-    print("Old setting updated")
     return old_setting
 
 
@@ -204,50 +201,33 @@ def change_user_info(req):
         return current_user
 
 
-@user.route('/reset_password/<token>', methods=['GET', 'POST'])
-def reset_password(token):
+@user.post('/reset_password/<token>')
+@body(PasswordResetSchema)
+@response(EmptySchema, 204, 'Password reset successful')
+@other_responses({400: "Invalid password reset token"})
+def reset_password(req, token):
     """
     Reset Password from Token
-    IMPORTANT:
-    This function was written under the assumption that when the user receives a verify password email, \n
-    they would be redirected to a page where they are prompted to enter a new password. Then from this page they \n
-    make a post request to the backend with their new intended password. For a get request, the route currently \n
-    shows a basic success response. This will be replaced with the front-end page to reset your password. \n \n
-
-    This route is not included in testing as it is very difficult to automate since it uses emails. \n
-    However, it has been tested using Postman and should work properly.
+    This function was written under the assumption that when the user receives a verify password email,
+    they would be redirected to a page where they are prompted to enter a new password. Then from this page they
+    make a post request to the backend with their new intended password.
     """
-    if request.method == "POST":
-        # Reset password to desired password
-        email = confirm_email_token(token)
-        if email is False:
-            return failure_response("Token expired", 400)
-        current_user = users_dao.get_user_by_email(confirm_email_token(token))
-        if not current_user:
-            return failure_response("Password reset token verification failed, token may be expired", 401)
+    # Verify token is not expired
+    email = confirm_email_token(token)
+    if email is False:
+        return failure_response("Token expired", 400)
+    current_user = users_dao.get_user_by_email(email)
+    if not current_user:
+        return failure_response("Password reset token verification failed, token may be expired", 401)
 
-        body = json.loads(request.data)
-        pwd = body.get("password")
-        if pwd is None:
-            return failure_response("New password not provided", 401)
-        else:
-            current_user.set_password(pwd)
-            db.session.commit()
-            return success_response({
-                "user": current_user.serialize(),
-                "password hash": str(current_user.password)
-            })
-    else:
-        # Display password reset page, this allows user to post new password to this request.
-        return success_response({
-            "reset": "Reset your password here."
-        })
-        pass
+    current_user.set_password(req.get("password"))
+    db.session.commit()
+    return '', 204
 
 
 @user.post('/initiate_password_reset/')
-@body(UserEmailSchema)
-@response(UserSchema)
+@body(PasswordResetReqSchema)
+@response(EmptySchema, 204, 'Password reset email sent')
 @other_responses({404: "User associated with email address not found"})
 def send_reset_password_email(req):
     """
@@ -259,8 +239,9 @@ def send_reset_password_email(req):
     user_by_email = users_dao.get_user_by_email(email)
     if user_by_email is None:
         return failure_response("User associated with email address not found", 404)
-    threading.Thread(target=email_methods.send_password_reset_email, args=(user_by_email,)).start()
-    return user_by_email
+    threading.Thread(target=email_methods.send_password_reset_email,
+                     args=(user_by_email,)).start()
+    return '', 204
 
 
 @user.get('/self/')
@@ -269,7 +250,7 @@ def send_reset_password_email(req):
 def get_self():
     """
     Get Self
-    Returns: the user object corresponding to the currently logged in user.
+    Returns: the user object corresponding to the currently logged-in user.
     """
     return token_auth.current_user()
 
@@ -282,7 +263,7 @@ def get_self():
 def add_pfp(req):
     """
     Add Profile Picture
-    Route to change the user's profile picture. 
+    Route to change the user's profile picture.
     Takes an image from the request body, which should be the in the form of binary file data in the form-data section
     of the request body.
     """

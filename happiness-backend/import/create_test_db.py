@@ -32,31 +32,6 @@ if create_users_groups:
                                   "username": "zach",
                                   "password": "zach"
                               })
-    # requests.post(f'{backend_url}/api/user/',
-    #               json={
-    #                   "email": "aaron@cornell.edu",
-    #                   "username": "aaron",
-    #                   "password": "aaron"
-    #               })
-    # requests.post(f'{backend_url}/api/user/',
-    #               json={
-    #                   "email": "sasha@cornell.edu",
-    #                   "username": "sasha",
-    #                   "password": "sasha"
-    #               })
-    # requests.post(f'{backend_url}/api/user/',
-    #               json={
-    #                   "email": "andrew@cornell.edu",
-    #                   "username": "andrew",
-    #                   "password": "andrew"
-    #               })
-    # requests.post(f'{backend_url}/api/user/',
-    #               json={
-    #                   "email": "shashank@cornell.edu",
-    #                   "username": "shashank",
-    #                   "password": "shashank"
-    #               })
-
     assert new_user1.status_code == new_user2.status_code == new_user3.status_code == 201
     print('users created')
 

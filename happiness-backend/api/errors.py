@@ -1,8 +1,10 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, abort
 from werkzeug.http import HTTP_STATUS_CODES
 
 errors = Blueprint('errors', __name__)
 
+def failure_response(message, code):
+    return abort(code, message)
 
 def error_response(status_code, message=None):
     payload = {'error': HTTP_STATUS_CODES.get(status_code, 'Unknown error')}

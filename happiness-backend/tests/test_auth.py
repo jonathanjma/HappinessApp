@@ -7,7 +7,7 @@ from flask import json
 
 from api import create_app
 from api.app import db
-from api.users_dao import *
+from api.dao.users_dao import *
 from config import TestConfig
 
 
@@ -137,7 +137,7 @@ def test_send_password_reset_email(client):
     r3 = client.post('/api/user/initiate_password_reset/', json={
         'email': 'test2@example.com'
     })
-    assert r2.status_code == 200 and r3.status_code == 200
+    assert r2.status_code == 204 and r3.status_code == 204
 
 
 def test_login_user(client):
@@ -202,12 +202,12 @@ def test_add_user_setting(client):
                                          json={
                                              "key": k1,
                                              "value": v1
-                                         })
+    })
     add_mean_setting_res = client.post('/api/user/settings/', headers={"Authorization": f"Bearer {bearer_token}"},
                                        json={
                                            "key": k2,
                                            "value": v2
-                                       })
+    })
     assert add_median_setting_res.status_code == 201
     assert add_mean_setting_res.status_code == 201
 
@@ -246,12 +246,12 @@ def test_add_user_setting(client):
                                          json={
                                              "key": k1,
                                              "value": v1
-                                         })
+    })
     add_mean_setting_res = client.post('/api/user/settings/', headers={"Authorization": f"Bearer {bearer_token}"},
                                        json={
                                            "key": k2,
                                            "value": v2
-                                       })
+    })
     assert add_median_setting_res.status_code == 201
     assert add_mean_setting_res.status_code == 201
     get_settings_res = client.get("/api/user/settings/", headers={"Authorization": f"Bearer {bearer_token}"})
@@ -271,8 +271,7 @@ def test_change_username(client):
     """
     client, bearer_token = register_and_login_demo_user(client)
     new_username = "Fiddle01"  # Could that name have any meaning associated with it? hmmm
-    user_name_change_res = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
-                                       , json={
+    user_name_change_res = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
             "data_type": "username",
             "data": new_username
         })
@@ -361,13 +360,15 @@ def test_get_user_by_id(client):
                                  headers={"Authorization": f"Bearer {bearer_token}"},
                                  )
     add_member_res = client.put('/api/group/1',
-                                json={"add_users": ["test"]},
-                                headers={"Authorization": f"Bearer {bearer_token}"},
+                                json={"invite_users": ["test"]},
+                                headers={
+                                    "Authorization": f"Bearer {bearer_token}"},
                                 )
-
+    user1_accept_res = client.post('/api/user/accept_invite/1', headers={
+        "Authorization": f"Bearer {bearer_token}"})
     assert make_group_res.status_code == 201
-
     assert add_member_res.status_code == 200
+    assert user1_accept_res.status_code == 204
 
     # Try to get user1's information
     get_user_by_id_res = client.get("/api/user/1", headers={"Authorization": f"Bearer {bearer_token}"})
@@ -390,7 +391,7 @@ def test_invalid_get_user_by_id(client):
     assert create_user_res.status_code == 201
     client, bearer_token = register_and_login_demo_user(client)
 
-    get_initial_user_res = client.get('/api/user/2', headers={"Authorization": f"Bearer {bearer_token}"})
+    get_initial_user_res = client.get('/api/user/1', headers={"Authorization": f"Bearer {bearer_token}"})
     assert get_initial_user_res.status_code == 403
 
 
