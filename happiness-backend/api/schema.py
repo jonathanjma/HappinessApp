@@ -49,6 +49,7 @@ class SimpleUserSchema(ma.Schema):
 
 class TokenSchema(ma.Schema):
     session_token = ma.Str(required=True)
+    password_key = ma.Str()
 
 
 class UsernameSchema(ma.Schema):
@@ -137,3 +138,7 @@ class FileUploadSchema(ma.Schema):
 class UserInfoSchema(ma.Schema):
     data = ma.Str()
     data_type = ma.Str()
+
+class SecretDataSchema(ma.Schema):
+    data = ma.Str()
+    password_key = ma.Str()

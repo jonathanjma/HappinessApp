@@ -1,9 +1,15 @@
+import base64
 import hashlib
 import os
 from datetime import datetime, timedelta
 
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from flask import current_app
 from sqlalchemy import delete
 from werkzeug.security import generate_password_hash, check_password_hash
+
 
 from api.app import db
 
@@ -39,10 +45,12 @@ class User(db.Model):
     password = db.Column(db.String, nullable=False)
     created = db.Column(db.DateTime)
     profile_picture = db.Column(db.String, nullable=False)
-    settings = db.relationship("Setting", cascade="delete")
+    encrypted_key = db.Column(db.String)
 
-    groups = db.relationship(
-        "Group", secondary=group_users, back_populates="users", lazy='dynamic')
+    settings = db.relationship("Setting", cascade="delete")
+    groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
+
+    secret = db.Column(db.String)
 
     def __init__(self, **kwargs):
         """
@@ -52,10 +60,49 @@ class User(db.Model):
         self.email = kwargs.get("email")
 
         # Convert raw password into encrypted string that can still be decrypted, but we cannot decrypt it.
-        self.password = generate_password_hash(kwargs.get("password"))
+        raw_pwd = kwargs.get("password")
+        self.password = generate_password_hash()
         self.username = kwargs.get("username")
         self.profile_picture = kwargs.get("profile_picture", self.avatar_url())
         self.created = datetime.today()
+        self.e2e_init(raw_pwd)
+
+    # generate user key for encrypting/decrypting data
+    # derive password key for encrypting/decrypting user key from user password
+    # store encrypted user key in db
+    def e2e_init(self, password):
+        user_key = base64.urlsafe_b64encode(os.urandom(32))
+        print(user_key)
+        password_key = self.derive_pwd_key(password)
+        encryptor = Fernet(password_key)
+        self.encrypted_key = encryptor.encrypt(user_key)
+
+    # derive password key from user password
+    def derive_pwd_key(self, password):
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=bytes(current_app.config["ENCRYPT_SALT"], 'utf-8'),
+            iterations=200000,
+        )
+        return base64.urlsafe_b64encode(kdf.derive(bytes(password, 'utf-8')))
+
+    # decrypt user key using password key
+    def decrypt_user_key(self, pwd_key):
+        decryptor = Fernet(bytes(pwd_key, 'utf-8'))
+        return decryptor.decrypt(self.encrypted_key)
+
+    # decrypt user key with password key, then encrypt data with user key
+    def encrypt_data(self, pwd_key, data):
+        user_key = self.decrypt_user_key(pwd_key)
+        encryptor = Fernet(user_key)
+        return encryptor.encrypt(bytes(data, 'utf-8'))
+
+    # decrypt user key with password key, then decrypt data with user key
+    def decrypt_data(self, pwd_key, data):
+        user_key = self.decrypt_user_key(pwd_key)
+        decryptor = Fernet(user_key)
+        return decryptor.decrypt(data)
 
     def avatar_url(self):
         digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()

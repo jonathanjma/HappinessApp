@@ -13,7 +13,7 @@ token = Blueprint('token', __name__)
 
 @token.post('/')
 @authenticate(basic_auth)
-@response(TokenSchema)
+@response(TokenSchema, 201)
 def new_token():
     """
     Get Token
@@ -25,7 +25,10 @@ def new_token():
     Token.clean()
     db.session.commit()
 
-    return token, 201
+    return {
+        'session_token': token.session_token,
+        'password_key': basic_auth.current_user().derive_pwd_key(request.authorization.password)
+    }
 
 
 @token.delete('/')

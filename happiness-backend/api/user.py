@@ -5,10 +5,11 @@ from datetime import datetime
 import boto3
 import filetype
 from apifairy import authenticate, response, body, other_responses
-from flask import Blueprint
+from flask import Blueprint, request
 from flask import current_app
 from werkzeug.security import generate_password_hash
 
+from api.auth import basic_auth
 from api.dao import users_dao
 from api import email_methods
 from api.app import db
@@ -17,7 +18,7 @@ from api.models import User, Setting
 from api.errors import failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     SimpleUserSchema, FileUploadSchema, UserInfoSchema, PasswordResetReqSchema, \
-    EmptySchema, PasswordResetSchema
+    EmptySchema, PasswordResetSchema, SecretDataSchema
 from api.token import token_auth
 
 user = Blueprint('user', __name__)
@@ -304,3 +305,26 @@ def add_pfp(req):
     db.session.commit()
 
     return current_user
+
+@user.post('/e2e')
+@authenticate(basic_auth)
+def e2e_init():
+    token_auth.current_user().e2e_init(request.authorization.password)
+    db.session.commit()
+    return '', 200
+
+@user.post('/secret')
+@authenticate(token_auth)
+@body(SecretDataSchema)
+def encrypt_test(req):
+    usr = token_auth.current_user()
+    usr.secret = usr.encrypt_data(req.get('password_key'), req.get('data'))
+    db.session.commit()
+    return usr.secret
+
+@user.get('/secret')
+@authenticate(token_auth)
+@body(SecretDataSchema)
+def decrypt_test(req):
+    usr = token_auth.current_user()
+    return usr.decrypt_data(req.get('password_key'), usr.secret)

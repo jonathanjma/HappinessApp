@@ -35,6 +35,8 @@ class Config:
     AWS_BUCKET_NAME = os.environ.get("AWS_BUCKET_NAME")
     AWS_REGION = os.environ.get("AWS_REGION")
 
+    ENCRYPT_SALT = os.environ.get("ENCRYPT_SALT")
+
 
 class TestConfig:
     TESTING = True
