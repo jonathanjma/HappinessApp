@@ -16,6 +16,7 @@ import PublicRoute from "./components/PublicRoute";
 import SubmitHappiness from "./pages/SubmitHappiness";
 import RequestResetPassword from "./pages/authentication/RequestResetPassword";
 import ResetPassword from "./pages/authentication/ResetPassword";
+import ImagePicker from "./components/ImagePicker";
 
 export default function App() {
   const bgStyle = "max-w-7xl mx-auto px-3 py-2";
@@ -30,7 +31,7 @@ export default function App() {
                 path="/"
                 element={
                   <PublicRoute>
-                    <Welcome />
+                    <ImagePicker />
                   </PublicRoute>
                 }
               />

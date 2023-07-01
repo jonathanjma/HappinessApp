@@ -297,7 +297,7 @@ export default function SubmitHappiness() {
             heading={<div className="font-semibold font-sans text-2xl">Are you sure you want to continue?</div>}
             body={<>
               <p>
-                You are already submitting happiness at
+                Your day
                 {`${(new Date()).getHours() === 0 ? ` 12:${(new Date().getMinutes()).toString().padStart(2, '0')} AM ` : ` ${(new Date()).getHours()}:${new Date().getMinutes().toString().padStart(2, '0')} AM `}`}
                 for <b>{`${formatFullDate(dateList[selectedIndex])}`}</b> . Are you sure?
               </p>
