@@ -121,6 +121,13 @@ class HappinessGetCount(ma.Schema):
     id = ma.Int()
 
 
+class HappinessGetQuery(ma.Schema):
+    query = ma.Str(required=True)
+    page = ma.Int()
+    id = ma.Int()
+    count = ma.Int()
+
+
 class FileUploadSchema(ma.Schema):
     file = FileField()
 

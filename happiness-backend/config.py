@@ -35,6 +35,9 @@ class Config:
     AWS_BUCKET_NAME = os.environ.get("AWS_BUCKET_NAME")
     AWS_REGION = os.environ.get("AWS_REGION")
 
+    # Happiness export
+    UPLOAD_FOLDER = "./export/"
+
 
 class TestConfig:
     TESTING = True

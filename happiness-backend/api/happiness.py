@@ -1,13 +1,16 @@
+import csv
+import os
+import uuid
 from datetime import datetime
 
 from apifairy import authenticate, body, arguments, response, other_responses
-from flask import Blueprint, request
+from flask import Blueprint, request, current_app, send_file
 
 from api import happiness_dao, users_dao
 from api.app import db
 from api.models import Happiness
 from api.responses import success_response, failure_response
-from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTime, HappinessGetCount
+from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTime, HappinessGetCount, HappinessGetQuery
 from api.token import token_auth
 
 happiness = Blueprint('happiness', __name__)
@@ -142,6 +145,64 @@ def get_paginated_happiness(req):
         query_data = happiness_dao.get_happiness_by_count(id, page, count)
         return query_data
     return failure_response("Not Allowed.", 403)
+
+
+@happiness.get('/search')
+@authenticate(token_auth)
+@body(HappinessGetQuery)
+@response(HappinessSchema(many=True))
+@other_responses({403: "Not Allowed."})
+def search_happiness(req):
+    """
+    Search Happiness
+    Gets paginated data for happiness entries related by their journal entries to a specific query.
+    Count, id, and page are optional, and will default to 10, current logged-in user's id, and 1 respectively.
+
+    Returns: Happiness entries related to the user's query
+    """
+    user_id = token_auth.current_user().id
+    my_user_obj = users_dao.get_user_by_id(user_id)
+    page, count, target_user_id, query = req.get("page", 1), req.get(
+        "count", 10), req.get("id", user_id), req.get("query")
+    if user_id == target_user_id or my_user_obj.has_mutual_group(users_dao.get_user_by_id(target_user_id)):
+        query_data = happiness_dao.get_paginated_happiness_by_query(target_user_id, query, page, count)
+        return query_data
+    return failure_response("Not Allowed.", 403)
+
+
+@happiness.get('/export')
+@authenticate(token_auth)
+def export_happiness():
+    """
+    Export Happiness
+    Exports a user's happiness, returning a CSV file containing the values, comments, and timestamps.
+    One issue with this function is that it does not delete the CSV file after the request.
+    I've tried a few ways of dealing with this issue, but it always deletes the file too late or cannot send the file.
+    According to this stackoverflow the best way to do this is a cron job to periodically delete files in the folder
+    based on their creation date. We can do this once we start working out how to do cron jobs.
+    https://stackoverflow.com/q/24612366
+    """
+    current_user = token_auth.current_user()
+    entries = happiness_dao.get_user_happiness(current_user.id)
+
+    def to_dict_entry(n):
+        new_dict = n.__dict__
+        new_dict.pop('_sa_instance_state')
+        new_dict.pop('user_id')
+        new_dict.pop('id')
+
+        return new_dict
+
+    entries_dict = map(to_dict_entry, entries)
+    fields = ['value', 'comment', 'timestamp']
+    filename = f"happiness_{uuid.uuid4()}.csv"
+    with open(f"./export/{filename}", 'w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(entries_dict)
+    exports = os.path.join(current_app.root_path, current_app.config['UPLOAD_FOLDER'])
+
+    return send_file(f"../export/{filename}", as_attachment=True)
 
 
 @happiness.post('/import')
