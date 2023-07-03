@@ -5,6 +5,10 @@ from api.app import ma
 from api.models import User, Group, Happiness, Setting
 
 
+class EmptySchema(ma.Schema):
+    pass
+
+
 class SettingsSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Setting
@@ -12,12 +16,14 @@ class SettingsSchema(ma.SQLAlchemySchema):
 
     id = ma.auto_field(dump_only=True, required=True)
     key = ma.Str(dump_only=True, required=True)
-    value = ma.Bool(required=True)
+    enabled = ma.Bool(required=True)
+    value = ma.Str()
     user_id = ma.auto_field(dump_only=True, required=True)
 
 
 class SettingInfoSchema(ma.Schema):
-    value = ma.Bool(required=True)
+    value = ma.Str()
+    enabled = ma.Bool(required=True)
     key = ma.Str(required=True)
 
 
@@ -45,25 +51,26 @@ class SimpleUserSchema(ma.Schema):
 
 
 class TokenSchema(ma.Schema):
-    session_token = ma.Str()
+    session_token = ma.Str(required=True)
 
 
 class UsernameSchema(ma.Schema):
-    username = ma.Str()
+    username = ma.Str(required=True)
 
 
-class UserEmailSchema(ma.Schema):
-    email = ma.Email()  # This is probably bad practice (I am still learning)
+class PasswordResetReqSchema(ma.Schema):
+    # This is probably bad practice (I am still learning)
+    email = ma.Email(required=True)
+
+
+class PasswordResetSchema(ma.Schema):
+    password = ma.Str(required=True)
 
 
 class CreateUserSchema(ma.Schema):
     email = ma.Str(required=True)
     username = ma.Str(required=True)
     password = ma.Str(required=True)
-
-
-class GetUserByIdSchema(ma.Schema):
-    id = ma.Integer()
 
 
 class GroupSchema(ma.SQLAlchemySchema):
@@ -74,6 +81,12 @@ class GroupSchema(ma.SQLAlchemySchema):
     id = ma.auto_field(required=True)
     name = ma.auto_field(required=True)
     users = ma.Nested(SimpleUserSchema, many=True, required=True)
+    invited_users = ma.Nested(SimpleUserSchema, many=True, required=True)
+
+
+class UserGroupsSchema(ma.Schema):
+    groups = ma.Nested(GroupSchema, many=True, required=True)
+    group_invites = ma.Nested(GroupSchema, many=True, required=True)
 
 
 class CreateGroupSchema(ma.Schema):
@@ -81,8 +94,8 @@ class CreateGroupSchema(ma.Schema):
 
 
 class EditGroupSchema(ma.Schema):
-    new_name = ma.Str()
-    add_users = ma.List(ma.Str(), many=True)
+    name = ma.Str()
+    invite_users = ma.List(ma.Str(), many=True)
     remove_users = ma.List(ma.Str(), many=True)
 
 
@@ -110,7 +123,7 @@ class HappinessEditSchema(ma.Schema):
 
 
 class HappinessGetTime(ma.Schema):
-    start = ma.Str()
+    start = ma.Str(required=True)
     end = ma.Str()
     id = ma.Int()
 

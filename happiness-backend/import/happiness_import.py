@@ -12,12 +12,13 @@ from gspread.utils import column_letter_to_index, ExportFormat
 # format is (app_user_id, (2022_data_sheet_row, 2023_data_sheet_row))
 # if user does not exist in a sheet, put None as the row
 # -------------------------------------------------------
-# alex, zach, me, aaron, steven
-import_config = [(1, (4, 4)), (2, (8, 8)), (3, (10, 10)), (8, (5, 5)), (7, (6, 6))]
+# alex, zach, me, aaron, steven, sasha, andrew, rushika
+# import_config = [(1, (4, 4)), (2, (8, 8)), (3, (10, 10)), (8, (5, 5)), (7, (6, 6)), (38, (None, 16)), (11, (9, 9)), (53, (None, 14))]
+import_config = []
 cornell_sheet = True
 
-# toucansandfish, ansh
-# import_config = [(6, (15, 21)), (5, (18, 22))]
+# toucansandfish, ansh, justin
+# import_config = [(6, (15, 21)), (5, (18, 22)), (39, (13, 17))]
 # cornell_sheet = False
 
 since = datetime.date(2022, 8, 15)  # date of earliest happiness entry
