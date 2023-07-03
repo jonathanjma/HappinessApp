@@ -9,7 +9,7 @@ worker.py listens for and processes all jobs that are pushed to the redis db.
 
 This does not work on Windows! See https://python-rq.org/docs/#limitations
 
-Source: https://devcenter.heroku.com/articles/python-rq#create-a-worker
+Source for general file logic: https://devcenter.heroku.com/articles/python-rq#create-a-worker
 """
 
 listen = ['high', 'default', 'low']
