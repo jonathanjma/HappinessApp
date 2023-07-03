@@ -14,23 +14,26 @@ export function PrevWeekData(userMode, id) {
     isLoading: isLoadingH,
     data: dataH,
     error: errorH,
-  } = useQuery("weekly happiness data " + get_url, () =>
-    api.get(get_url).then((res) => res.data)
+    refetch,
+  } = useQuery(
+    "weekly happiness data " + get_url,
+    () => api.get(get_url).then((res) => res.data),
+    { enabled: !!id }
   );
-  return [isLoadingH, dataH, errorH];
+  return [isLoadingH, dataH, errorH, refetch];
 }
 
-export function GetCountHappiness(count, user, page = 1) {
+export function GetCountHappiness(count, id, page = 1) {
   const api = useApi();
-  const { isLoading, data, error } = useQuery(
+  const { isLoading, data, error, refetch } = useQuery(
     "get happiness by count",
     () =>
       api
-        .get("/happiness/count", { count: count, id: user.id, page: page })
+        .get("/happiness/count", { count: count, id: id, page: page })
         .then((res) => res.data),
     { refetchOnWindowFocus: false }
   );
-  return [isLoading, data, error];
+  return [isLoading, data, error, refetch];
 }
 
 // Gets list of Happiness objects for given user (for given start and end Date objects)

@@ -67,7 +67,7 @@ export default function App() {
                         }
                       />
                       <Route
-                        path="/profile"
+                        path="/profile/:userID"
                         element={
                           <div className={bgStyle}>
                             <Profile />
@@ -99,7 +99,7 @@ export default function App() {
                         }
                       />
                       <Route
-                        path="/history"
+                        path="/history/:userID"
                         element={
                           <div className={bgStyle}>
                             <History />
