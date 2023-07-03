@@ -3,8 +3,16 @@ import os
 
 from api.models import Token
 
+"""
+jobs.py contains all scheduled jobs that will be queued by scheduler.py
+"""
+
 
 def clear_exported_happiness():
+    """
+    Deletes all files in the `export` folder that are older than 1 hour.
+    """
+
     def delete_files_older_than(m_folder_path, threshold_time):
         for root, dirs, files in os.walk(m_folder_path):
             for file in files:
@@ -18,14 +26,20 @@ def clear_exported_happiness():
                     print(f"Deleted file: {file_path}")
 
     folder_path = "../export"
-    minutes5ago = (datetime.datetime.now() - datetime.timedelta(minutes=5))
+    minutes5ago = (datetime.datetime.now() - datetime.timedelta(hours=1))
     delete_files_older_than(folder_path, minutes5ago)
 
 
 def clean_tokens():
+    """
+    Deletes all expired tokens
+    """
     Token.clean()
 
 
 def send_notification_email(email):
+    """
+    Sends a happiness app reminder notification email to the given email.
+    """
     # TODO
     pass

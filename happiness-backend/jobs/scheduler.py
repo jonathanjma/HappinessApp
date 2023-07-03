@@ -6,6 +6,10 @@ from rq import Queue
 
 from jobs import clear_exported_happiness, clean_tokens
 
+"""
+scheduler.py is the publisher responsible for publishing jobs to the redis db. 
+"""
+
 sched = BlockingScheduler()
 
 redis_url = os.getenv('REDIS_URL')
