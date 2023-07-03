@@ -1,6 +1,5 @@
 import redis
 from apscheduler.schedulers.blocking import BlockingScheduler
-from dotenv import load_dotenv
 from rq import Queue
 
 from jobs.jobs import clear_exported_happiness, clean_tokens
@@ -14,8 +13,6 @@ https://devcenter.heroku.com/articles/clock-processes-python
 def init_app(app):
     sched = BlockingScheduler()
 
-    # Since scheduler.py runs independently of the app, we can't use the app's config.
-    load_dotenv()
     redis_url = app.config['REDISCLOUD_URL']
 
     conn = redis.from_url(redis_url)
