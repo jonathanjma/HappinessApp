@@ -1,6 +1,7 @@
 import hashlib
 import os
 from datetime import datetime, timedelta
+
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from api.app import db
@@ -210,3 +211,10 @@ class Token(db.Model):
         Expires a user's session token
         """
         self.session_expiration = datetime.utcnow() - timedelta(seconds=1)
+
+    @staticmethod
+    def clean():
+        """Remove any tokens that have been expired for more than a day."""
+        yesterday = datetime.utcnow() - timedelta(days=1)
+        db.session.execute(delete(Token).where(
+            Token.session_expiration < yesterday))

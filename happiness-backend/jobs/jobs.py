@@ -1,15 +1,10 @@
 import datetime
 import os
 
-from apscheduler.schedulers.blocking import BlockingScheduler
-
-sched = BlockingScheduler()
+from api.models import Token
 
 
-@sched.scheduled_job('interval', hours=1)
-def clear_exports():
-    # TODO use RQ to run jobs, don't run directly in clock.py
-    # https://devcenter.heroku.com/articles/python-rq
+def clear_exported_happiness():
     def delete_files_older_than(m_folder_path, threshold_time):
         for root, dirs, files in os.walk(m_folder_path):
             for file in files:
@@ -22,9 +17,15 @@ def clear_exports():
                     os.remove(file_path)
                     print(f"Deleted file: {file_path}")
 
-    folder_path = "export"
+    folder_path = "../export"
     minutes5ago = (datetime.datetime.now() - datetime.timedelta(minutes=5))
     delete_files_older_than(folder_path, minutes5ago)
 
 
-sched.start()
+def clean_tokens():
+    Token.clean()
+
+
+def send_notification_email(email):
+    # TODO
+    pass
