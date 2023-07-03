@@ -1,0 +1,12 @@
+Dear {{user.username}},
+
+Looks like you forgot to submit your happiness for the following dates:
+
+{{dates}}
+
+Try to submit your happiness when you can.
+If you're having trouble remembering, try to work it into your daily routine.
+
+Hope you're feeling well,
+
+The Happiness App Team

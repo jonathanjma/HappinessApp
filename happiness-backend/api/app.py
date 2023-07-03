@@ -1,5 +1,5 @@
-from threading import Thread
-
+import redis
+import rq
 from apifairy import APIFairy
 from flask import Flask, redirect, url_for
 from flask_cors import CORS
@@ -8,7 +8,6 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
 import api.email_methods as email_methods
-import jobs.scheduler as scheduler
 from config import Config
 
 db = SQLAlchemy()
@@ -35,13 +34,6 @@ def create_app(config=Config):
     email_methods.init_app(app)
     cors.init_app(app)
 
-    # Make scheduler initialization lazy to prevent blocking of main thread
-    def init_scheduler():
-        scheduler.init_app(app)
-
-    thread = Thread(target=init_scheduler)
-    thread.start()
-
     from api.user import user
     app.register_blueprint(user, url_prefix='/api/user')
     from api.token import token
@@ -52,6 +44,9 @@ def create_app(config=Config):
     app.register_blueprint(happiness, url_prefix='/api/happiness')
     from api.errors import errors
     app.register_blueprint(errors)
+
+    app.redis = redis.from_url(app.config['REDISCLOUD_URL'])
+    app.job_queue = rq.Queue('happiness-backend-jobs', connection=app.redis)
 
     @app.route('/')
     @app.route('/api')

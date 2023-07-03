@@ -1,43 +1,45 @@
+import os
+
 import redis
 from apscheduler.schedulers.blocking import BlockingScheduler
+from dotenv import load_dotenv
 from rq import Queue
-
-from jobs.jobs import clear_exported_happiness, clean_tokens
 
 """
 scheduler.py is the publisher responsible for publishing jobs to the redis db. 
+It is independent from the Flask application and can be deployed as a clock in the Procfile.
+See:
 https://devcenter.heroku.com/articles/clock-processes-python
+
+To find ways to schedule jobs effectively, see:
+https://apscheduler.readthedocs.io/en/3.x/modules/triggers/cron.html#module-apscheduler.triggers.cron
 """
 
+sched = BlockingScheduler()
 
-def init_app(app):
-    sched = BlockingScheduler()
+load_dotenv()
+redis_url = os.getenv('REDISCLOUD_URL')
 
-    redis_url = app.config['REDISCLOUD_URL']
+conn = redis.from_url(redis_url)
+q = Queue(connection=conn)
 
-    conn = redis.from_url(redis_url)
-    q = Queue(connection=conn)
 
-    @sched.scheduled_job('interval', hours=1)
-    def scheduled_clear_exported_happiness():
-        q.enqueue(clear_exported_happiness)
+@sched.scheduled_job('interval', hours=1)
+def scheduled_clear_exported_happiness():
+    q.enqueue("jobs.jobs.clear_exported_happiness")
 
-    @sched.scheduled_job('interval', hours=12)
-    def scheduled_clean_tokens():
-        q.enqueue(clean_tokens)
 
-    # edit the parameters of the decorator to change scheduling
-    # see https://apscheduler.readthedocs.io/en/3.x/modules/triggers/cron.html#module-apscheduler.triggers.cron
-    @sched.scheduled_job('cron', minute="0,30")
-    def scheduled_notify_emails():
-        # TODO
-        pass
+@sched.scheduled_job('interval', hours=12)
+def scheduled_clean_tokens():
+    q.enqueue("jobs.jobs.clean_tokens")
 
-    def scheduler_test():
-        print("Scheduler running")
 
-    @sched.scheduled_job('interval', seconds=1)
-    def scheduled_test_scheduler():
-        q.enqueue(scheduler_test)
+# edit the parameters of the decorator to change scheduling
+# see
+@sched.scheduled_job('cron', minute="0,30")
+def scheduled_queue_send_notification_emails():
+    q.enqueue("jobs.jobs.queue_send_notification_emails")
+    pass
 
-    sched.start()
+
+sched.start()
