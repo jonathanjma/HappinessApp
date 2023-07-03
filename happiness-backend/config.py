@@ -38,6 +38,9 @@ class Config:
     # Happiness export
     UPLOAD_FOLDER = "./export/"
 
+    # Scheduled jobs
+    REDISCLOUD_URL = os.environ.get("REDISCLOUD_URL")
+
 
 class TestConfig:
     TESTING = True

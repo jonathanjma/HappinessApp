@@ -1,11 +1,14 @@
+import threading
+
 from apifairy import APIFairy
 from flask import Flask, redirect, url_for
+from flask_cors import CORS
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
-import api.email_methods as email_methods
 
+import api.email_methods as email_methods
+import jobs.scheduler as scheduler
 from config import Config
 
 db = SQLAlchemy()
@@ -13,6 +16,7 @@ migrate = Migrate()
 ma = Marshmallow()
 apifairy = APIFairy()
 cors = CORS()
+
 
 # noinspection PyUnresolvedReferences
 
@@ -30,6 +34,14 @@ def create_app(config=Config):
     apifairy.init_app(app)
     email_methods.init_app(app)
     cors.init_app(app)
+
+    # Make scheduler initialization lazy to prevent blocking of main thread 
+    def init_scheduler():
+        scheduler.init_app(app)
+
+    # Using a separate thread for the scheduler could be bad practice, but not sure how to give it the app otherwise
+    thread = threading.Thread(target=init_scheduler)
+    thread.start()
 
     from api.user import user
     app.register_blueprint(user, url_prefix='/api/user')

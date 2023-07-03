@@ -1,7 +1,7 @@
 import datetime
 import os
 
-from api.models import Token
+# from api.models import Token
 
 """
 jobs.py contains all scheduled jobs that will be queued by scheduler.py
@@ -34,7 +34,8 @@ def clean_tokens():
     """
     Deletes all expired tokens
     """
-    Token.clean()
+    # Token.clean()
+    pass
 
 
 def send_notification_email(email):
