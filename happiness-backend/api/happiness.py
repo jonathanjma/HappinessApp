@@ -6,7 +6,7 @@ from datetime import datetime
 from apifairy import authenticate, body, arguments, response, other_responses
 from flask import Blueprint, request, current_app, send_file
 
-from api import happiness_dao, users_dao
+from api.dao import happiness_dao, users_dao
 from api.app import db
 from api.models import Happiness
 from api.errors import failure_response
@@ -68,7 +68,7 @@ def edit_happiness(req, id):
         if query_data.user_id != user_id:
             return failure_response("Not Allowed.", 403)
         value, comment = req.get("value"), req.get("comment")
-        if value != query_data.value and value != None:
+        if value != query_data.value and value is not None:
             query_data.value = value
         if comment:
             query_data.comment = comment

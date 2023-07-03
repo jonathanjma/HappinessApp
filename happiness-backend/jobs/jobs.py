@@ -20,22 +20,16 @@ def clear_exported_happiness():
     """
     Deletes all files in the `export` folder that are older than 1 hour.
     """
-
-    def delete_files_older_than(m_folder_path, threshold_time):
-        for root, dirs, files in os.walk(m_folder_path):
-            for file in files:
-                print("file exists")
-                file_path = os.path.join(root, file)
-                created_time = datetime.fromtimestamp(os.path.getctime(file_path))
-                print(f"created time: {created_time}")
-
-                if created_time < threshold_time:
-                    os.remove(file_path)
-                    print(f"Deleted file: {file_path}")
-
-    folder_path = "../export"
     minutes5ago = (datetime.now() - timedelta(hours=1))
-    delete_files_older_than(folder_path, minutes5ago)
+    folder_path = "export"
+
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            created_time = datetime.fromtimestamp(os.path.getctime(file_path))
+
+            if created_time < minutes5ago:
+                os.remove(file_path)
 
 
 def clean_tokens():
@@ -43,7 +37,6 @@ def clean_tokens():
     Deletes all expired tokens
     """
     Token.clean()
-    pass
 
 
 def send_notification_emails(user_id):
@@ -75,11 +68,13 @@ def send_notification_emails(user_id):
 def queue_send_notification_emails():
     """
     Adds all notification email requests to the redis queue
+    TODO needs testing, ask Jonathan about importing data from Happiness App for testing, might need help testing
     """
     current_time = datetime.now().time()
     yesterday = (datetime.now() - timedelta(days=1)).strftime("%m-%d-%Y")
     last_week = (datetime.now() - timedelta(days=6)).strftime("%m-%d-%Y")
 
+    # TODO filter on Setting key, not just time for future proofing if we ever have multiple settings based on time
     to_notify = Setting.query.filter(Setting.value == str(current_time))
     for setting in to_notify:
         if setting.enabled:
@@ -89,3 +84,7 @@ def queue_send_notification_emails():
                 # They are missing an entry, and we are guaranteed to send an email which is expensive
                 # Therefore we queue another job to redis
                 app.queue.enqueue("jobs.jobs.send_notification_email", setting.user_id)
+
+
+def test_job():
+    print("Job running")

@@ -12,7 +12,10 @@ See:
 https://devcenter.heroku.com/articles/clock-processes-python
 
 To find ways to schedule jobs effectively, see:
-https://apscheduler.readthedocs.io/en/3.x/modules/triggers/cron.html#module-apscheduler.triggers.cron
+Cron jobs:
+https://apscheduler.readthedocs.io/en/3.x/modules/triggers/cron.html#module-apscheduler.triggers.cron 
+Interval jobs:
+https://apscheduler.readthedocs.io/en/3.x/modules/triggers/interval.html
 """
 
 sched = BlockingScheduler()
@@ -21,25 +24,22 @@ load_dotenv()
 redis_url = os.getenv('REDISCLOUD_URL')
 
 conn = redis.from_url(redis_url)
-q = Queue(connection=conn)
+q = Queue('happiness-backend-jobs', connection=conn)
 
 
-@sched.scheduled_job('interval', hours=1)
+@sched.scheduled_job('interval', days=1)
 def scheduled_clear_exported_happiness():
     q.enqueue("jobs.jobs.clear_exported_happiness")
 
 
-@sched.scheduled_job('interval', hours=12)
+@sched.scheduled_job('interval', days=1)
 def scheduled_clean_tokens():
     q.enqueue("jobs.jobs.clean_tokens")
 
 
-# edit the parameters of the decorator to change scheduling
-# see
 @sched.scheduled_job('cron', minute="0,30")
 def scheduled_queue_send_notification_emails():
     q.enqueue("jobs.jobs.queue_send_notification_emails")
-    pass
 
 
 sched.start()
