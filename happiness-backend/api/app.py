@@ -1,4 +1,4 @@
-from multiprocessing import Process
+from threading import Thread
 
 from apifairy import APIFairy
 from flask import Flask, redirect, url_for
@@ -39,10 +39,8 @@ def create_app(config=Config):
     def init_scheduler():
         scheduler.init_app(app)
 
-    # Using multiprocessor, should be more effective than threads according to this: 
-    # https://stackoverflow.com/a/44793537
-    p = Process(target=init_scheduler)
-    p.start()
+    thread = Thread(target=init_scheduler)
+    thread.start()
 
     from api.user import user
     app.register_blueprint(user, url_prefix='/api/user')
