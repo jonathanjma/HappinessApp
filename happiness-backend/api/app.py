@@ -1,4 +1,4 @@
-import threading
+from multiprocessing import Process
 
 from apifairy import APIFairy
 from flask import Flask, redirect, url_for
@@ -35,13 +35,14 @@ def create_app(config=Config):
     email_methods.init_app(app)
     cors.init_app(app)
 
-    # Make scheduler initialization lazy to prevent blocking of main thread 
+    # Make scheduler initialization lazy to prevent blocking of main thread
     def init_scheduler():
         scheduler.init_app(app)
 
-    # Using a separate thread for the scheduler could be bad practice, but not sure how to give it the app otherwise
-    thread = threading.Thread(target=init_scheduler)
-    thread.start()
+    # Using multiprocessor, should be more effective than threads according to this: 
+    # https://stackoverflow.com/a/44793537
+    p = Process(target=init_scheduler)
+    p.start()
 
     from api.user import user
     app.register_blueprint(user, url_prefix='/api/user')
