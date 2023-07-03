@@ -5,6 +5,7 @@ from rq import Worker, Queue
 
 """
 worker.py listens for and processes all jobs that are pushed to the redis db. 
+https://devcenter.heroku.com/articles/python-rq#create-a-worker
 """
 
 listen = ['high', 'default', 'low']
