@@ -26,7 +26,7 @@ def clear_exported_happiness():
             for file in files:
                 print("file exists")
                 file_path = os.path.join(root, file)
-                created_time = datetime.datetime.fromtimestamp(os.path.getctime(file_path))
+                created_time = datetime.fromtimestamp(os.path.getctime(file_path))
                 print(f"created time: {created_time}")
 
                 if created_time < threshold_time:
@@ -34,7 +34,7 @@ def clear_exported_happiness():
                     print(f"Deleted file: {file_path}")
 
     folder_path = "../export"
-    minutes5ago = (datetime.datetime.now() - datetime.timedelta(hours=1))
+    minutes5ago = (datetime.now() - timedelta(hours=1))
     delete_files_older_than(folder_path, minutes5ago)
 
 
