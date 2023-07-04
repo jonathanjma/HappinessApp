@@ -1,4 +1,6 @@
+import csv
 import os
+import uuid
 from datetime import datetime, timedelta
 
 from flask import render_template
@@ -39,6 +41,40 @@ def clean_tokens():
     Token.clean()
 
 
+def export_happiness(user_id):
+    """
+    Export Happiness
+    Exports a user's happiness, returning a CSV file containing the values, comments, and timestamps.
+    """
+    current_user = users_dao.get_user_by_id(user_id)
+    entries = happiness_dao.get_user_happiness(current_user.id)
+
+    def to_dict_entry(n):
+        new_dict = n.__dict__
+        new_dict.pop('_sa_instance_state')
+        new_dict.pop('user_id')
+        new_dict.pop('id')
+
+        return new_dict
+
+    entries_dict = map(to_dict_entry, entries)
+    fields = ['value', 'comment', 'timestamp']
+    filename = f"happiness_{uuid.uuid4()}.csv"
+    with open(f"./export/{filename}", 'w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(entries_dict)
+        send_email_helper(
+            subject="Your Happiness Export :)",
+            sender="noreply@happinessapp.org",
+            recipients=current_user.email,
+            text_body=render_template('export_happiness.txt', user=current_user),
+            html_body=render_template('export_happiness.html', user=current_user),
+            attachments=[(f"{current_user.username} happiness export.csv", "text/csv", file)]
+        )
+    # Leftover files are deleted by a scheduled job, so no need to be worried about that here.
+
+
 def send_notification_emails(user_id):
     """
     Sends a happiness app reminder notification email to the given email.
@@ -62,7 +98,6 @@ def send_notification_emails(user_id):
         text_body=render_template('notify_happiness.txt', user=user_to_send, dates=missing_dates_str),
         html_body=render_template('notify_happiness.html', user=user_to_send, dates=missing_dates_str)
     )
-    pass
 
 
 def queue_send_notification_emails():

@@ -1,15 +1,12 @@
-import csv
-import os
-import uuid
 from datetime import datetime
 
 from apifairy import authenticate, body, arguments, response, other_responses
-from flask import Blueprint, request, current_app, send_file
+from flask import Blueprint, request, current_app
 
-from api.dao import happiness_dao, users_dao
 from api.app import db
-from api.models import Happiness
+from api.dao import happiness_dao, users_dao
 from api.errors import failure_response
+from api.models import Happiness
 from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTime, HappinessGetCount, HappinessGetQuery
 from api.token import token_auth
 
@@ -174,29 +171,10 @@ def search_happiness(req):
 def export_happiness():
     """
     Export Happiness
-    Exports a user's happiness, returning a CSV file containing the values, comments, and timestamps.
+    Exports a user's happiness, emailing the user with a CSV file attached, containing their comment, value, and timestamp.
     """
     current_user = token_auth.current_user()
-    entries = happiness_dao.get_user_happiness(current_user.id)
-
-    def to_dict_entry(n):
-        new_dict = n.__dict__
-        new_dict.pop('_sa_instance_state')
-        new_dict.pop('user_id')
-        new_dict.pop('id')
-
-        return new_dict
-
-    entries_dict = map(to_dict_entry, entries)
-    fields = ['value', 'comment', 'timestamp']
-    filename = f"happiness_{uuid.uuid4()}.csv"
-    with open(f"./export/{filename}", 'w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(entries_dict)
-    exports = os.path.join(current_app.root_path, current_app.config['UPLOAD_FOLDER'])
-
-    return send_file(f"../export/{filename}", as_attachment=True)
+    current_app.queue.enqueue("jobs.jobs.export_happiness", current_user.id)
 
 
 @happiness.post('/import')
