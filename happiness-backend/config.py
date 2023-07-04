@@ -44,4 +44,5 @@ class Config:
 
 class TestConfig:
     TESTING = True
+    REDISCLOUD_URL = os.environ.get("REDISCLOUD_URL")
     SQLALCHEMY_DATABASE_URI = 'sqlite:///'

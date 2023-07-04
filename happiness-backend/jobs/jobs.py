@@ -60,17 +60,19 @@ def export_happiness(user_id):
     entries_dict = map(to_dict_entry, entries)
     fields = ['value', 'comment', 'timestamp']
     filename = f"happiness_{uuid.uuid4()}.csv"
-    with open(f"./export/{filename}", 'w', newline='') as file:
+    file_path = "export/{filename}"
+    with open(file_path, 'w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=fields)
         writer.writeheader()
         writer.writerows(entries_dict)
+    with open(file_path, 'r', newline='') as file:
         send_email_helper(
             subject="Your Happiness Export :)",
             sender="noreply@happinessapp.org",
-            recipients=current_user.email,
-            text_body=render_template('export_happiness.txt', user=current_user),
-            html_body=render_template('export_happiness.html', user=current_user),
-            attachments=[(f"{current_user.username} happiness export.csv", "text/csv", file)]
+            recipients=[current_user.email],
+            text_body=render_template('happiness_export.txt', user=current_user),
+            html_body=render_template('happiness_export.html', user=current_user),
+            attachments=[(f"{current_user.username} happiness export.csv", "text/csv", file.read())]
         )
     # Leftover files are deleted by a scheduled job, so no need to be worried about that here.
 
@@ -81,10 +83,10 @@ def send_notification_emails(user_id):
     """
     user_to_send = users_dao.get_user_by_id(user_id)
     dates_should_be_present = [
-        (datetime.now() - timedelta(days=i)).strftime("%m-%d-%Y") for i in range(1, 7)
+        (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(1, 7)
     ]
-    yesterday = (datetime.now() - timedelta(days=1)).strftime("%m-%d-%Y")
-    last_week = (datetime.now() - timedelta(days=6)).strftime("%m-%d-%Y")
+    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    last_week = (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d")
     entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=yesterday, user_id=user_id)
     for e in entries:
         if e.timestamp in dates_should_be_present:
@@ -94,7 +96,7 @@ def send_notification_emails(user_id):
     send_email_helper(
         subject="Enter Your Happiness :)",
         sender="noreply@happinessapp.org",
-        recipients=user_to_send.email,
+        recipients=[user_to_send.email],
         text_body=render_template('notify_happiness.txt', user=user_to_send, dates=missing_dates_str),
         html_body=render_template('notify_happiness.html', user=user_to_send, dates=missing_dates_str)
     )
@@ -106,8 +108,8 @@ def queue_send_notification_emails():
     TODO needs testing, ask Jonathan about importing data from Happiness App for testing, might need help testing
     """
     current_time = datetime.now().time()
-    yesterday = (datetime.now() - timedelta(days=1)).strftime("%m-%d-%Y")
-    last_week = (datetime.now() - timedelta(days=6)).strftime("%m-%d-%Y")
+    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    last_week = (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d")
 
     # TODO filter on Setting key, not just time for future proofing if we ever have multiple settings based on time
     to_notify = Setting.query.filter(Setting.value == str(current_time))

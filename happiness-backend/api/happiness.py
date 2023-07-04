@@ -174,7 +174,8 @@ def export_happiness():
     Exports a user's happiness, emailing the user with a CSV file attached, containing their comment, value, and timestamp.
     """
     current_user = token_auth.current_user()
-    current_app.queue.enqueue("jobs.jobs.export_happiness", current_user.id)
+    current_app.job_queue.enqueue("jobs.jobs.export_happiness", current_user.id)
+    return "Happiness entries exported"
 
 
 @happiness.post('/import')
