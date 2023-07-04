@@ -175,11 +175,6 @@ def export_happiness():
     """
     Export Happiness
     Exports a user's happiness, returning a CSV file containing the values, comments, and timestamps.
-    One issue with this function is that it does not delete the CSV file after the request.
-    I've tried a few ways of dealing with this issue, but it always deletes the file too late or cannot send the file.
-    According to this stackoverflow the best way to do this is a cron job to periodically delete files in the folder
-    based on their creation date. We can do this once we start working out how to do cron jobs.
-    https://stackoverflow.com/q/24612366
     """
     current_user = token_auth.current_user()
     entries = happiness_dao.get_user_happiness(current_user.id)

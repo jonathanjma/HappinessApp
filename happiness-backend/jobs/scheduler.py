@@ -13,7 +13,7 @@ https://devcenter.heroku.com/articles/clock-processes-python
 
 To find ways to schedule jobs effectively, see:
 Cron jobs:
-https://apscheduler.readthedocs.io/en/3.x/modules/triggers/cron.html#module-apscheduler.triggers.cron 
+https://apscheduler.readthedocs.io/en/3.x/modules/triggers/cron.html
 Interval jobs:
 https://apscheduler.readthedocs.io/en/3.x/modules/triggers/interval.html
 """
