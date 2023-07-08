@@ -136,8 +136,9 @@ class FileUploadSchema(ma.Schema):
 
 
 class UserInfoSchema(ma.Schema):
-    data = ma.Str()
-    data_type = ma.Str()
+    data = ma.Str(required=True)
+    data_type = ma.Str(required=True)
+    password_key = ma.Str()
 
 class SecretDataSchema(ma.Schema):
     data = ma.Str()

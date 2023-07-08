@@ -173,7 +173,6 @@ def change_user_info(req):
 
     if data_type == "username":
         # Change a user's username, which requires their username to be unique.
-
         new_username = req.get("data")
         similar_user = users_dao.get_user_by_username(new_username)
         if similar_user is not None:
@@ -184,7 +183,6 @@ def change_user_info(req):
         return current_user
     elif data_type == "email":
         # Changes a user's email, which requires their email to be unique.
-
         new_email = req.get("data")
         similar_user = users_dao.get_user_by_email(new_email)
         if similar_user is not None:
@@ -195,11 +193,13 @@ def change_user_info(req):
         return current_user
     elif data_type == "password":
         # Changes a user's password.
-
-        new_password = req.get("data")
-        current_user.password = generate_password_hash(new_password)
-        db.session.commit()
-        return current_user
+        try:
+            current_user.change_password(req.get("data"), req.get("password_key"))
+            db.session.commit()
+            return current_user
+        except Exception as e:
+            print(e)
+            return failure_response('Invalid password key.', 400)
 
 
 @user.post('/reset_password/<token>')
@@ -221,7 +221,7 @@ def reset_password(req, token):
     if not current_user:
         return failure_response("Password reset token verification failed, token may be expired", 401)
 
-    current_user.set_password(req.get("password"))
+    current_user.reset_password(req.get("password"))
     db.session.commit()
     return '', 204
 
@@ -317,14 +317,22 @@ def e2e_init():
 @authenticate(token_auth)
 @body(SecretDataSchema)
 def encrypt_test(req):
-    usr = token_auth.current_user()
-    usr.secret = usr.encrypt_data(req.get('password_key'), req.get('data'))
-    db.session.commit()
-    return usr.secret
+    try:
+        usr = token_auth.current_user()
+        usr.secret = usr.encrypt_data(req.get('password_key'), req.get('data'))
+        db.session.commit()
+        return usr.secret
+    except Exception as e:
+        print(e)
+        return failure_response('Invalid password key.', 400)
 
 @user.get('/secret')
 @authenticate(token_auth)
 @body(SecretDataSchema)
 def decrypt_test(req):
-    usr = token_auth.current_user()
-    return usr.decrypt_data(req.get('password_key'), usr.secret)
+    try:
+        usr = token_auth.current_user()
+        return usr.decrypt_data(req.get('password_key'), usr.secret)
+    except Exception as e:
+        print(e)
+        return failure_response('Invalid password key.', 400)

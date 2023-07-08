@@ -61,7 +61,7 @@ class User(db.Model):
 
         # Convert raw password into encrypted string that can still be decrypted, but we cannot decrypt it.
         raw_pwd = kwargs.get("password")
-        self.password = generate_password_hash()
+        self.password = generate_password_hash(raw_pwd)
         self.username = kwargs.get("username")
         self.profile_picture = kwargs.get("profile_picture", self.avatar_url())
         self.created = datetime.today()
@@ -74,8 +74,7 @@ class User(db.Model):
         user_key = base64.urlsafe_b64encode(os.urandom(32))
         print(user_key)
         password_key = self.derive_pwd_key(password)
-        encryptor = Fernet(password_key)
-        self.encrypted_key = encryptor.encrypt(user_key)
+        self.encrypted_key = Fernet(password_key).encrypt(user_key)
 
     # derive password key from user password
     def derive_pwd_key(self, password):
@@ -89,20 +88,17 @@ class User(db.Model):
 
     # decrypt user key using password key
     def decrypt_user_key(self, pwd_key):
-        decryptor = Fernet(bytes(pwd_key, 'utf-8'))
-        return decryptor.decrypt(self.encrypted_key)
+        return Fernet(bytes(pwd_key, 'utf-8')).decrypt(self.encrypted_key)
 
     # decrypt user key with password key, then encrypt data with user key
     def encrypt_data(self, pwd_key, data):
         user_key = self.decrypt_user_key(pwd_key)
-        encryptor = Fernet(user_key)
-        return encryptor.encrypt(bytes(data, 'utf-8'))
+        return Fernet(user_key).encrypt(bytes(data, 'utf-8'))
 
     # decrypt user key with password key, then decrypt data with user key
     def decrypt_data(self, pwd_key, data):
         user_key = self.decrypt_user_key(pwd_key)
-        decryptor = Fernet(user_key)
-        return decryptor.decrypt(data)
+        return Fernet(user_key).decrypt(data)
 
     def avatar_url(self):
         digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
@@ -111,8 +107,18 @@ class User(db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password, password)
 
-    def set_password(self, pwd):
+    # change user password + update encrypted key
+    # (decrypt user key with old password key, then encrypt with new password key, update db)
+    def change_password(self, new_pwd, pwd_key):
+        user_key = self.decrypt_user_key(pwd_key)
+        new_pwd_key = self.derive_pwd_key(new_pwd)
+        self.encrypted_key = Fernet(new_pwd_key).encrypt(user_key)
+        self.password = generate_password_hash(new_pwd)
+
+    # reset password (***will cause encrypted data to be lost***)
+    def reset_password(self, pwd):
         self.password = generate_password_hash(pwd)
+        self.e2e_init(pwd)
 
     def create_token(self):
         """
