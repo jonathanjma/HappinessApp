@@ -10,7 +10,6 @@ from flask import current_app
 from sqlalchemy import delete
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
 from api.app import db
 
 # Group Users association table
@@ -50,8 +49,6 @@ class User(db.Model):
     settings = db.relationship("Setting", cascade="delete")
     groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
 
-    secret = db.Column(db.String)
-
     def __init__(self, **kwargs):
         """
         Initializes a User object.
@@ -72,7 +69,6 @@ class User(db.Model):
     # store encrypted user key in db
     def e2e_init(self, password):
         user_key = base64.urlsafe_b64encode(os.urandom(32))
-        print(user_key)
         password_key = self.derive_pwd_key(password)
         self.encrypted_key = Fernet(password_key).encrypt(user_key)
 
@@ -241,6 +237,25 @@ class Comment(db.Model):
         self.happiness_id = kwargs.get("happiness_id")
         self.user_id = kwargs.get("user_id")
         self.text = kwargs.get("text")
+        self.timestamp = datetime.utcnow()
+
+class Journal(db.Model):
+    """
+    Journal model. Has a many-to-one relationship with user table.
+    """
+    __tablename__ = "journal"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    data = db.Column(db.String, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, **kwargs):
+        """
+        Initializes a Private Journal Entry object.
+        Requires non-null kwargs: user ID and encrypted entry text.
+        """
+        self.user_id = kwargs.get("user_id")
+        self.data = kwargs.get("encrypted_data")
         self.timestamp = datetime.utcnow()
 
 class Token(db.Model):

@@ -8,7 +8,7 @@ from api.app import db
 from api.dao.users_dao import get_user_by_id
 from api.models import Happiness, Comment
 from api.errors import failure_response
-from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTime, HappinessGetCount, \
+from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, HappinessGetCountSchema, \
     CommentSchema
 from api.token import token_auth
 
@@ -37,7 +37,7 @@ def create_happiness(req):
         return failure_response("Date already exists.", 400)
 
     # validate happiness value
-    if not (value * 2).is_integer or value < 0 or value > 10:
+    if not (value * 2).is_integer() or value < 0 or value > 10:
         return failure_response("Invalid happiness value.", 400)
 
     happiness = Happiness(user_id=current_user.id, value=value,
@@ -97,7 +97,7 @@ def delete_happiness(id):
 
 @happiness.get('/')
 @authenticate(token_auth)
-@arguments(HappinessGetTime)
+@arguments(HappinessGetTimeSchema)
 @response(HappinessSchema(many=True))
 @other_responses({403: "Not Allowed."})
 def get_happiness_time(req):
@@ -121,7 +121,7 @@ def get_happiness_time(req):
 
 @happiness.get('/count')
 @authenticate(token_auth)
-@arguments(HappinessGetCount)
+@arguments(HappinessGetCountSchema)
 @response(HappinessSchema(many=True))
 @other_responses({403: "Not Allowed."})
 def get_paginated_happiness(req):

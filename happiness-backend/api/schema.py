@@ -2,7 +2,7 @@ from apifairy.fields import FileField
 from marshmallow import post_dump
 
 from api.app import ma
-from api.models import User, Group, Happiness, Setting, Comment
+from api.models import User, Group, Happiness, Setting, Comment, Journal
 
 
 class EmptySchema(ma.Schema):
@@ -119,13 +119,13 @@ class HappinessEditSchema(ma.Schema):
     comment = ma.Str()
 
 
-class HappinessGetTime(ma.Schema):
+class HappinessGetTimeSchema(ma.Schema):
     start = ma.Str(required=True)
     end = ma.Str()
     id = ma.Int()
 
 
-class HappinessGetCount(ma.Schema):
+class HappinessGetCountSchema(ma.Schema):
     page = ma.Int()
     count = ma.Int()
     id = ma.Int()
@@ -140,6 +140,18 @@ class UserInfoSchema(ma.Schema):
     data_type = ma.Str(required=True)
     password_key = ma.Str()
 
-class SecretDataSchema(ma.Schema):
-    data = ma.Str()
-    password_key = ma.Str()
+class JournalSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Journal
+        ordered = True
+
+    id = ma.auto_field(dump_only=True)
+    user_id = ma.auto_field(dump_only=True)
+    data = ma.auto_field(required=True)
+    timestamp = ma.Str(dump_only=True)
+    password_key = ma.Str(load_only=True, required=True)
+
+class JournalGetSchema(ma.Schema):
+    page = ma.Int()
+    count = ma.Int()
+    password_key = ma.Str(required=True)
