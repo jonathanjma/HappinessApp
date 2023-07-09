@@ -105,14 +105,13 @@ def send_notification_emails(user_id):
 def queue_send_notification_emails():
     """
     Adds all notification email requests to the redis queue
-    TODO needs testing, ask Jonathan about importing data from Happiness App for testing, might need help testing
     """
     current_time = datetime.now().time()
     yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     last_week = (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d")
 
-    # TODO filter on Setting key, not just time for future proofing if we ever have multiple settings based on time
-    to_notify = Setting.query.filter(Setting.value == str(current_time))
+    to_notify = Setting.query.filter(Setting.value == str(current_time), Setting.key == "notify",
+                                     Setting.enabled.is_(True))
     for setting in to_notify:
         if setting.enabled:
             # Check if user is missing happiness entries:
