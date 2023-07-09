@@ -41,3 +41,5 @@ class Config:
 class TestConfig:
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///'
+
+    ENCRYPT_SALT = os.environ.get("ENCRYPT_SALT")

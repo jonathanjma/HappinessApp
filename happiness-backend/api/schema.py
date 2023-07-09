@@ -2,6 +2,8 @@ from apifairy.fields import FileField
 from marshmallow import post_dump
 
 from api.app import ma
+from api.auth import token_auth
+from api.errors import failure_response
 from api.models import User, Group, Happiness, Setting, Comment, Journal
 
 
@@ -150,6 +152,19 @@ class JournalSchema(ma.SQLAlchemySchema):
     data = ma.auto_field(required=True)
     timestamp = ma.Str(dump_only=True)
     password_key = ma.Str(load_only=True, required=True)
+
+    @post_dump
+    def decrypt(self, data, **kwargs):
+        try:
+            if self.context.get('password_key'):
+                data['data'] = ''.join(map(chr, token_auth.current_user().decrypt_data(self.context['password_key'], data['data'])))
+        except Exception as e:
+            print(e)
+            return failure_response('Invalid password key.', 400)
+        print(data)
+        return data
+
+JournalIntSchema = JournalSchema(many=True)
 
 class JournalGetSchema(ma.Schema):
     page = ma.Int()

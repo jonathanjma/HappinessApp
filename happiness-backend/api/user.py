@@ -153,7 +153,7 @@ def get_user_settings():
     return settings
 
 
-@user.post('/info/')
+@user.put('/info/')
 @authenticate(token_auth)
 @body(UserInfoSchema)
 @response(SimpleUserSchema)
@@ -165,7 +165,8 @@ def change_user_info(req):
     "username" \n
     "email" \n
     "password" \n
-    Then the associated data must be put in the `data` field of the request.
+    Then the associated data must be put in the `data` field of the request. \n
+    If changing password, the user's `password_key` (provided by server during API token creation) must also be sent.
     """
     data_type = req.get("data_type")
     current_user = token_auth.current_user()
@@ -304,10 +305,3 @@ def add_pfp(req):
     db.session.commit()
 
     return current_user
-
-@user.post('/e2e')
-@authenticate(basic_auth)
-def e2e_init():
-    token_auth.current_user().e2e_init(request.authorization.password)
-    db.session.commit()
-    return '', 200

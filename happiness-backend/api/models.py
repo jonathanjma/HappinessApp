@@ -67,6 +67,7 @@ class User(db.Model):
     # generate user key for encrypting/decrypting data
     # derive password key for encrypting/decrypting user key from user password
     # store encrypted user key in db
+    # https://security.stackexchange.com/questions/157422/store-encrypted-user-data-in-database
     def e2e_init(self, password):
         user_key = base64.urlsafe_b64encode(os.urandom(32))
         password_key = self.derive_pwd_key(password)
@@ -114,7 +115,7 @@ class User(db.Model):
     # reset password (***will cause encrypted data to be lost***)
     def reset_password(self, pwd):
         self.password = generate_password_hash(pwd)
-        self.e2e_init(pwd)
+        self.e2e_init(pwd) # also delete user journal entries?
 
     def create_token(self):
         """

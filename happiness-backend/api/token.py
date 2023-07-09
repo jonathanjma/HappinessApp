@@ -18,12 +18,14 @@ def new_token():
     """
     Get Token
     Creates a new session token for a user to access the Happiness App API. (Logs them in) \n
-    Returns: a new session token for the user
+    Returns: a new session token for the user and the user's password-derived encryption key
+        for accessing encrypted data
     """
     user = basic_auth.current_user()
     token = user.create_token()
     db.session.add(token)
 
+    # Initialize end-to-end encryption (needed to migrate existing users)
     if user.encrypted_key is None:
         user.e2e_init(request.authorization.password)
 
