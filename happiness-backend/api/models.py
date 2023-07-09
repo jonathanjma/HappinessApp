@@ -112,10 +112,12 @@ class User(db.Model):
         self.encrypted_key = Fernet(new_pwd_key).encrypt(user_key)
         self.password = generate_password_hash(new_pwd)
 
-    # reset password (***will cause encrypted data to be lost***)
+    # reset password (*** will cause encrypted data to be lost!!! ***)
     def reset_password(self, pwd):
         self.password = generate_password_hash(pwd)
-        self.e2e_init(pwd) # also delete user journal entries?
+        # creates new user key, rendering previously created encrypted data useless
+        self.e2e_init(pwd)
+        db.session.execute(delete(Journal).where(Journal.user_id == self.id)) # delete entries
 
     def create_token(self):
         """
@@ -287,5 +289,4 @@ class Token(db.Model):
     def clean():
         """Remove any tokens that have been expired for more than a day."""
         yesterday = datetime.utcnow() - timedelta(days=1)
-        db.session.execute(delete(Token).where(
-            Token.session_expiration < yesterday))
+        db.session.execute(delete(Token).where(Token.session_expiration < yesterday))

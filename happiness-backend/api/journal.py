@@ -6,7 +6,7 @@ from api.auth import token_auth
 from api.dao import journal_dao
 from api.errors import failure_response
 from api.models import Journal
-from api.schema import JournalSchema, JournalGetSchema, JournalIntSchema
+from api.schema import JournalSchema, JournalGetSchema, DecryptedJournalSchema
 
 journal = Blueprint('journal', __name__)
 
@@ -35,7 +35,7 @@ def create_entry(req):
 @journal.get('/')
 @authenticate(token_auth)
 @arguments(JournalGetSchema)
-@response(JournalIntSchema)
+@response(DecryptedJournalSchema)
 @other_responses({400: "Invalid password key."})
 def get_entries(req):
     """
@@ -44,20 +44,8 @@ def get_entries(req):
     Paginated based on page number and journal entries per page. Defaults to page=1 and count=10. \n
     Requires: the user's `password_key` for data decryption (provided by server during API token creation)
     """
-    try:
-        user = token_auth.current_user()
-        page, count = req.get("page", 1), req.get("count", 10)
-        encrypted_entries = journal_dao.get_entries_by_count(user.id, page, count)
-        # print(list(encrypted_entries))
-        JournalIntSchema.context['password_key'] = req.get('password_key')
-        #
-        # def decrypt_data(obj):
-        #     obj.data = user.decrypt_data(req.get('password_key'), obj.data)
-        #     return obj
-        #
-        # r = list(map(decrypt_data, encrypted_entries))
-        # print(list(journal_dao.get_entries_by_count(user.id, page, count)))
-        return encrypted_entries
-    except Exception as e:
-        print(e)
-        return failure_response('Invalid password key.', 400)
+    user = token_auth.current_user()
+    page, count = req.get("page", 1), req.get("count", 10)
+    # add password key to schema context so entries can be decrypted
+    DecryptedJournalSchema.context['password_key'] = req.get('password_key')
+    return journal_dao.get_entries_by_count(user.id, page, count)

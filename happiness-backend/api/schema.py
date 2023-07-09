@@ -47,6 +47,7 @@ class SimpleUserSchema(ma.Schema):
     id = ma.Int(required=True)
     username = ma.Str(required=True)
     profile_picture = ma.Str(required=True)
+    password_key = ma.Str()
 
 
 class TokenSchema(ma.Schema):
@@ -154,17 +155,17 @@ class JournalSchema(ma.SQLAlchemySchema):
     password_key = ma.Str(load_only=True, required=True)
 
     @post_dump
-    def decrypt(self, data, **kwargs):
+    def decrypt_entry(self, data, **kwargs):
         try:
             if self.context.get('password_key'):
-                data['data'] = ''.join(map(chr, token_auth.current_user().decrypt_data(self.context['password_key'], data['data'])))
+                decrypted = token_auth.current_user().decrypt_data(self.context['password_key'], data['data'])
+                data['data'] = decrypted.decode('utf-8')
         except Exception as e:
             print(e)
             return failure_response('Invalid password key.', 400)
-        print(data)
         return data
 
-JournalIntSchema = JournalSchema(many=True)
+DecryptedJournalSchema = JournalSchema(many=True)
 
 class JournalGetSchema(ma.Schema):
     page = ma.Int()

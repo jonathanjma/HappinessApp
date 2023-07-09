@@ -196,7 +196,12 @@ def change_user_info(req):
         try:
             current_user.change_password(req.get("data"), req.get("password_key"))
             db.session.commit()
-            return current_user
+            return {
+                'id': current_user.id,
+                'username': current_user.username,
+                'profile_picture': current_user.profile_picture,
+                'password_key': current_user.derive_pwd_key(req.get('data'))
+            }
         except Exception as e:
             print(e)
             return failure_response('Invalid password key.', 400)
