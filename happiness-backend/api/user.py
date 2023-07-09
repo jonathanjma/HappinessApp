@@ -6,15 +6,13 @@ import boto3
 import filetype
 from apifairy import authenticate, response, body, other_responses
 from flask import Blueprint
-
 from api.dao import users_dao
 from flask import json, request, current_app
 from werkzeug.security import generate_password_hash
 
-from api import email_methods
-from api.dao import users_dao
-from api.app import db
 from api.dao.groups_dao import get_group_by_id
+from api import email_methods
+from api.app import db
 from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
 from api.errors import failure_response
@@ -313,7 +311,7 @@ def get_self():
 def add_pfp(req):
     """
     Add Profile Picture
-    Route to change the user's profile picture. 
+    Route to change the user's profile picture.
     Takes an image from the request body, which should be the in the form of binary file data in the form-data section
     of the request body.
     """

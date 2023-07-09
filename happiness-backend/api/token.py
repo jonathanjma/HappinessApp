@@ -1,12 +1,12 @@
 from apifairy import authenticate, response, other_responses
 from flask import Blueprint, request
-from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 
 from api.models import Token
 from api.dao.users_dao import get_user_by_username, get_user_by_email, get_user_by_id, get_token
+from api.auth import basic_auth, token_auth
 
 from api.app import db
-from api.errors import error_response, failure_response
+from api.errors import failure_response
 from api.schema import TokenSchema
 
 token = Blueprint('token', __name__)

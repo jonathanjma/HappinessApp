@@ -80,6 +80,8 @@ class User(db.Model):
         Checks to see if the current users shares a happiness group user_to_check (a user object)
         """
         # checks if intersection of user's groups and user_to_check's groups is non-empty
+        if user_to_check is None:
+            return False
         return self.groups.intersect(user_to_check.groups).count() > 0
 
 
@@ -170,6 +172,9 @@ class Happiness(db.Model):
     comment = db.Column(db.String)
     timestamp = db.Column(db.DateTime)
 
+    discussion_comments = db.relationship(
+        "Comment", cascade='delete', lazy='dynamic')
+
     def __init__(self, **kwargs):
         """
         Initializes a Happiness object.
@@ -179,6 +184,30 @@ class Happiness(db.Model):
         self.value = kwargs.get("value")
         self.comment = kwargs.get("comment")
         self.timestamp = kwargs.get("timestamp")
+
+
+class Comment(db.Model):
+    """
+    Comment model. Has a many-to-one relationship with happiness table.
+    """
+    __tablename__ = "comment"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    happiness_id = db.Column(db.Integer, db.ForeignKey("happiness.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    text = db.Column(db.String, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)
+
+    author = db.relationship("User")
+
+    def __init__(self, **kwargs):
+        """
+        Initializes a Happiness Discussion Comment object.
+        Requires non-null kwargs: happiness ID, user ID, and comment text.
+        """
+        self.happiness_id = kwargs.get("happiness_id")
+        self.user_id = kwargs.get("user_id")
+        self.text = kwargs.get("text")
+        self.timestamp = datetime.utcnow()
 
 
 class Token(db.Model):

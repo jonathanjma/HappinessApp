@@ -2,7 +2,7 @@ from apifairy.fields import FileField
 from marshmallow import post_dump
 
 from api.app import ma
-from api.models import User, Group, Happiness, Setting
+from api.models import User, Group, Happiness, Setting, Comment
 
 
 class EmptySchema(ma.Schema):
@@ -94,9 +94,21 @@ class CreateGroupSchema(ma.Schema):
 
 
 class EditGroupSchema(ma.Schema):
-    name = ma.Str()
-    invite_users = ma.List(ma.Str(), many=True)
+    new_name = ma.Str()
+    add_users = ma.List(ma.Str(), many=True)
     remove_users = ma.List(ma.Str(), many=True)
+
+
+class CommentSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Comment
+        ordered = True
+
+    id = ma.auto_field(dump_only=True)
+    happiness_id = ma.auto_field(dump_only=True)
+    author = ma.Nested(SimpleUserSchema, dump_only=True)
+    text = ma.auto_field(required=True)
+    timestamp = ma.Str(dump_only=True)
 
 
 class HappinessSchema(ma.SQLAlchemySchema):
