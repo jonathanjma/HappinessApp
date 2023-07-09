@@ -3,7 +3,10 @@ import os
 import uuid
 from datetime import datetime, timedelta
 
+import redis
+from dotenv import load_dotenv
 from flask import render_template
+from rq import Queue
 
 from api import create_app
 from api.dao import happiness_dao, users_dao
@@ -16,6 +19,12 @@ jobs.py contains all scheduled jobs that will be queued by scheduler.py
 
 app = create_app()
 app.app_context().push()
+
+load_dotenv()
+redis_url = os.getenv('REDISCLOUD_URL')
+
+conn = redis.from_url(redis_url)
+q = Queue('happiness-backend-jobs', connection=conn)
 
 
 def clear_exported_happiness():
@@ -59,7 +68,6 @@ def export_happiness(user_id):
 
     entries_dict = map(to_dict_entry, entries)
     fields = ['value', 'comment', 'timestamp']
-    filename = f"happiness_{uuid.uuid4()}.csv"
     file_path = "export/{filename}"
     with open(file_path, 'w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=fields)
@@ -77,9 +85,10 @@ def export_happiness(user_id):
     # Leftover files are deleted by a scheduled job, so no need to be worried about that here.
 
 
-def send_notification_emails(user_id):
+def send_notification_email(user_id):
     """
     Sends a happiness app reminder notification email to the given email.
+    Requires: user is missing at least 1 entry in the past week
     """
     user_to_send = users_dao.get_user_by_id(user_id)
     dates_should_be_present = [
@@ -88,10 +97,18 @@ def send_notification_emails(user_id):
     yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     last_week = (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d")
     entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=yesterday, user_id=user_id)
-    for e in entries:
-        if e.timestamp in dates_should_be_present:
-            dates_should_be_present.remove(e.timestamp)
-    missing_dates_str = "\n".join(dates_should_be_present)
+    entries = list(filter(lambda x: x is not None, entries))
+    entries = [x.timestamp.strftime("%Y-%m-%d") for x in entries]
+
+    for timestamp in entries:
+        if timestamp in dates_should_be_present:
+            dates_should_be_present.remove(timestamp)
+
+    missing_dates_str = ""
+    for i, d in enumerate(dates_should_be_present):
+        missing_dates_str += d[5:]
+        if i != len(dates_should_be_present) - 1:
+            missing_dates_str += ", "
 
     send_email_helper(
         subject="Enter Your Happiness :)",
@@ -106,21 +123,28 @@ def queue_send_notification_emails():
     """
     Adds all notification email requests to the redis queue
     """
-    current_time = datetime.now().time()
-    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-    last_week = (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d")
+    current_time = str(datetime.now().time().strftime("%H:%M"))
+    # For some reason, the between query for SQLAlchemy seems to be exclusive for the end date
+    # This is very confusing since according to the docs between should be inclusive
+    # It translates to BETWEEN in SQL:
+    # https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.between
+    # BETWEEN is inclusive: https://www.w3schools.com/sql/sql_between.asp
+    # But it works so for now I will keep it.
 
+    today = (datetime.now())
+    last_week = (datetime.now() - timedelta(days=6))
     to_notify = Setting.query.filter(Setting.value == str(current_time), Setting.key == "notify",
-                                     Setting.enabled.is_(True))
+                                     Setting.enabled.is_(True)).all()
+    print(f"to_notify: {to_notify}")
     for setting in to_notify:
-        if setting.enabled:
-            # Check if user is missing happiness entries:
-            entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=yesterday, user_id=setting.user_id)
-            if len(entries) < 6:
-                # They are missing an entry, and we are guaranteed to send an email which is expensive
-                # Therefore we queue another job to redis
-                app.queue.enqueue("jobs.jobs.send_notification_email", setting.user_id)
-
-
-def test_job():
-    print("Job running")
+        # Check if user is missing happiness entries:
+        # print(f"start: {last_week}")
+        # print(f"end: {today}")
+        entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=today, user_id=setting.user_id)
+        entries = list(filter(lambda x: x is not None, entries))
+        # print(f"entries: {entries}")
+        # print("timestamps: \n\n")
+        if len(entries) < 6:
+            # They are missing an entry, and we are guaranteed to send an email which is expensive
+            # Therefore we queue another job to redis
+            q.enqueue("jobs.jobs.send_notification_email", setting.user_id)
