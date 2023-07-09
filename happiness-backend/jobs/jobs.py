@@ -122,6 +122,10 @@ def send_notification_email(user_id):
 def queue_send_notification_emails():
     """
     Adds all notification email requests to the redis queue
+    A user will be a part of a notification email request if they satisfy the following conditions:
+    Has a setting with the key "notify"
+    The value of the setting is a 24-hour time with hours and minutes and matches the current time
+    They have less than 6 Happiness entries from yesterday to 1 week before today
     """
     current_time = str(datetime.now().time().strftime("%H:%M"))
     # For some reason, the between query for SQLAlchemy seems to be exclusive for the end date
