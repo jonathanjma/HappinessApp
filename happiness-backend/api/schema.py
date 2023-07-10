@@ -47,12 +47,10 @@ class SimpleUserSchema(ma.Schema):
     id = ma.Int(required=True)
     username = ma.Str(required=True)
     profile_picture = ma.Str(required=True)
-    password_key = ma.Str()
 
 
 class TokenSchema(ma.Schema):
     session_token = ma.Str(required=True)
-    password_key = ma.Str()
 
 
 class UsernameSchema(ma.Schema):
@@ -141,7 +139,6 @@ class FileUploadSchema(ma.Schema):
 class UserInfoSchema(ma.Schema):
     data = ma.Str(required=True)
     data_type = ma.Str(required=True)
-    password_key = ma.Str()
 
 class JournalSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -152,7 +149,6 @@ class JournalSchema(ma.SQLAlchemySchema):
     user_id = ma.auto_field(dump_only=True)
     data = ma.auto_field(required=True)
     timestamp = ma.Str(dump_only=True)
-    password_key = ma.Str(load_only=True, required=True)
 
     @post_dump
     def decrypt_entry(self, data, **kwargs):
@@ -170,4 +166,9 @@ DecryptedJournalSchema = JournalSchema(many=True)
 class JournalGetSchema(ma.Schema):
     page = ma.Int()
     count = ma.Int()
-    password_key = ma.Str(required=True)
+
+class PasswordKeySchema(ma.Schema):
+    password_key = ma.Str(data_key='Password-Key', required=True)
+
+class PasswordKeyOptSchema(ma.Schema):
+    password_key = ma.Str(data_key='Password-Key')

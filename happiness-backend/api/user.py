@@ -4,11 +4,10 @@ from datetime import datetime
 
 import boto3
 import filetype
-from apifairy import authenticate, response, body, other_responses
-from flask import Blueprint, request
+from apifairy import authenticate, response, body, other_responses, arguments
+from flask import Blueprint
 from flask import current_app
 
-from api.auth import basic_auth
 from api.dao import users_dao
 from api import email_methods
 from api.app import db
@@ -17,7 +16,7 @@ from api.models import User, Setting
 from api.errors import failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     SimpleUserSchema, FileUploadSchema, UserInfoSchema, PasswordResetReqSchema, \
-    EmptySchema, PasswordResetSchema
+    EmptySchema, PasswordResetSchema, PasswordKeyOptSchema
 from api.token import token_auth
 
 user = Blueprint('user', __name__)
@@ -156,9 +155,10 @@ def get_user_settings():
 @user.put('/info/')
 @authenticate(token_auth)
 @body(UserInfoSchema)
-@response(SimpleUserSchema)
+@arguments(PasswordKeyOptSchema, location='headers')
+@response(SimpleUserSchema, headers=PasswordKeyOptSchema)
 @other_responses({400: "Provided data already exists."})
-def change_user_info(req):
+def change_user_info(req, headers):
     """
     Change User Info
     Changes a user's info based on 3 different `data_type`(s): \n
@@ -194,13 +194,10 @@ def change_user_info(req):
     elif data_type == "password":
         # Changes a user's password.
         try:
-            current_user.change_password(req.get("data"), req.get("password_key"))
+            current_user.change_password(req.get("data"), headers.get("password_key"))
             db.session.commit()
-            return {
-                'id': current_user.id,
-                'username': current_user.username,
-                'profile_picture': current_user.profile_picture,
-                'password_key': current_user.derive_pwd_key(req.get('data'))
+            return current_user, {
+                'Password-Key': current_user.derive_pwd_key(req.get('data'))
             }
         except Exception as e:
             print(e)

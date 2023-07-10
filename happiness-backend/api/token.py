@@ -7,19 +7,19 @@ from api.dao.users_dao import get_token
 
 from api.app import db
 from api.errors import failure_response
-from api.schema import TokenSchema
+from api.schema import TokenSchema, PasswordKeySchema
 
 token = Blueprint('token', __name__)
 
 @token.post('/')
 @authenticate(basic_auth)
-@response(TokenSchema, 201)
+@response(TokenSchema, headers=PasswordKeySchema, status_code=201)
 def new_token():
     """
     Get Token
     Creates a new session token for a user to access the Happiness App API. (Logs them in) \n
     Returns: a new session token for the user and the user's password-derived encryption key
-        for accessing encrypted data
+        for accessing encrypted data in the response header
     """
     user = basic_auth.current_user()
     token = user.create_token()
@@ -32,10 +32,12 @@ def new_token():
     Token.clean()
     db.session.commit()
 
-    return {
-        'session_token': token.session_token,
-        'password_key': user.derive_pwd_key(request.authorization.password)
-    }
+    return ({
+        'session_token': token.session_token
+    },
+    {
+        'Password-Key': user.derive_pwd_key(request.authorization.password)
+    })
 
 
 @token.delete('/')

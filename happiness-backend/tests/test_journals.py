@@ -26,8 +26,11 @@ def init_client():
         yield client, token.session_token, user
 
 
-def auth_header(token):
-    return {'Authorization': f'Bearer {token}'}
+def auth_key_header(token, key):
+    return {
+        'Authorization': f'Bearer {token}',
+        'Password-Key': key
+    }
 
 
 def test_e2e(init_client):
@@ -57,37 +60,36 @@ def test_journals(init_client):
     client, token, user = init_client
     pwd_key = user.derive_pwd_key('test').decode()
 
-    bad_create = client.post('/api/journal/', json={'data': 'secret'}, headers=auth_header(token))
+    bad_create = client.post('/api/journal/', json={'data': 'secret'},
+                             headers=auth_key_header(token, None))
     assert bad_create.status_code == 400
 
-    bad_key = client.post('/api/journal/',
-                          json={'data': 'secret', 'password_key': user.derive_pwd_key('test2').decode()},
-                          headers=auth_header(token))
+    bad_key = client.post('/api/journal/', json={'data': 'secret'},
+                          headers=auth_key_header(token, user.derive_pwd_key('test2')))
     assert bad_key.status_code == 400
 
-    create1 = client.post('/api/journal/', json={'data': 'secret', 'password_key': pwd_key},
-                          headers=auth_header(token))
-    create2 = client.post('/api/journal/', json={'data': 'secret2', 'password_key': pwd_key},
-                          headers=auth_header(token))
+    create1 = client.post('/api/journal/', json={'data': 'secret'},
+                          headers=auth_key_header(token, pwd_key))
+    create2 = client.post('/api/journal/', json={'data': 'secret2'},
+                          headers=auth_key_header(token, pwd_key))
     assert create1.status_code == 201 and create2.status_code == 201
     assert Journal.query.first().data.decode() != 'secret'
 
-    get1 = client.get('/api/journal/', query_string={'count': 1, 'page': 2, 'password_key': pwd_key},
-                       headers=auth_header(token))
-    get2 = client.get('/api/journal/', query_string={'count': 1, 'page': 1, 'password_key': pwd_key},
-                       headers=auth_header(token))
+    get1 = client.get('/api/journal/', query_string={'count': 1, 'page': 2},
+                      headers=auth_key_header(token, pwd_key))
+    get2 = client.get('/api/journal/', query_string={'count': 1, 'page': 1},
+                      headers=auth_key_header(token, pwd_key))
     assert get1.status_code == 200 and get2.status_code == 200
     assert get1.json[0]['data'] == 'secret' and get2.json[0]['data'] == 'secret2'
 
     change_pwd = client.put('/api/user/info/',
-                            json={'data_type': 'password', 'data': 'test2', 'password_key': pwd_key},
-                            headers=auth_header(token))
+                            json={'data_type': 'password', 'data': 'test2'},
+                            headers=auth_key_header(token, pwd_key))
     assert change_pwd.status_code == 200
 
-    bad_get = client.get('/api/journal/', query_string={'password_key': pwd_key}, headers=auth_header(token))
+    bad_get = client.get('/api/journal/', headers=auth_key_header(token, pwd_key))
     assert bad_get.status_code == 400
 
-    get = client.get('/api/journal/', query_string={'password_key': user.derive_pwd_key('test2')},
-                     headers=auth_header(token))
+    get = client.get('/api/journal/', headers=auth_key_header(token, user.derive_pwd_key('test2')))
     assert get.status_code == 200
     assert get.json[1]['data'] == 'secret' and get.json[0]['data'] == 'secret2'
