@@ -2,12 +2,14 @@ from datetime import datetime
 
 from apifairy import authenticate, body, arguments, response, other_responses
 from flask import Blueprint, request, current_app
+
 from api.app import db
-from api.dao.users_dao import get_user_by_id
 from api.dao import happiness_dao, users_dao
+from api.dao.users_dao import get_user_by_id
 from api.errors import failure_response
 from api.models import Happiness, Comment
-from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTime, HappinessGetCount, HappinessGetQuery, CommentSchema
+from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, HappinessGetCountSchema, \
+    HappinessGetQuery, CommentSchema
 from api.token import token_auth
 
 happiness = Blueprint('happiness', __name__)

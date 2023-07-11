@@ -84,6 +84,7 @@ class GroupSchema(ma.SQLAlchemySchema):
     name = ma.auto_field(required=True)
     users = ma.Nested(SimpleUserSchema, many=True, required=True)
 
+
 class CreateGroupSchema(ma.Schema):
     name = ma.Str(required=True)
 
@@ -156,6 +157,7 @@ class UserInfoSchema(ma.Schema):
     data = ma.Str(required=True)
     data_type = ma.Str(required=True)
 
+
 class JournalSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Journal
@@ -177,14 +179,18 @@ class JournalSchema(ma.SQLAlchemySchema):
             return failure_response('Invalid password key.', 400)
         return data
 
+
 DecryptedJournalSchema = JournalSchema(many=True)
+
 
 class JournalGetSchema(ma.Schema):
     page = ma.Int()
     count = ma.Int()
 
+
 class PasswordKeySchema(ma.Schema):
     password_key = ma.Str(data_key='Password-Key', required=True)
+
 
 class PasswordKeyOptSchema(ma.Schema):
     password_key = ma.Str(data_key='Password-Key')
