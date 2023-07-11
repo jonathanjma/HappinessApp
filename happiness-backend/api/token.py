@@ -1,15 +1,16 @@
 from apifairy import authenticate, response, other_responses
 from flask import Blueprint, request
 
-from api.auth import basic_auth, token_auth
 from api.models import Token
 from api.dao.users_dao import get_token
+from api.auth import basic_auth, token_auth
 
 from api.app import db
 from api.errors import failure_response
 from api.schema import TokenSchema, PasswordKeySchema
 
 token = Blueprint('token', __name__)
+
 
 @token.post('/')
 @authenticate(basic_auth)
@@ -35,7 +36,7 @@ def new_token():
     return ({
         'session_token': token.session_token
     },
-    {
+        {
         'Password-Key': user.derive_pwd_key(request.authorization.password)
     })
 

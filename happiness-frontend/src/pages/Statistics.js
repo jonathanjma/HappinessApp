@@ -71,7 +71,7 @@ export default function Statistics() {
     if (settingsNames.includes(name)) {
       for (const e of settings) {
         if (name === e.key) {
-          return e.value;
+          return e.enabled;
         }
       }
     } else return false;

@@ -14,12 +14,12 @@ export default function GroupStats({ groupData, happinessData, selected }) {
       */
   // future conversion to boolean array
   const datavals = [
-    { value: true, key: 0 },
-    { value: true, key: 1 },
-    { value: true, key: 2 },
-    { value: true, key: 3 },
-    { value: true, key: 4 },
-    { value: true, key: 5 },
+    { enabled: true, key: 0 },
+    { enabled: true, key: 1 },
+    { enabled: true, key: 2 },
+    { enabled: true, key: 3 },
+    { enabled: true, key: 4 },
+    { enabled: true, key: 5 },
   ];
 
   return (
@@ -41,7 +41,7 @@ export default function GroupStats({ groupData, happinessData, selected }) {
             </div>
             <div className="flex flex-wrap justify-center items-start lg:w-1/2 xl:w-1/2">
               {datavals.map((e) => {
-                if (e.value) {
+                if (e.enabled) {
                   return (
                     <Stat
                       data={happinessData.map((e) => e.value)}

@@ -10,6 +10,7 @@ from api.models import User, Group, Happiness, Setting, Comment, Journal
 class EmptySchema(ma.Schema):
     pass
 
+
 class SettingsSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Setting
@@ -17,12 +18,14 @@ class SettingsSchema(ma.SQLAlchemySchema):
 
     id = ma.auto_field(dump_only=True, required=True)
     key = ma.Str(dump_only=True, required=True)
-    value = ma.Bool(required=True)
+    enabled = ma.Bool(required=True)
+    value = ma.Str()
     user_id = ma.auto_field(dump_only=True, required=True)
 
 
 class SettingInfoSchema(ma.Schema):
-    value = ma.Bool(required=True)
+    value = ma.Str()
+    enabled = ma.Bool(required=True)
     key = ma.Str(required=True)
 
 
@@ -58,10 +61,13 @@ class UsernameSchema(ma.Schema):
 
 
 class PasswordResetReqSchema(ma.Schema):
-    email = ma.Email(required=True)  # This is probably bad practice (I am still learning)
+    # This is probably bad practice (I am still learning)
+    email = ma.Email(required=True)
+
 
 class PasswordResetSchema(ma.Schema):
     password = ma.Str(required=True)
+
 
 class CreateUserSchema(ma.Schema):
     email = ma.Str(required=True)
@@ -87,6 +93,7 @@ class EditGroupSchema(ma.Schema):
     add_users = ma.List(ma.Str(), many=True)
     remove_users = ma.List(ma.Str(), many=True)
 
+
 class CommentSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Comment
@@ -97,6 +104,7 @@ class CommentSchema(ma.SQLAlchemySchema):
     author = ma.Nested(SimpleUserSchema, dump_only=True)
     text = ma.auto_field(required=True)
     timestamp = ma.Str(dump_only=True)
+
 
 class HappinessSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -114,6 +122,7 @@ class HappinessSchema(ma.SQLAlchemySchema):
         if data.get('timestamp'):
             data['timestamp'] = data['timestamp'].split()[0]
         return data
+
 
 class HappinessEditSchema(ma.Schema):
     value = ma.Float()

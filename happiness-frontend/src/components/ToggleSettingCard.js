@@ -16,10 +16,10 @@ export default function ToggleSettingCard(props) {
     console.log(user.user.settings)
 
     const toggleMutation = useMutation({
-        mutationFn: (value) => {
+        mutationFn: (enabled) => {
             return api.post("/user/settings/", {
                 "key": props.name,
-                "value": !value,
+                "enabled": !enabled,
             })
         },
     })
@@ -33,7 +33,7 @@ export default function ToggleSettingCard(props) {
         setIsChecked(!isChecked)
         user.user.settings.forEach((s) => {
             if (s.key === props.name) {
-                s.value = !isChecked
+                s.enabled = !isChecked
                 wasFound = true;
                 console.log(`User settings after change: ${user.user.settings}`)
             }
@@ -41,7 +41,7 @@ export default function ToggleSettingCard(props) {
         if (!wasFound) {
             user.user.settings.push({
                 "key": props.name,
-                "value": !isChecked
+                "enabled": !isChecked
             })
         }
         toggleMutation.mutate(isChecked)

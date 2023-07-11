@@ -9,6 +9,10 @@ from flask import Blueprint
 from flask import current_app
 
 from api.dao import users_dao
+from flask import json, request, current_app
+from werkzeug.security import generate_password_hash
+
+from api.dao.groups_dao import get_group_by_id
 from api import email_methods
 from api.app import db
 from api.email_token_methods import confirm_email_token
@@ -17,7 +21,12 @@ from api.errors import failure_response
 from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     SimpleUserSchema, FileUploadSchema, UserInfoSchema, PasswordResetReqSchema, \
     EmptySchema, PasswordResetSchema, PasswordKeyOptSchema
+from api.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
+    UsernameSchema, UserInfoSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
+    UserGroupsSchema, FileUploadSchema
 from api.token import token_auth
+
+import threading
 
 user = Blueprint('user', __name__)
 
@@ -121,19 +130,27 @@ def add_user_setting(req):
     """
     Add Settings
     Adds a setting to the current user's property bag. \n
-    If the setting already exists in the property bag, it modifies the value of the setting. \n
+    If the setting already exists in the property bag, it can enable or disable the setting. \n
     Returns: A JSON success response that contains the added setting, or a failure response.
     """
     current_user = token_auth.current_user()
-    key, value = req.get("key"), req.get("value")
-    old_setting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
+    key, enabled, value = req.get("key"), req.get("enabled"), req.get("value")
+    old_setting = Setting.query.filter(
+        Setting.user_id == current_user.id, Setting.key == key).first()
     if old_setting is None:
-        new_setting = Setting(key=key, value=value, user_id=current_user.id)
+        if value is None:
+            new_setting = Setting(key=key, enabled=enabled,
+                                  user_id=current_user.id)
+        else:
+            new_setting = Setting(key=key, enabled=enabled,
+                                  value=value, user_id=current_user.id)
         db.session.add(new_setting)
         db.session.commit()
         return new_setting
 
-    old_setting.value = value
+    old_setting.enabled = enabled
+    if value is not None:
+        old_setting.value = value
     db.session.commit()
     return old_setting
 
@@ -145,7 +162,7 @@ def get_user_settings():
     """
     Get Settings
     Gets the settings of the current user by authorization token. \n
-    Returns: A JSON response of a list of key value pairs that contain setting keys and their values for the user.
+    Returns: A JSON response of a list of keys, booleans, and values that contain setting keys, whether they are enabled/disabled, and specific values for the user.
     """
     current_user = token_auth.current_user()
     settings = Setting.query.filter(Setting.user_id == current_user.id).all()
@@ -297,7 +314,8 @@ def add_pfp(req):
     # Create unique file name and upload image to AWS:
 
     file_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4()}.{(filetype.guess(data)).extension}"
-    res = s3.put_object(Bucket=current_app.config["AWS_BUCKET_NAME"], Body=data, Key=file_name, ACL="public-read")
+    res = s3.put_object(
+        Bucket=current_app.config["AWS_BUCKET_NAME"], Body=data, Key=file_name, ACL="public-read")
 
     # Construct image URL and mutate user object to reflect new profile image URL:
 

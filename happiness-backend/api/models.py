@@ -47,7 +47,9 @@ class User(db.Model):
     encrypted_key = db.Column(db.String)
 
     settings = db.relationship("Setting", cascade="delete")
-    groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
+
+    groups = db.relationship(
+        "Group", secondary=group_users, back_populates="users", lazy='dynamic')
 
     def __init__(self, **kwargs):
         """
@@ -144,15 +146,17 @@ class Setting(db.Model):
     __tablename__ = "setting"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     key = db.Column(db.String, nullable=False)
-    value = db.Column(db.Boolean, nullable=False)
+    enabled = db.Column(db.Boolean, nullable=False)
+    value = db.Column(db.String)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
     def __init__(self, **kwargs):
         """
         Initializes a setting.
-        Requires that kwargs contains key, value, user_id
+        Requires that kwargs contains key, enabled val, user_id
         """
         self.key = kwargs.get("key")
+        self.enabled = kwargs.get("enabled")
         self.value = kwargs.get("value")
         self.user_id = kwargs.get("user_id")
 
@@ -208,7 +212,8 @@ class Happiness(db.Model):
     comment = db.Column(db.String)
     timestamp = db.Column(db.DateTime)
 
-    discussion_comments = db.relationship("Comment", cascade='delete', lazy='dynamic')
+    discussion_comments = db.relationship(
+        "Comment", cascade='delete', lazy='dynamic')
 
     def __init__(self, **kwargs):
         """
@@ -290,4 +295,5 @@ class Token(db.Model):
     def clean():
         """Remove any tokens that have been expired for more than a day."""
         yesterday = datetime.utcnow() - timedelta(days=1)
-        db.session.execute(delete(Token).where(Token.session_expiration < yesterday))
+        db.session.execute(delete(Token).where(
+            Token.session_expiration < yesterday))
