@@ -129,7 +129,7 @@ def test_edit_delete_happiness(init_client):
         '/api/happiness/2', headers={"Authorization": f"Bearer {bearer_token}"})
     assert happiness_delete_response.status_code == 204
 
-
+@pytest.mark.skip(reason="group invites have not been merged")
 def test_get_happiness(init_client):
     client, tokens = init_client
     client.post('/api/user/', json={

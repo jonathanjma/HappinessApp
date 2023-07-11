@@ -113,6 +113,7 @@ class User(db.Model):
         self.password = generate_password_hash(new_pwd)
 
     # reset password (*** will cause encrypted data to be lost!!! ***)
+    # TODO: look into adding recovery phrase to prevent data loss
     def reset_password(self, pwd):
         self.password = generate_password_hash(pwd)
         # creates new user key, rendering previously created encrypted data useless
