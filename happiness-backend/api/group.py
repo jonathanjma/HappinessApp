@@ -16,14 +16,11 @@ group = Blueprint('group', __name__)
 
 # Makes sure requested group exists and user has permissions to view/edit it,
 # otherwise throws appropriate errors
-
-
-def check_group(cur_group, allow_invited=False):
+def check_group(cur_group):
     if cur_group is None:
         return failure_response('Group Not Found', 404)
     elif token_auth.current_user() not in cur_group.users:
-        if not allow_invited or (allow_invited and token_auth.current_user() not in cur_group.invited_users):
-            return failure_response('Not Allowed', 403)
+        return failure_response('Not Allowed', 403)
 
 
 @group.post('/')
@@ -39,8 +36,7 @@ def create_group(req):
     """
 
     new_group = Group(name=req['name'])
-    # add group creator to group
-    new_group.users.append(token_auth.current_user())
+    new_group.users.append(token_auth.current_user())  # add group creator to group
 
     db.session.add(new_group)
     db.session.commit()
@@ -63,7 +59,7 @@ def group_info(group_id):
 
     # Return 404 if invalid group or 403 if user is not in group
     cur_group = get_group_by_id(group_id)
-    check_group(cur_group, allow_invited=True)
+    check_group(cur_group)
 
     return cur_group
 
@@ -95,7 +91,6 @@ def group_happiness(req, group_id):
 
     return get_happiness_by_group_timestamp(list(map(lambda x: x.id, cur_group.users)), start_date, end_data)
 
-
 @group.put('/<int:group_id>')
 @authenticate(token_auth)
 @body(EditGroupSchema)
@@ -110,7 +105,7 @@ def edit_group(req, group_id):
     Returns: JSON representation for the updated group
     """
 
-    new_name, add_users, remove_users = req.get('name'), req.get('invite_users'), \
+    new_name, add_users, remove_users = req.get('new_name'), req.get('add_users'), \
         req.get('remove_users')
     if new_name is None and add_users is None and remove_users is None:
         return failure_response('Insufficient Information', 400)
@@ -123,7 +118,7 @@ def edit_group(req, group_id):
     if new_name is not None and new_name != cur_group.name:
         cur_group.name = new_name
     if add_users is not None:
-        cur_group.invite_users(add_users)
+        cur_group.add_users(add_users)
     if remove_users is not None:
         cur_group.remove_users(remove_users)
 
@@ -134,7 +129,6 @@ def edit_group(req, group_id):
     db.session.commit()
 
     return cur_group
-
 
 @group.delete('/<int:group_id>')
 @authenticate(token_auth)
