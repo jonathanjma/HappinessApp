@@ -15,8 +15,6 @@ apifairy = APIFairy()
 cors = CORS()
 
 # noinspection PyUnresolvedReferences
-
-
 def create_app(config=Config):
     app = Flask(__name__)
     app.config.from_object(config)
@@ -39,12 +37,14 @@ def create_app(config=Config):
     app.register_blueprint(group, url_prefix='/api/group')
     from api.happiness import happiness
     app.register_blueprint(happiness, url_prefix='/api/happiness')
+    from api.journal import journal
+    app.register_blueprint(journal, url_prefix='/api/journal')
     from api.errors import errors
     app.register_blueprint(errors)
 
     @app.route('/')
     @app.route('/api')
-    def index():
+    def api_docs():
         return redirect(url_for('apifairy.docs'))
 
     return app

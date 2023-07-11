@@ -271,7 +271,7 @@ def test_change_username(client):
     """
     client, bearer_token = register_and_login_demo_user(client)
     new_username = "Fiddle01"  # Could that name have any meaning associated with it? hmmm
-    user_name_change_res = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
+    user_name_change_res = client.put('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
             "data_type": "username",
             "data": new_username
         })
@@ -280,16 +280,14 @@ def test_change_username(client):
 
     # Create a new account, attempt to change that account to a username that is already taken, should fail
     client, bearer_token2 = register_and_login_demo_user(client)
-    user_name_change_res2 = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
-                                        , json={
+    user_name_change_res2 = client.put('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
             "data_type": "username",
             "data": "fiDdLe01"
         })
     assert user_name_change_res2.status_code == 400
     # Then try changing it to a unique username, it should be a success
     new_username2 = "fiDdLe02"
-    user_name_change_res3 = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
-                                        , json={
+    user_name_change_res3 = client.put('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
             "data_type": "username",
             "data": new_username2
         })
@@ -304,8 +302,7 @@ def test_change_email(client):
     """
     client, bearer_token = register_and_login_demo_user(client)
     new_email = "Fiddle01@gmail.com"  # Could that name have any meaning associated with it? hmmm
-    user_name_change_res = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
-                                       , json={
+    user_name_change_res = client.put('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
             "data_type": "email",
             "data": new_email
         })
@@ -314,16 +311,14 @@ def test_change_email(client):
 
     # Create a new account, attempt to change that account to an email that is already taken, should fail
     client, bearer_token2 = register_and_login_demo_user(client)
-    user_name_change_res2 = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
-                                        , json={
+    user_name_change_res2 = client.put('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
             "data_type": "email",
             "data": "fiDdLe01@gmail.com"
         })
     assert user_name_change_res2.status_code == 400
     # Then try changing it to a unique email, it should be a success
     new_email2 = "Fiddle02@gmail.com"
-    user_name_change_res3 = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
-                                        , json={
+    user_name_change_res3 = client.put('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
             "data_type": "email",
             "data": new_email2
         })
@@ -335,8 +330,11 @@ def test_change_password(client):
     username = "Hello"
     client, bearer_token = register_and_login_demo_user(client, uname_and_password=username)
     new_password = "Password"
-    password_change_res1 = client.post('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}
-                                       , json={
+    password_change_res1 = client.put('/api/user/info/',
+        headers={
+            "Authorization": f"Bearer {bearer_token}",
+            "Password-Key": get_user_by_username(username).derive_pwd_key("Hello")
+        }, json={
             "data_type": "password",
             "data": new_password
         })
@@ -345,7 +343,7 @@ def test_change_password(client):
     login_res = client.post('/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
     assert login_res.status_code == 201
 
-
+@pytest.mark.skip(reason="group invites have not been merged")
 def test_get_user_by_id(client):
     create_user_res = client.post('/api/user/', json={
         'email': 'test@example.com',
