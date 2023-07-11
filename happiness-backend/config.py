@@ -9,7 +9,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', '').replace(
         'postgres://', 'postgresql://') or \
-        'sqlite:///' + os.path.join(basedir, 'app.db')
+                              'sqlite:///' + os.path.join(basedir, 'app.db')
 
     # API documentation
     APIFAIRY_TITLE = 'Happiness App API'
@@ -37,9 +37,16 @@ class Config:
 
     ENCRYPT_SALT = os.environ.get("ENCRYPT_SALT")
 
+    # Happiness export
+    UPLOAD_FOLDER = "./export/"
+
+    # Scheduled jobs
+    REDISCLOUD_URL = os.environ.get("REDISCLOUD_URL")
+
 
 class TestConfig:
     TESTING = True
+    REDISCLOUD_URL = os.environ.get("REDISCLOUD_URL")
     SQLALCHEMY_DATABASE_URI = 'sqlite:///'
 
     ENCRYPT_SALT = os.environ.get("ENCRYPT_SALT")

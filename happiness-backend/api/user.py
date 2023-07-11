@@ -1,3 +1,6 @@
+import uuid
+from datetime import datetime
+
 import threading
 import uuid
 from datetime import datetime
@@ -8,25 +11,16 @@ from apifairy import authenticate, response, body, other_responses, arguments
 from flask import Blueprint
 from flask import current_app
 
-from api.dao import users_dao
-from flask import json, request, current_app
-from werkzeug.security import generate_password_hash
-
-from api.dao.groups_dao import get_group_by_id
 from api import email_methods
 from api.app import db
+from api.dao import users_dao
 from api.email_token_methods import confirm_email_token
-from api.models import User, Setting
 from api.errors import failure_response
-from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
-    SimpleUserSchema, FileUploadSchema, UserInfoSchema, PasswordResetReqSchema, \
-    EmptySchema, PasswordResetSchema, PasswordKeyOptSchema
+from api.models import User, Setting
 from api.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
-    UsernameSchema, UserInfoSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
-    UserGroupsSchema, FileUploadSchema
+    UserInfoSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
+    FileUploadSchema, GroupSchema, PasswordKeyOptSchema
 from api.token import token_auth
-
-import threading
 
 user = Blueprint('user', __name__)
 

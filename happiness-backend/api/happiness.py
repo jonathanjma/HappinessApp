@@ -1,15 +1,15 @@
 from datetime import datetime
 
 from apifairy import authenticate, body, arguments, response, other_responses
-from flask import Blueprint, request
+from flask import Blueprint, request, current_app
 
-from api.dao import happiness_dao, users_dao
 from api.app import db
+from api.dao import happiness_dao, users_dao
 from api.dao.users_dao import get_user_by_id
-from api.models import Happiness, Comment
 from api.errors import failure_response
+from api.models import Happiness, Comment
 from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, HappinessGetCountSchema, \
-    CommentSchema
+    HappinessGetQuery, CommentSchema
 from api.token import token_auth
 
 happiness = Blueprint('happiness', __name__)
@@ -67,7 +67,7 @@ def edit_happiness(req, id):
         if query_data.user_id != user_id:
             return failure_response("Not Allowed.", 403)
         value, comment = req.get("value"), req.get("comment")
-        if value != query_data.value and value != None:
+        if value != query_data.value and value is not None:
             query_data.value = value
         if comment:
             query_data.comment = comment
@@ -138,6 +138,7 @@ def get_paginated_happiness(req):
         return happiness_dao.get_happiness_by_count(id, page, count)
     return failure_response("Not Allowed.", 403)
 
+
 @happiness.post('/<int:id>/comment')
 @authenticate(token_auth)
 @body(CommentSchema)
@@ -162,6 +163,7 @@ def create_comment(req, id):
         return failure_response("Not Allowed.", 403)
     return failure_response("Happiness Not Found.", 404)
 
+
 @happiness.get('/<int:id>/comments')
 @authenticate(token_auth)
 @response(CommentSchema(many=True))
@@ -185,6 +187,42 @@ def get_comments(id):
             return filtered
         return failure_response("Not Allowed.", 403)
     return failure_response("Happiness Not Found.", 404)
+
+
+@happiness.get('/search')
+@authenticate(token_auth)
+@body(HappinessGetQuery)
+@response(HappinessSchema(many=True))
+@other_responses({403: "Not Allowed."})
+def search_happiness(req):
+    """
+    Search Happiness
+    Gets paginated data for happiness entries related by their journal entries to a specific query.
+    Count, id, and page are optional, and will default to 10, current logged-in user's id, and 1 respectively.
+
+    Returns: Happiness entries related to the user's query
+    """
+    user_id = token_auth.current_user().id
+    my_user_obj = users_dao.get_user_by_id(user_id)
+    page, count, target_user_id, query = req.get("page", 1), req.get(
+        "count", 10), req.get("id", user_id), req.get("query")
+    if user_id == target_user_id or my_user_obj.has_mutual_group(users_dao.get_user_by_id(target_user_id)):
+        query_data = happiness_dao.get_paginated_happiness_by_query(target_user_id, query, page, count)
+        return query_data
+    return failure_response("Not Allowed.", 403)
+
+
+@happiness.get('/export')
+@authenticate(token_auth)
+def export_happiness():
+    """
+    Export Happiness
+    Exports a user's happiness, emailing the user with a CSV file attached, containing their comment, value, and timestamp.
+    """
+    current_user = token_auth.current_user()
+    current_app.job_queue.enqueue("jobs.jobs.export_happiness", current_user.id)
+    return "Happiness entries exported"
+
 
 @happiness.post('/import')
 def import_happiness():

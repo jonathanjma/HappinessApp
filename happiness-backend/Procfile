@@ -1,1 +1,3 @@
 web: flask db upgrade; gunicorn happiness_backend:app
+clock: python jobs/scheduler.py
+worker: rq worker -u $REDISCLOUD_URL happiness-backend-jobs

@@ -4,7 +4,7 @@ import Modal from "react-bootstrap/Modal";
 // A reusable confirmation modal component
 export default function ConfirmModal({
   heading,
-  body,
+  children,
   show,
   setShow,
   onConfirm,
@@ -21,7 +21,7 @@ export default function ConfirmModal({
       <Modal.Header>
         <Modal.Title>{heading}</Modal.Title>
       </Modal.Header>
-      <Modal.Body>{body}</Modal.Body>
+      <Modal.Body>{children}</Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={handleClose}>
           Cancel
