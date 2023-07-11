@@ -4,8 +4,10 @@ from datetime import datetime
 
 import boto3
 import filetype
-from apifairy import authenticate, response, body, other_responses
+from apifairy import authenticate, response, body, other_responses, arguments
 from flask import Blueprint
+from flask import current_app
+
 from api.dao import users_dao
 from flask import json, request, current_app
 from werkzeug.security import generate_password_hash
@@ -16,6 +18,9 @@ from api.app import db
 from api.email_token_methods import confirm_email_token
 from api.models import User, Setting
 from api.errors import failure_response
+from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
+    SimpleUserSchema, FileUploadSchema, UserInfoSchema, PasswordResetReqSchema, \
+    EmptySchema, PasswordResetSchema, PasswordKeyOptSchema
 from api.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     UsernameSchema, UserInfoSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
     UserGroupsSchema, FileUploadSchema
@@ -93,50 +98,13 @@ def get_user_by_username(username):
 
 @user.get('/groups')
 @authenticate(token_auth)
-@response(UserGroupsSchema)
+@response(GroupSchema(many=True))
 def user_groups():
     """
     Get Groups
     Returns: a list of happiness groups that the user is in as well as any they have been invited to join.
     """
-    return {
-        'groups': token_auth.current_user().groups,
-        'group_invites': token_auth.current_user().invites
-    }
-
-
-@user.post('/accept_invite/<int:group_id>')
-@authenticate(token_auth)
-@response(EmptySchema, 204, 'Group invite accepted')
-@other_responses({404: 'Invalid Group Invite'})
-def accept_group_invite(group_id):
-    """
-    Accept Group Invite
-    Accepts an invite to join a happiness group \n
-    Requires: group ID is valid and corresponds to a group that has invited the user
-    """
-    group = get_group_by_id(group_id)
-    if group is not None and group in token_auth.current_user().invites:
-        group.add_user(token_auth.current_user())
-        return '', 204
-    return failure_response('Group Invite Not Found', 404)
-
-
-@user.post('/reject_invite/<int:group_id>')
-@authenticate(token_auth)
-@response(EmptySchema, 204, 'Group invite rejected')
-@other_responses({404: 'Invalid Group Invite'})
-def reject_group_invite(group_id):
-    """
-    Reject Group Invite
-    Rejects an invite to join a happiness group \n
-    Requires: group ID is valid and corresponds to a group that has invited the user
-    """
-    group = get_group_by_id(group_id)
-    if group is not None and group in token_auth.current_user().invites:
-        group.remove_users([token_auth.current_user().username])
-        return '', 204
-    return failure_response('Group Invite Not Found', 404)
+    return token_auth.current_user().groups
 
 
 @user.delete('/')
@@ -201,26 +169,27 @@ def get_user_settings():
     return settings
 
 
-@user.post('/info/')
+@user.put('/info/')
 @authenticate(token_auth)
 @body(UserInfoSchema)
-@response(SimpleUserSchema)
+@arguments(PasswordKeyOptSchema, location='headers')
+@response(SimpleUserSchema, headers=PasswordKeyOptSchema)
 @other_responses({400: "Provided data already exists."})
-def change_user_info(req):
+def change_user_info(req, headers):
     """
     Change User Info
     Changes a user's info based on 3 different `data_type`(s): \n
     "username" \n
     "email" \n
     "password" \n
-    Then the associated data must be put in the `data` field of the request.
+    Then the associated data must be put in the `data` field of the request. \n
+    If changing password, the user's `password_key` (provided by server during API token creation) must also be sent.
     """
     data_type = req.get("data_type")
     current_user = token_auth.current_user()
 
     if data_type == "username":
         # Change a user's username, which requires their username to be unique.
-
         new_username = req.get("data")
         similar_user = users_dao.get_user_by_username(new_username)
         if similar_user is not None:
@@ -231,7 +200,6 @@ def change_user_info(req):
         return current_user
     elif data_type == "email":
         # Changes a user's email, which requires their email to be unique.
-
         new_email = req.get("data")
         similar_user = users_dao.get_user_by_email(new_email)
         if similar_user is not None:
@@ -242,11 +210,15 @@ def change_user_info(req):
         return current_user
     elif data_type == "password":
         # Changes a user's password.
-
-        new_password = req.get("data")
-        current_user.password = generate_password_hash(new_password)
-        db.session.commit()
-        return current_user
+        try:
+            current_user.change_password(req.get("data"), headers.get("password_key"))
+            db.session.commit()
+            return current_user, {
+                'Password-Key': current_user.derive_pwd_key(req.get('data'))
+            }
+        except Exception as e:
+            print(e)
+            return failure_response('Invalid password key.', 400)
 
 
 @user.post('/reset_password/<token>')
@@ -268,7 +240,7 @@ def reset_password(req, token):
     if not current_user:
         return failure_response("Password reset token verification failed, token may be expired", 401)
 
-    current_user.set_password(req.get("password"))
+    current_user.reset_password(req.get("password"))
     db.session.commit()
     return '', 204
 

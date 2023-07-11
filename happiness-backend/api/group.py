@@ -9,7 +9,7 @@ from api.dao.happiness_dao import get_happiness_by_group_timestamp
 from api.models import Group
 from api.errors import failure_response
 from api.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
-    HappinessGetTime
+    HappinessGetTimeSchema
 from api.token import token_auth
 
 group = Blueprint('group', __name__)
@@ -70,7 +70,7 @@ def group_info(group_id):
 
 @group.get('/<int:group_id>/happiness')
 @authenticate(token_auth)
-@arguments(HappinessGetTime)
+@arguments(HappinessGetTimeSchema)
 @response(HappinessSchema(many=True))
 @other_responses({404: 'Invalid Group', 403: 'Not Allowed'})
 def group_happiness(req, group_id):
