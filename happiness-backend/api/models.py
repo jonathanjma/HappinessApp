@@ -1,7 +1,12 @@
+import base64
 import hashlib
 import os
 from datetime import datetime, timedelta
 
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from flask import current_app
 from sqlalchemy import delete
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -39,12 +44,12 @@ class User(db.Model):
     password = db.Column(db.String, nullable=False)
     created = db.Column(db.DateTime)
     profile_picture = db.Column(db.String, nullable=False)
+    encrypted_key = db.Column(db.String)
+
     settings = db.relationship("Setting", cascade="delete")
 
     groups = db.relationship(
         "Group", secondary=group_users, back_populates="users", lazy='dynamic')
-    invites = db.relationship(
-        "Group", secondary=group_invites, back_populates="invited_users")
 
     def __init__(self, **kwargs):
         """
@@ -54,10 +59,45 @@ class User(db.Model):
         self.email = kwargs.get("email")
 
         # Convert raw password into encrypted string that can still be decrypted, but we cannot decrypt it.
-        self.password = generate_password_hash(kwargs.get("password"))
+        raw_pwd = kwargs.get("password")
+        self.password = generate_password_hash(raw_pwd)
         self.username = kwargs.get("username")
         self.profile_picture = kwargs.get("profile_picture", self.avatar_url())
         self.created = datetime.today()
+        self.e2e_init(raw_pwd)
+
+    # generate user key for encrypting/decrypting data
+    # derive password key for encrypting/decrypting user key from user password
+    # store encrypted user key in db
+    # https://security.stackexchange.com/questions/157422/store-encrypted-user-data-in-database
+    def e2e_init(self, password):
+        user_key = base64.urlsafe_b64encode(os.urandom(32))
+        password_key = self.derive_pwd_key(password)
+        self.encrypted_key = Fernet(password_key).encrypt(user_key)
+
+    # derive password key from user password
+    def derive_pwd_key(self, password):
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=bytes(current_app.config["ENCRYPT_SALT"], 'utf-8'),
+            iterations=200000,
+        )
+        return base64.urlsafe_b64encode(kdf.derive(bytes(password, 'utf-8')))
+
+    # decrypt user key using password key
+    def decrypt_user_key(self, pwd_key):
+        return Fernet(bytes(pwd_key, 'utf-8')).decrypt(self.encrypted_key)
+
+    # decrypt user key with password key, then encrypt data with user key
+    def encrypt_data(self, pwd_key, data):
+        user_key = self.decrypt_user_key(pwd_key)
+        return Fernet(user_key).encrypt(bytes(data, 'utf-8'))
+
+    # decrypt user key with password key, then decrypt data with user key
+    def decrypt_data(self, pwd_key, data):
+        user_key = self.decrypt_user_key(pwd_key)
+        return Fernet(user_key).decrypt(data)
 
     def avatar_url(self):
         digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
@@ -66,8 +106,21 @@ class User(db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password, password)
 
-    def set_password(self, pwd):
+    # change user password + update encrypted key
+    # (decrypt user key with old password key, then encrypt with new password key, update db)
+    def change_password(self, new_pwd, pwd_key):
+        user_key = self.decrypt_user_key(pwd_key)
+        new_pwd_key = self.derive_pwd_key(new_pwd)
+        self.encrypted_key = Fernet(new_pwd_key).encrypt(user_key)
+        self.password = generate_password_hash(new_pwd)
+
+    # reset password (*** will cause encrypted data to be lost!!! ***)
+    # TODO: look into adding recovery phrase to prevent data loss
+    def reset_password(self, pwd):
         self.password = generate_password_hash(pwd)
+        # creates new user key, rendering previously created encrypted data useless
+        self.e2e_init(pwd)
+        db.session.execute(delete(Journal).where(Journal.user_id == self.id)) # delete entries
 
     def create_token(self):
         """
@@ -80,6 +133,8 @@ class User(db.Model):
         Checks to see if the current users shares a happiness group user_to_check (a user object)
         """
         # checks if intersection of user's groups and user_to_check's groups is non-empty
+        if user_to_check is None:
+            return False
         return self.groups.intersect(user_to_check.groups).count() > 0
 
 
@@ -116,8 +171,6 @@ class Group(db.Model):
 
     users = db.relationship(
         "User", secondary=group_users, back_populates="groups")
-    invited_users = db.relationship(
-        "User", secondary=group_invites, back_populates="invites")
 
     def __init__(self, **kwargs):
         """
@@ -126,24 +179,16 @@ class Group(db.Model):
         """
         self.name = kwargs.get("name")
 
-    def invite_users(self, users_to_invite):
+    def add_users(self, new_users):
         """
-        Invites a list of usernames to join a group
-        Requires: Users to be invited must exist and not already be in the group
+        Adds users to a group
+        Requires a list of usernames to add
+        Users to be added must exist and not already be in the group
         """
-        for username in users_to_invite:
+        for username in new_users:
             user = User.query.filter(User.username.ilike(username)).first()
-            if user is not None and user not in self.users and user not in self.invited_users:
-                self.invited_users.append(user)
-
-    def add_user(self, user_to_add):
-        """
-        Adds a user object to a group
-        Requires: User must already have been invited to the group
-        """
-        if user_to_add in self.invited_users:
-            self.invited_users.remove(user_to_add)
-            self.users.append(user_to_add)
+            if user is not None and user not in self.users:
+                self.users.append(user)
 
     def remove_users(self, users_to_remove):
         """
@@ -152,11 +197,8 @@ class Group(db.Model):
         """
         for username in users_to_remove:
             user = User.query.filter(User.username.ilike(username)).first()
-            if user is not None:
-                if user in self.users:
-                    self.users.remove(user)
-                elif user in self.invited_users:
-                    self.invited_users.remove(user)
+            if user is not None and user in self.users:
+                self.users.remove(user)
 
 
 class Happiness(db.Model):
@@ -170,6 +212,9 @@ class Happiness(db.Model):
     comment = db.Column(db.String)
     timestamp = db.Column(db.DateTime)
 
+    discussion_comments = db.relationship(
+        "Comment", cascade='delete', lazy='dynamic')
+
     def __init__(self, **kwargs):
         """
         Initializes a Happiness object.
@@ -180,6 +225,47 @@ class Happiness(db.Model):
         self.comment = kwargs.get("comment")
         self.timestamp = kwargs.get("timestamp")
 
+class Comment(db.Model):
+    """
+    Comment model. Has a many-to-one relationship with happiness table.
+    """
+    __tablename__ = "comment"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    happiness_id = db.Column(db.Integer, db.ForeignKey("happiness.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    text = db.Column(db.String, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)
+
+    author = db.relationship("User")
+
+    def __init__(self, **kwargs):
+        """
+        Initializes a Happiness Discussion Comment object.
+        Requires non-null kwargs: happiness ID, user ID, and comment text.
+        """
+        self.happiness_id = kwargs.get("happiness_id")
+        self.user_id = kwargs.get("user_id")
+        self.text = kwargs.get("text")
+        self.timestamp = datetime.utcnow()
+
+class Journal(db.Model):
+    """
+    Journal model. Has a many-to-one relationship with user table.
+    """
+    __tablename__ = "journal"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    data = db.Column(db.String, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, **kwargs):
+        """
+        Initializes a Private Journal Entry object.
+        Requires non-null kwargs: user ID and encrypted entry text.
+        """
+        self.user_id = kwargs.get("user_id")
+        self.data = kwargs.get("encrypted_data")
+        self.timestamp = datetime.utcnow()
 
 class Token(db.Model):
     """

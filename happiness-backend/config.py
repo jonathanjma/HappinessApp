@@ -35,6 +35,8 @@ class Config:
     AWS_BUCKET_NAME = os.environ.get("AWS_BUCKET_NAME")
     AWS_REGION = os.environ.get("AWS_REGION")
 
+    ENCRYPT_SALT = os.environ.get("ENCRYPT_SALT")
+
     # Happiness export
     UPLOAD_FOLDER = "./export/"
 
@@ -46,3 +48,5 @@ class TestConfig:
     TESTING = True
     REDISCLOUD_URL = os.environ.get("REDISCLOUD_URL")
     SQLALCHEMY_DATABASE_URI = 'sqlite:///'
+
+    ENCRYPT_SALT = os.environ.get("ENCRYPT_SALT")
