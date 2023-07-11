@@ -25,6 +25,15 @@ group_invites = db.Table(
     db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
 )
 
+# Community Users association table
+community_users = db.Table(
+    "community_users",
+    db.Model.metadata,
+    db.Column("community_id", db.Integer, db.ForeignKey(
+        "community.id", ondelete='cascade')),
+    db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
+)
+
 
 class User(db.Model):
     """
@@ -43,6 +52,9 @@ class User(db.Model):
 
     groups = db.relationship(
         "Group", secondary=group_users, back_populates="users", lazy='dynamic')
+
+    communities = db.relationship(
+        "Community", secondary=community_users, back_populates="users", lazy='dynamic')
 
     def __init__(self, **kwargs):
         """
@@ -144,6 +156,78 @@ class Group(db.Model):
                 self.users.remove(user)
 
 
+class Community(db.Model):
+    """
+    Community model. Has a many-to-one relationship with users table.
+    """
+    __tablename__ = "community"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String, nullable=False)
+
+    users = db.relationship(
+        "User", secondary=community_users, back_populates="communities")
+
+    def __init__(self, **kwargs):
+        """
+        Creates a happiness community.
+        Required kwargs: name
+        """
+        self.name = kwargs.get("name")
+
+    def add_users(self, new_users):
+        """
+        Adds users to a community
+        Requires: List of usernames to add; Users to be added must exist and not already be in the community
+        """
+        for username in new_users:
+            user = User.query.filter(User.username.ilike(username)).first()
+            if user is not None and user not in self.users:
+                self.users.append(user)
+
+    def remove_users(self, users_to_remove):
+        """
+        Removes a list of usernames from a community
+        Requires: Users to be removed must exist and already be in the community
+        """
+        for username in users_to_remove:
+            user = User.query.filter(User.username.ilike(username)).first()
+            if user is not None and user in self.users:
+                self.users.remove(user)
+
+
+class Statistic(db.Model):
+    """
+    Statistic model. Has a many-to-one-relationship with Community table.
+    """
+    __tablename__ = "statistic"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    community_id = db.Column(db.Integer, db.ForeignKey("community.id"))
+    mean = db.Column(db.Float)
+    median = db.Column(db.Float)
+    stdev = db.Column(db.Float)
+    minval = db.Column(db.Float)
+    maxval = db.Column(db.Float)
+    firstquar = db.Column(db.Float)
+    thirdquar = db.Column(db.Float)
+    timestamp = db.Column(db.DateTime)
+
+    def __init__(self, **kwargs):
+        """
+        Initializes a Statistc object.
+        Requires non-null kwargs: mean, median, standard deviation, minimum
+        value, maxmimum value, Q1, Q3, timestamp, and community ID.
+        """
+        self.community_id = kwargs.get("community_id")
+        self.mean = kwargs.get("mean")
+        self.median = kwargs.get("median")
+        self.stdev = kwargs.get("stdev")
+        self.minval = kwargs.get("minval")
+        self.maxval = kwargs.get("maxval")
+        self.firstquar = kwargs.get("firstquar")
+        self.thirdquar = kwargs.get("thirdquar")
+        self.timestamp = kwargs.get("timestamp")
+
+
 class Happiness(db.Model):
     """
     Happiness model. Has a many-to-one relationship with users table.
@@ -155,7 +239,8 @@ class Happiness(db.Model):
     comment = db.Column(db.String)
     timestamp = db.Column(db.DateTime)
 
-    discussion_comments = db.relationship("Comment", cascade='delete', lazy='dynamic')
+    discussion_comments = db.relationship(
+        "Comment", cascade='delete', lazy='dynamic')
 
     def __init__(self, **kwargs):
         """
@@ -166,6 +251,7 @@ class Happiness(db.Model):
         self.value = kwargs.get("value")
         self.comment = kwargs.get("comment")
         self.timestamp = kwargs.get("timestamp")
+
 
 class Comment(db.Model):
     """
@@ -189,6 +275,7 @@ class Comment(db.Model):
         self.user_id = kwargs.get("user_id")
         self.text = kwargs.get("text")
         self.timestamp = datetime.utcnow()
+
 
 class Token(db.Model):
     """
