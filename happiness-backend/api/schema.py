@@ -116,7 +116,7 @@ class HappinessSchema(ma.SQLAlchemySchema):
     user_id = ma.auto_field(dump_only=True)
     value = ma.auto_field(required=True)
     comment = ma.auto_field()
-    timestamp = ma.Str(required=True)
+    timestamp = ma.Str()
 
     @post_dump
     def fix_time(self, data, **kwargs):
@@ -124,6 +124,9 @@ class HappinessSchema(ma.SQLAlchemySchema):
             data['timestamp'] = data['timestamp'].split()[0]
         return data
 
+class HappinessGetBySchema(ma.Schema):
+    id = ma.Int()
+    date = ma.Str()
 
 class HappinessEditSchema(ma.Schema):
     value = ma.Float()

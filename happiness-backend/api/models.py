@@ -169,8 +169,7 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
 
-    users = db.relationship(
-        "User", secondary=group_users, back_populates="groups")
+    users = db.relationship("User", secondary=group_users, back_populates="groups")
 
     def __init__(self, **kwargs):
         """
@@ -212,8 +211,7 @@ class Happiness(db.Model):
     comment = db.Column(db.String)
     timestamp = db.Column(db.DateTime)
 
-    discussion_comments = db.relationship(
-        "Comment", cascade='delete', lazy='dynamic')
+    discussion_comments = db.relationship("Comment", cascade='delete', lazy='dynamic')
 
     def __init__(self, **kwargs):
         """
