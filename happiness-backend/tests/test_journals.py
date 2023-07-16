@@ -56,7 +56,7 @@ def test_e2e(init_client):
     assert user.decrypt_data(new_pwd_key, encrypted).decode() == 'super secret data'
 
 
-def test_journals(init_client):
+def test_create_get(init_client):
     client, token, user = init_client
     pwd_key = user.derive_pwd_key('test').decode()
 
@@ -93,3 +93,27 @@ def test_journals(init_client):
     get = client.get('/api/journal/', headers=auth_key_header(token, user.derive_pwd_key('test2')))
     assert get.status_code == 200
     assert get.json[1]['data'] == 'secret' and get.json[0]['data'] == 'secret2'
+
+def test_edit_delete(init_client):
+    client, token, user = init_client
+    pwd_key = user.derive_pwd_key('test').decode()
+
+    client.post('/api/journal/', json={'data': 'secret'}, headers=auth_key_header(token, pwd_key))
+    client.post('/api/journal/', json={'data': 'secret2'}, headers=auth_key_header(token, pwd_key))
+
+    bad_edit = client.put('/api/journal/2', headers=auth_key_header(token, None))
+    assert bad_edit.status_code == 400
+
+    edit = client.put('/api/journal/2', json={'data': 'happiness app'},
+                          headers=auth_key_header(token, pwd_key))
+    assert edit.status_code == 200
+
+    get1 = client.get('/api/journal/', headers=auth_key_header(token, pwd_key))
+    assert get1.json[0]['data'] == 'happiness app'
+
+    delete = client.delete('/api/journal/2', headers=auth_key_header(token, pwd_key))
+    assert delete.status_code == 204
+
+    get2 = client.get('/api/journal/', headers=auth_key_header(token, pwd_key))
+    assert len(get2.json) == 1
+    assert get2.json[0]['data'] == 'secret'

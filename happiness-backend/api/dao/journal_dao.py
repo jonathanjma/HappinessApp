@@ -1,5 +1,11 @@
 from api.models import Journal
 
+def get_journal_by_id(entry_id):
+    """
+    Returns a Journal entry object by ID.
+    """
+    return Journal.query.filter(Journal.id == entry_id).first()
+
 def get_entries_by_count(user_id, page, n):
     """
     Returns a list of n Journal entry objects given a User ID (sorted from newest to oldest).

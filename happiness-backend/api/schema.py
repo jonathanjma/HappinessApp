@@ -190,6 +190,8 @@ class JournalGetSchema(ma.Schema):
     page = ma.Int()
     count = ma.Int()
 
+class JournalEditSchema(ma.Schema):
+    data = ma.Str(required=True)
 
 class PasswordKeySchema(ma.Schema):
     password_key = ma.Str(data_key='Password-Key', required=True)
