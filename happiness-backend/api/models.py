@@ -45,11 +45,10 @@ class User(db.Model):
     created = db.Column(db.DateTime)
     profile_picture = db.Column(db.String, nullable=False)
     encrypted_key = db.Column(db.String)
+    encrypted_key_recovery = db.Column(db.String)
 
     settings = db.relationship("Setting", cascade="delete")
-
-    groups = db.relationship(
-        "Group", secondary=group_users, back_populates="users", lazy='dynamic')
+    groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
 
     def __init__(self, **kwargs):
         """
@@ -114,13 +113,27 @@ class User(db.Model):
         self.encrypted_key = Fernet(new_pwd_key).encrypt(user_key)
         self.password = generate_password_hash(new_pwd)
 
-    # reset password (*** will cause encrypted data to be lost!!! ***)
-    # TODO: look into adding recovery phrase to prevent data loss
-    def reset_password(self, pwd):
+    # add recovery phrase to prevent data loss if password is forgotten
+    # (stores a copy of the user key encrypted with a recovery phrase)
+    def add_key_recovery(self, recovery_phrase, pwd_key):
+        user_key = self.decrypt_user_key(pwd_key)
+        recovery_key = self.derive_pwd_key(recovery_phrase)
+        self.encrypted_key_recovery = Fernet(recovery_key).encrypt(user_key)
+
+    # reset password
+    # *** will cause encrypted data to be lost if recovery not set up!!! ***
+    def reset_password(self, pwd, recovery_phrase=None):
         self.password = generate_password_hash(pwd)
-        # creates new user key, rendering previously created encrypted data useless
-        self.e2e_init(pwd)
-        db.session.execute(delete(Journal).where(Journal.user_id == self.id)) # delete entries
+        if self.encrypted_key_recovery and recovery_phrase:
+            # decrypts user key with recovery phrase, allowing user key to be encrypted with new password
+            recovery_key = self.derive_pwd_key(recovery_phrase)
+            user_key = self.decrypt_user_key(recovery_key)
+            new_pwd_key = self.derive_pwd_key(pwd)
+            self.encrypted_key = Fernet(new_pwd_key).encrypt(user_key)
+        else:
+            # creates new user key, rendering previously created encrypted data useless
+            self.e2e_init(pwd)
+            db.session.execute(delete(Journal).where(Journal.user_id == self.id)) # delete entries
 
     def create_token(self):
         """
