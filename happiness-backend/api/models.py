@@ -121,18 +121,22 @@ class User(db.Model):
         self.encrypted_key_recovery = Fernet(recovery_key).encrypt(user_key)
 
     # reset password
-    # *** will cause encrypted data to be lost if recovery not set up!!! ***
-    def reset_password(self, pwd, recovery_phrase):
-        self.password = generate_password_hash(pwd)
+    # *** !!! Will cause encrypted data to be lost if recovery not set up
+    # or old password key not provided !!! ***
+    def reset_password(self, new_pwd, recovery_phrase=None, pwd_key=None):
+        self.password = generate_password_hash(new_pwd)
         if self.encrypted_key_recovery and recovery_phrase:
             # decrypts user key with recovery phrase, allowing user key to be encrypted with new password
             recovery_key = self.derive_pwd_key(recovery_phrase)
             user_key = Fernet(recovery_key).decrypt(self.encrypted_key_recovery)
-            new_pwd_key = self.derive_pwd_key(pwd)
+            new_pwd_key = self.derive_pwd_key(new_pwd)
             self.encrypted_key = Fernet(new_pwd_key).encrypt(user_key)
+        elif pwd_key:
+            # decrypt data with old password key (useful if old key is still stored in client)
+            self.change_password(new_pwd, pwd_key)
         else:
             # creates new user key, rendering previously created encrypted data useless
-            self.e2e_init(pwd)
+            self.e2e_init(new_pwd)
             db.session.execute(delete(Journal).where(Journal.user_id == self.id)) # delete entries
 
     def create_token(self):

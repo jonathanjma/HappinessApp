@@ -233,9 +233,10 @@ def change_user_info(req, headers):
 
 @user.post('/reset_password/<token>')
 @body(PasswordResetSchema)
+@arguments(PasswordKeyOptSchema, location='headers')
 @response(EmptySchema, 204, 'Password reset successful')
-@other_responses({400: "Invalid password reset token or recovery phrase"})
-def reset_password(req, token):
+@other_responses({400: "Invalid password reset token or recovery input"})
+def reset_password(req, headers, token):
     """
     Reset Password from Token
     This function was written under the assumption that when the user receives a verify password email,
@@ -255,12 +256,13 @@ def reset_password(req, token):
         return failure_response("Password reset token verification failed, token may be expired", 401)
 
     try:
-        current_user.reset_password(req.get("password"), req.get("recovery_phrase"))
+        current_user.reset_password(req.get("password"),
+                                    req.get("recovery_phrase"), headers.get('password_key'))
         db.session.commit()
         return '', 204
     except Exception as e:
         print(e)
-        return failure_response('Invalid recovery phrase.', 400)
+        return failure_response('Invalid recovery input.', 400)
 
 
 @user.post('/initiate_password_reset/')
