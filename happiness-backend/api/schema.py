@@ -67,6 +67,7 @@ class PasswordResetReqSchema(ma.Schema):
 
 class PasswordResetSchema(ma.Schema):
     password = ma.Str(required=True)
+    recovery_phrase = ma.Str()
 
 
 class CreateUserSchema(ma.Schema):

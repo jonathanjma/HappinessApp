@@ -122,12 +122,12 @@ class User(db.Model):
 
     # reset password
     # *** will cause encrypted data to be lost if recovery not set up!!! ***
-    def reset_password(self, pwd, recovery_phrase=None):
+    def reset_password(self, pwd, recovery_phrase):
         self.password = generate_password_hash(pwd)
         if self.encrypted_key_recovery and recovery_phrase:
             # decrypts user key with recovery phrase, allowing user key to be encrypted with new password
             recovery_key = self.derive_pwd_key(recovery_phrase)
-            user_key = self.decrypt_user_key(recovery_key)
+            user_key = Fernet(recovery_key).decrypt(self.encrypted_key_recovery)
             new_pwd_key = self.derive_pwd_key(pwd)
             self.encrypted_key = Fernet(new_pwd_key).encrypt(user_key)
         else:
