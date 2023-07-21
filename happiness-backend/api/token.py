@@ -1,11 +1,9 @@
 from apifairy import authenticate, response, other_responses
 from flask import Blueprint, request
 
-from api.models import Token
-from api.dao.users_dao import get_token
-from api.auth import basic_auth, token_auth
-
 from api.app import db
+from api.auth import basic_auth, token_auth
+from api.dao.users_dao import get_token
 from api.errors import failure_response
 from api.schema import TokenSchema, PasswordKeySchema
 
@@ -30,15 +28,14 @@ def new_token():
     if user.encrypted_key is None:
         user.e2e_init(request.authorization.password)
 
-    Token.clean()
     db.session.commit()
 
     return ({
-        'session_token': token.session_token
-    },
-        {
-        'Password-Key': user.derive_pwd_key(request.authorization.password)
-    })
+                'session_token': token.session_token
+            },
+            {
+                'Password-Key': user.derive_pwd_key(request.authorization.password)
+            })
 
 
 @token.delete('/')
