@@ -8,6 +8,7 @@ from flask import json
 from api import create_app
 from api.app import db
 from api.dao.users_dao import *
+from api.email_token_methods import generate_confirmation_token
 from config import TestConfig
 
 
@@ -139,6 +140,27 @@ def test_send_password_reset_email(client):
     })
     assert r2.status_code == 204 and r3.status_code == 204
 
+def test_reset_password(client):
+    client.post('/api/user/', json={
+        'email': 'test@example.com',
+        'username': 'test',
+        'password': 'test',
+    })
+
+    reset_token = generate_confirmation_token('test@example.com')
+
+    bad_reset = client.post('/api/user/reset_password/' + reset_token[:-1] + 'A',
+                            json={'password': 'W password'})
+    assert bad_reset.status_code == 400
+
+    reset_password = client.post('/api/user/reset_password/' + reset_token,
+                                 json={'password': 'W password'})
+    assert reset_password.status_code == 204
+
+    user_credentials = base64.b64encode("test:W password".encode()).decode('utf-8')
+    login_response = client.post(
+        '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
+    assert login_response.status_code == 201
 
 def test_login_user(client):
     """
