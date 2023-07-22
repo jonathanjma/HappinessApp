@@ -110,7 +110,8 @@ def get_happiness_time(req):
     """
     user_id = token_auth.current_user().id
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
-    start, end, id = req.get("start"), req.get("end", today), req.get("id", user_id)
+    start, end, id = req.get("start"), req.get(
+        "end", today), req.get("id", user_id)
     stfor = datetime.strptime(start, "%Y-%m-%d")
     enfor = datetime.strptime(end, "%Y-%m-%d")
 
@@ -133,10 +134,12 @@ def get_paginated_happiness(req):
     Returns: Specified number of happiness entries in reverse order.
     """
     user_id = token_auth.current_user().id
-    page, count, id = req.get("page", 1), req.get("count", 10), req.get("id", user_id)
+    page, count, id = req.get("page", 1), req.get(
+        "count", 10), req.get("id", user_id)
     if user_id == id or token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(id)):
         return happiness_dao.get_happiness_by_count(id, page, count)
     return failure_response("Not Allowed.", 403)
+
 
 @happiness.post('/<int:id>/comment')
 @authenticate(token_auth)
@@ -155,12 +158,14 @@ def create_comment(req, id):
     happiness_obj = happiness_dao.get_happiness_by_id(id)
     if happiness_obj:
         if token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(happiness_obj.user_id)):
-            comment = Comment(happiness_id=id, user_id=user_id, text=req.get("text"))
+            comment = Comment(happiness_id=id, user_id=user_id,
+                              text=req.get("text"))
             db.session.add(comment)
             db.session.commit()
             return comment
         return failure_response("Not Allowed.", 403)
     return failure_response("Happiness Not Found.", 404)
+
 
 @happiness.get('/<int:id>/comments')
 @authenticate(token_auth)
@@ -185,6 +190,7 @@ def get_comments(id):
             return filtered
         return failure_response("Not Allowed.", 403)
     return failure_response("Happiness Not Found.", 404)
+
 
 @happiness.post('/import')
 def import_happiness():

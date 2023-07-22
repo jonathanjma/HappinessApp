@@ -2,11 +2,12 @@ from apifairy.fields import FileField
 from marshmallow import post_dump
 
 from api.app import ma
-from api.models import User, Group, Happiness, Setting, Comment
+from api.models import User, Group, Happiness, Setting, Comment, Community, Statistic
 
 
 class EmptySchema(ma.Schema):
     pass
+
 
 class SettingsSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -56,10 +57,13 @@ class UsernameSchema(ma.Schema):
 
 
 class PasswordResetReqSchema(ma.Schema):
-    email = ma.Email(required=True)  # This is probably bad practice (I am still learning)
+    # This is probably bad practice (I am still learning)
+    email = ma.Email(required=True)
+
 
 class PasswordResetSchema(ma.Schema):
     password = ma.Str(required=True)
+
 
 class CreateUserSchema(ma.Schema):
     email = ma.Str(required=True)
@@ -76,6 +80,7 @@ class GroupSchema(ma.SQLAlchemySchema):
     name = ma.auto_field(required=True)
     users = ma.Nested(SimpleUserSchema, many=True, required=True)
 
+
 class CreateGroupSchema(ma.Schema):
     name = ma.Str(required=True)
 
@@ -84,6 +89,7 @@ class EditGroupSchema(ma.Schema):
     new_name = ma.Str()
     add_users = ma.List(ma.Str(), many=True)
     remove_users = ma.List(ma.Str(), many=True)
+
 
 class CommentSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -95,6 +101,7 @@ class CommentSchema(ma.SQLAlchemySchema):
     author = ma.Nested(SimpleUserSchema, dump_only=True)
     text = ma.auto_field(required=True)
     timestamp = ma.Str(dump_only=True)
+
 
 class HappinessSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -112,6 +119,7 @@ class HappinessSchema(ma.SQLAlchemySchema):
         if data.get('timestamp'):
             data['timestamp'] = data['timestamp'].split()[0]
         return data
+
 
 class HappinessEditSchema(ma.Schema):
     value = ma.Float()
@@ -137,3 +145,68 @@ class FileUploadSchema(ma.Schema):
 class UserInfoSchema(ma.Schema):
     data = ma.Str()
     data_type = ma.Str()
+
+
+class CommunitySchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Community
+        ordered = True
+
+    id = ma.auto_field(required=True)
+    name = ma.auto_field(required=True)
+    users = ma.Nested(SimpleUserSchema, many=True, required=True)
+
+
+class CreateCommunitySchema(ma.Schema):
+    name = ma.Str(required=True)
+
+
+class EditCommunitySchema(ma.Schema):
+    new_name = ma.Str()
+    add_users = ma.List(ma.Str(), many=True)
+    remove_users = ma.List(ma.Str(), many=True)
+
+
+class StatisticSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Statistic
+        ordered = True
+
+    id = ma.auto_field(dump_only=True)
+    community_id = ma.auto_field(dump_only=True)
+    mean = ma.auto_field(required=True)
+    median = ma.auto_field(required=True)
+    stdev = ma.auto_field(required=True)
+    minval = ma.auto_field(required=True)
+    maxval = ma.auto_field(required=True)
+    firstquar = ma.auto_field(required=True)
+    thirdquar = ma.auto_field(required=True)
+    timestamp = ma.Str(required=True)
+
+    @post_dump
+    def fix_time(self, data, **kwargs):
+        if data.get('timestamp'):
+            data['timestamp'] = data['timestamp'].split()[0]
+        return data
+
+
+class StatisticEditSchema(ma.Schema):
+    mean = ma.Float()
+    median = ma.Float()
+    stdev = ma.Float()
+    minval = ma.Float()
+    maxval = ma.Float()
+    firstquar = ma.Float()
+    thirdquar = ma.Float()
+
+
+class StatisticGetTimeSchema(ma.Schema):
+    start = ma.Str(required=True)
+    end = ma.Str()
+    community_id = ma.Int(required=True)
+
+
+class StatisticGetCountSchema(ma.Schema):
+    page = ma.Int()
+    count = ma.Int()
+    community_id = ma.Int(required=True)

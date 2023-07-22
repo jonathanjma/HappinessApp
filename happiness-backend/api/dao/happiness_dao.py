@@ -19,6 +19,7 @@ def get_happiness_by_date(user_id, date):
     """
     return Happiness.query.filter(Happiness.user_id == user_id, Happiness.timestamp == date).first()
 
+
 def get_user_happiness(user_id):
     """
     Returns a list of all Happiness objects corresponding to the given User ID.
@@ -43,6 +44,16 @@ def get_happiness_by_count(user_id, page, n):
     return Happiness.query.filter(Happiness.user_id == user_id).order_by(Happiness.timestamp.desc()) \
         .paginate(page=page, per_page=n, error_out=False)
 
+
+def get_happiness_by_group_date(user_ids, date):
+    """
+    Returns a list of all Happiness objects on a specific date, given a list of User IDs.
+    """
+    return Happiness.query.filter(
+        Happiness.user_id.in_(user_ids),
+        Happiness.timestamp == date).all()
+
+
 def get_happiness_by_group_timestamp(user_ids, start, end):
     """
     Returns a list of all Happiness objects (sorted from oldest to newest) between 2 timestamps
@@ -51,6 +62,7 @@ def get_happiness_by_group_timestamp(user_ids, start, end):
     return Happiness.query.filter(
         Happiness.user_id.in_(user_ids),
         Happiness.timestamp.between(start, end)).order_by(Happiness.timestamp.asc()).all()
+
 
 def get_happiness_by_group_count(user_ids, page, n):
     """
