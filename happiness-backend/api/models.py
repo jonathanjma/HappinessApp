@@ -117,7 +117,7 @@ class User(db.Model):
     # (stores a copy of the user key encrypted with a recovery phrase)
     def add_key_recovery(self, recovery_phrase, pwd_key):
         user_key = self.decrypt_user_key(pwd_key)
-        recovery_key = self.derive_pwd_key(recovery_phrase)
+        recovery_key = self.derive_pwd_key(recovery_phrase.lower())
         self.encrypted_key_recovery = Fernet(recovery_key).encrypt(user_key)
 
     # reset password
@@ -127,7 +127,7 @@ class User(db.Model):
         self.password = generate_password_hash(new_pwd)
         if self.encrypted_key_recovery and recovery_phrase:
             # decrypts user key with recovery phrase, allowing user key to be encrypted with new password
-            recovery_key = self.derive_pwd_key(recovery_phrase)
+            recovery_key = self.derive_pwd_key(recovery_phrase.lower())
             user_key = Fernet(recovery_key).decrypt(self.encrypted_key_recovery)
             new_pwd_key = self.derive_pwd_key(new_pwd)
             self.encrypted_key = Fernet(new_pwd_key).encrypt(user_key)

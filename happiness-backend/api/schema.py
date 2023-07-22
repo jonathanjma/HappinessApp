@@ -186,6 +186,8 @@ class JournalSchema(ma.SQLAlchemySchema):
 
 DecryptedJournalSchema = JournalSchema(many=True)
 
+class JournalGetBySchema(ma.Schema):
+    id = ma.Int(required=True)
 
 class JournalGetSchema(ma.Schema):
     page = ma.Int()
@@ -196,7 +198,6 @@ class JournalEditSchema(ma.Schema):
 
 class PasswordKeySchema(ma.Schema):
     password_key = ma.Str(data_key='Password-Key', required=True)
-
 
 class PasswordKeyOptSchema(ma.Schema):
     password_key = ma.Str(data_key='Password-Key')

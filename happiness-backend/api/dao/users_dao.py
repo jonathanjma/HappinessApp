@@ -11,7 +11,7 @@ def get_user_by_id(id):
     """
     Returns a User object by ID.
     """
-    return User.query.filter(User.id == id).first()
+    return User.query.filter_by(id=id).first()
 
 
 def get_user_by_username(username):
@@ -36,4 +36,4 @@ def get_token(token):
     """
     Return a user object from the database given a session token
     """
-    return Token.query.filter(Token.session_token == token).first()
+    return Token.query.filter_by(session_token=token).first()
