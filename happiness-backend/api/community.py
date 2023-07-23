@@ -12,7 +12,6 @@ from api.models import Community
 from api.token import token_auth
 from api.schema import CommunitySchema, CreateCommunitySchema, EditCommunitySchema, \
     StatisticSchema, HappinessGetTime
-# TODO: finish schemas
 
 
 community = Blueprint('community', __name__)
@@ -104,9 +103,9 @@ def community_statistics(req, community_id):
 @other_responses({400: 'Insufficient Information', 404: 'Invalid Community', 403: 'Not Allowed'})
 def edit_community(req, community_id):
     """
-    Edit Group
-    Edit a community group by changing its name, adding users, or removing users.
-    User must be a member of the group they are editing. \n
+    Edit Community
+    Edit a community by changing its name, adding users, or removing users.
+    User must be a member of the community they are editing. \n
     Requires: valid community ID, at least one of: name, users to add, or users to remove \n
     Returns: JSON representation for the updated community
     """
