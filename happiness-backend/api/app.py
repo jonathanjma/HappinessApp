@@ -39,6 +39,10 @@ def create_app(config=Config):
     app.register_blueprint(group, url_prefix='/api/group')
     from api.happiness import happiness
     app.register_blueprint(happiness, url_prefix='/api/happiness')
+    from api.community import community
+    app.register_blueprint(community, url_prefix='/api/community')
+    from api.statistic import statistic
+    app.register_blueprint(statistic, url_prefix='/api/statistic')
     from api.errors import errors
     app.register_blueprint(errors)
 

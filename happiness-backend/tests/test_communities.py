@@ -12,7 +12,7 @@ from config import TestConfig
 
 
 @pytest.fixture
-def client():
+def init_client():
     app = create_app(TestConfig)
 
     client = app.test_client()
@@ -40,7 +40,7 @@ def auth_header(token):
 
 
 def user_in_community_json_model(username, json, community):
-    return list(map(lambda x: x['username'], json['users'])).count(username > 0) and \
+    return list(map(lambda x: x['username'], json['users'])).count(username) > 0 and \
         list(map(lambda x: x.username, community.users)).count(username) > 0
 
 
@@ -48,11 +48,11 @@ def test_create_community(init_client):
     client, tokens = init_client
 
     bad_community_create = client.post(
-        '/api/communnity/', json={}, headers=auth_header(tokens[0]))
+        '/api/community/', json={}, headers=auth_header(tokens[0]))
     assert bad_community_create.status_code == 400
 
     community_create = client.post(
-        '/api/group/', json={'name': 'test'}, headers=auth_header(tokens[0]))
+        '/api/community/', json={'name': 'test'}, headers=auth_header(tokens[0]))
     assert community_create.status_code == 201
 
     new_community = get_community_by_id(1)
@@ -63,14 +63,14 @@ def test_create_community(init_client):
 
 def test_edit_community_name(init_client):
     client, tokens = init_client
-    client.post('/api/group/', json={'name': 'test'},
+    client.post('/api/community/', json={'name': 'test'},
                 headers=auth_header(tokens[0]))
     bad_community_edit = client.put(
         '/api/community/1', json={}, headers=auth_header(tokens[0]))
     assert bad_community_edit.status_code == 400
 
     name_edit = client.put(
-        '/api/community/1', json={'name': 'works'}, headers=auth_header(tokens[0]))
+        '/api/community/1', json={'new_name': 'works'}, headers=auth_header(tokens[0]))
     assert name_edit.status_code == 200
     assert name_edit.json['name'] == get_community_by_id(
-        1).name == 'successful'
+        1).name == 'works'

@@ -71,7 +71,7 @@ def community_info(community_id):
     return cur_community
 
 
-@community.get('/<int:group_id>/statistics')
+@community.get('/<int:community_id>/statistics')
 @authenticate(token_auth)
 @arguments(HappinessGetTime)
 @response(StatisticSchema(many=True))
@@ -147,7 +147,7 @@ def delete_community(community_id):
     cur_community = get_community_by_id(community_id)
     check_community(cur_community)
 
-    # deletes entry from group table and user entries from association table
+    # deletes entry from community table and user entries from association table
     db.session.delete(cur_community)
     db.session.commit()
 
