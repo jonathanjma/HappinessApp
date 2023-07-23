@@ -1,11 +1,13 @@
+import redis
+import rq
 from apifairy import APIFairy
 from flask import Flask, redirect, url_for
+from flask_cors import CORS
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
-import api.email_methods as email_methods
 
+import api.email_methods as email_methods
 from config import Config
 
 db = SQLAlchemy()
@@ -14,9 +16,8 @@ ma = Marshmallow()
 apifairy = APIFairy()
 cors = CORS()
 
+
 # noinspection PyUnresolvedReferences
-
-
 def create_app(config=Config):
     app = Flask(__name__)
     app.config.from_object(config)
@@ -39,6 +40,8 @@ def create_app(config=Config):
     app.register_blueprint(group, url_prefix='/api/group')
     from api.happiness import happiness
     app.register_blueprint(happiness, url_prefix='/api/happiness')
+    from api.journal import journal
+    app.register_blueprint(journal, url_prefix='/api/journal')
     from api.community import community
     app.register_blueprint(community, url_prefix='/api/community')
     from api.statistic import statistic
@@ -46,9 +49,12 @@ def create_app(config=Config):
     from api.errors import errors
     app.register_blueprint(errors)
 
+    app.redis = redis.from_url(app.config['REDISCLOUD_URL'])
+    app.job_queue = rq.Queue('happiness-backend-jobs', connection=app.redis)
+
     @app.route('/')
     @app.route('/api')
-    def index():
+    def api_docs():
         return redirect(url_for('apifairy.docs'))
 
     return app

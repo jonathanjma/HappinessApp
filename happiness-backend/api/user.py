@@ -1,23 +1,25 @@
+import uuid
+from datetime import datetime
+
 import threading
 import uuid
 from datetime import datetime
 
 import boto3
 import filetype
-from apifairy import authenticate, response, body, other_responses
+from apifairy import authenticate, response, body, other_responses, arguments
 from flask import Blueprint
 from flask import current_app
-from werkzeug.security import generate_password_hash
 
-from api.dao import users_dao
 from api import email_methods
 from api.app import db
+from api.dao import users_dao
 from api.email_token_methods import confirm_email_token
-from api.models import User, Setting
 from api.errors import failure_response
-from api.schema import GroupSchema, UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
-    SimpleUserSchema, FileUploadSchema, UserInfoSchema, PasswordResetReqSchema, \
-    EmptySchema, PasswordResetSchema
+from api.models import User, Setting
+from api.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
+    UserInfoSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
+    FileUploadSchema, GroupSchema, PasswordKeyOptSchema
 from api.token import token_auth
 
 user = Blueprint('user', __name__)
@@ -122,19 +124,27 @@ def add_user_setting(req):
     """
     Add Settings
     Adds a setting to the current user's property bag. \n
-    If the setting already exists in the property bag, it modifies the value of the setting. \n
+    If the setting already exists in the property bag, it can enable or disable the setting. \n
     Returns: A JSON success response that contains the added setting, or a failure response.
     """
     current_user = token_auth.current_user()
-    key, value = req.get("key"), req.get("value")
-    old_setting = Setting.query.filter(Setting.user_id == current_user.id, Setting.key == key).first()
+    key, enabled, value = req.get("key"), req.get("enabled"), req.get("value")
+    old_setting = Setting.query.filter(
+        Setting.user_id == current_user.id, Setting.key == key).first()
     if old_setting is None:
-        new_setting = Setting(key=key, value=value, user_id=current_user.id)
+        if value is None:
+            new_setting = Setting(key=key, enabled=enabled,
+                                  user_id=current_user.id)
+        else:
+            new_setting = Setting(key=key, enabled=enabled,
+                                  value=value, user_id=current_user.id)
         db.session.add(new_setting)
         db.session.commit()
         return new_setting
 
-    old_setting.value = value
+    old_setting.enabled = enabled
+    if value is not None:
+        old_setting.value = value
     db.session.commit()
     return old_setting
 
@@ -146,33 +156,39 @@ def get_user_settings():
     """
     Get Settings
     Gets the settings of the current user by authorization token. \n
-    Returns: A JSON response of a list of key value pairs that contain setting keys and their values for the user.
+    Returns: A JSON response of a list of keys, booleans, and values that contain setting keys, whether they are enabled/disabled, and specific values for the user.
     """
     current_user = token_auth.current_user()
     settings = Setting.query.filter(Setting.user_id == current_user.id).all()
     return settings
 
 
-@user.post('/info/')
+@user.put('/info/')
 @authenticate(token_auth)
 @body(UserInfoSchema)
-@response(SimpleUserSchema)
-@other_responses({400: "Provided data already exists."})
-def change_user_info(req):
+@arguments(PasswordKeyOptSchema, location='headers')
+@response(SimpleUserSchema, headers=PasswordKeyOptSchema)
+@other_responses({400: "Provided data already exists or empty data field."})
+def change_user_info(req, headers):
     """
     Change User Info
-    Changes a user's info based on 3 different `data_type`(s): \n
-    "username" \n
-    "email" \n
-    "password" \n
-    Then the associated data must be put in the `data` field of the request.
+    Changes a user's info based on 3 different `data_type`(s):
+    - "username" (must be unique)
+    - "email" (must be unique)
+    - "password"
+    - "key_recovery_phrase"
+    Then the associated data must be put in the `data` field of the request. \n
+    If changing password or adding/changing key_recovery_phrase, the user's `password_key`
+    (provided by server during API token creation) must also be sent.
     """
     data_type = req.get("data_type")
     current_user = token_auth.current_user()
 
+    if len(req.get("data")) == 0:
+        return failure_response('Data is empty.', 400)
+
     if data_type == "username":
         # Change a user's username, which requires their username to be unique.
-
         new_username = req.get("data")
         similar_user = users_dao.get_user_by_username(new_username)
         if similar_user is not None:
@@ -183,7 +199,6 @@ def change_user_info(req):
         return current_user
     elif data_type == "email":
         # Changes a user's email, which requires their email to be unique.
-
         new_email = req.get("data")
         similar_user = users_dao.get_user_by_email(new_email)
         if similar_user is not None:
@@ -194,23 +209,43 @@ def change_user_info(req):
         return current_user
     elif data_type == "password":
         # Changes a user's password.
-
-        new_password = req.get("data")
-        current_user.password = generate_password_hash(new_password)
-        db.session.commit()
-        return current_user
+        try:
+            current_user.change_password(req.get("data"), headers.get("password_key"))
+            db.session.commit()
+            return current_user, {
+                'Password-Key': current_user.derive_pwd_key(req.get('data'))
+            }
+        except Exception as e:
+            print(e)
+            return failure_response('Invalid password key.', 400)
+    elif data_type == "key_recovery_phrase":
+        # Adds/Changes key recovery phrase to prevent loss of encrypted data on password reset.
+        try:
+            current_user.add_key_recovery(req.get("data"), headers.get("password_key"))
+            db.session.commit()
+            return current_user
+        except Exception as e:
+            print(e)
+            return failure_response('Invalid password key.', 400)
+    else:
+        return failure_response('Unknown data_type.', 400)
 
 
 @user.post('/reset_password/<token>')
 @body(PasswordResetSchema)
+@arguments(PasswordKeyOptSchema, location='headers')
 @response(EmptySchema, 204, 'Password reset successful')
-@other_responses({400: "Invalid password reset token"})
-def reset_password(req, token):
+@other_responses({400: "Invalid password reset token or recovery input"})
+def reset_password(req, headers, token):
     """
     Reset Password from Token
     This function was written under the assumption that when the user receives a verify password email,
     they would be redirected to a page where they are prompted to enter a new password. Then from this page they
-    make a post request to the backend with their new intended password.
+    make a post request to the backend with their new intended password. \n
+
+    If the user has previously added a key recovery phrase and provides their recovery phrase, their
+    encrypted journal entries will not be lost. Otherwise, this will cause them to become lost
+    (since they will never be able to be decrypted) and therefore will be deleted.
     """
     # Verify token is not expired
     email = confirm_email_token(token)
@@ -220,9 +255,14 @@ def reset_password(req, token):
     if not current_user:
         return failure_response("Password reset token verification failed, token may be expired", 401)
 
-    current_user.set_password(req.get("password"))
-    db.session.commit()
-    return '', 204
+    try:
+        current_user.reset_password(req.get("password"),
+                                    req.get("recovery_phrase"), headers.get('password_key'))
+        db.session.commit()
+        return '', 204
+    except Exception as e:
+        print(e)
+        return failure_response('Invalid recovery input.', 400)
 
 
 @user.post('/initiate_password_reset/')
@@ -294,7 +334,8 @@ def add_pfp(req):
     # Create unique file name and upload image to AWS:
 
     file_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4()}.{(filetype.guess(data)).extension}"
-    res = s3.put_object(Bucket=current_app.config["AWS_BUCKET_NAME"], Body=data, Key=file_name, ACL="public-read")
+    res = s3.put_object(
+        Bucket=current_app.config["AWS_BUCKET_NAME"], Body=data, Key=file_name, ACL="public-read")
 
     # Construct image URL and mutate user object to reflect new profile image URL:
 
