@@ -44,10 +44,6 @@ def run_schedule(app):
         scheduler_log("Queuing job for sending notification emails")
         q.enqueue("jobs.jobs.queue_send_notification_emails")
 
-    @sched.scheduled_job('interval', seconds=10)
-    def test_job():
-        scheduler_log("Queuing job test job")
-
     scheduler_log("Starting scheduler")
     sched.start()
 
