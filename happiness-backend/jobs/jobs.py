@@ -1,6 +1,5 @@
 import csv
 import os
-import uuid
 from datetime import datetime, timedelta
 
 import redis
@@ -121,11 +120,13 @@ def send_notification_email(user_id):
 
 def queue_send_notification_emails():
     """
-    Adds all notification email requests to the redis queue
-    A user will be a part of a notification email request if they satisfy the following conditions:
-    Has a setting with the key "notify"
-    The value of the setting is a 24-hour time with hours and minutes and matches the current time
-    They have less than 6 Happiness entries from yesterday to 1 week before today
+    Adds all notification email requests to the redis queue A user will be a part of a notification email request if
+    they satisfy the following conditions:
+    1: Has a setting with the key "notify".
+    2: The value of the setting is a 24-hour
+    UTC time which matches the current time in UTC, which is formatted with %H:%M.
+    Valid examples include 03:48, 21:43, 17:08, etc..
+    3: They have less than 6 Happiness entries from yesterday to 1 week before today
     """
     current_time = str(datetime.now().time().strftime("%H:%M"))
     # For some reason, the between query for SQLAlchemy seems to be exclusive for the end date
@@ -142,12 +143,8 @@ def queue_send_notification_emails():
     print(f"to_notify: {to_notify}")
     for setting in to_notify:
         # Check if user is missing happiness entries:
-        # print(f"start: {last_week}")
-        # print(f"end: {today}")
         entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=today, user_id=setting.user_id)
         entries = list(filter(lambda x: x is not None, entries))
-        # print(f"entries: {entries}")
-        # print("timestamps: \n\n")
         if len(entries) < 6:
             # They are missing an entry, and we are guaranteed to send an email which is expensive
             # Therefore we queue another job to redis
