@@ -1,6 +1,4 @@
-from threading import Thread
-
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from colorama import Fore, Style
 
 """
@@ -24,8 +22,8 @@ is_scheduler_running = False
 # When testing, multiple schedulers may be created.
 # This is because the production server has restarts.
 # Use the terminal option `--no-reload` to fix this.
-def run_schedule(app):
-    sched = BlockingScheduler()
+def init_app(app):
+    sched = BackgroundScheduler()
 
     q = app.job_queue
 
@@ -44,13 +42,13 @@ def run_schedule(app):
         scheduler_log("Queuing job for sending notification emails")
         q.enqueue("jobs.jobs.queue_send_notification_emails")
 
+    @sched.scheduled_job('interval', seconds=10)
+    def test():
+        scheduler_log("Queuing job for cleaning tokens")
+        q.enqueue("jobs.jobs.clean_tokens")
+
     scheduler_log("Starting scheduler")
     sched.start()
-
-
-def init_app(app):
-    thread = Thread(target=run_schedule, args=(app,))
-    thread.start()
 
 
 def scheduler_log(text: str):
