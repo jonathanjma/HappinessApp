@@ -103,7 +103,7 @@ def test_edit_delete_happiness(init_client):
     assert happiness2.comment == 'bad day'
     assert happiness2.timestamp == datetime.strptime('2023-01-12', "%Y-%m-%d")
 
-    happiness_set_response = client.put('/api/happiness/2', json={
+    happiness_set_response = client.put('/api/happiness/?id=2', json={
         'value': 6,
     }, headers={"Authorization": f"Bearer {bearer_token}"})
     assert happiness_set_response.status_code == 200
@@ -111,7 +111,7 @@ def test_edit_delete_happiness(init_client):
     assert happiness3.value == 6
     assert happiness3.comment == 'bad day'
 
-    happiness_edit_response = client.put('/api/happiness/1', json={
+    happiness_edit_response = client.put('/api/happiness/?id=1', json={
         'comment': 'test'
     }, headers={"Authorization": f"Bearer {bearer_token}"})
     assert happiness_edit_response.status_code == 200
@@ -119,7 +119,7 @@ def test_edit_delete_happiness(init_client):
     assert h.value == 4
     assert h.comment == 'test'
 
-    happiness_set_response2 = client.put('/api/happiness/1', json={
+    happiness_set_response2 = client.put('/api/happiness/?id=1', json={
         'value': 0.0,
         'comment': 'asdadsadsad',
     }, headers={"Authorization": f"Bearer {bearer_token}"})
@@ -129,7 +129,7 @@ def test_edit_delete_happiness(init_client):
     assert happiness4.comment == 'asdadsadsad'
 
     happiness_delete_response = client.delete(
-        '/api/happiness/2', headers={"Authorization": f"Bearer {bearer_token}"})
+        '/api/happiness/?id=2', headers={"Authorization": f"Bearer {bearer_token}"})
     assert happiness_delete_response.status_code == 204
 
 

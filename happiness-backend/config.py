@@ -46,7 +46,9 @@ class Config:
 
 class TestConfig:
     TESTING = True
-    REDISCLOUD_URL = os.environ.get("REDISCLOUD_URL")
     SQLALCHEMY_DATABASE_URI = 'sqlite:///'
 
-    ENCRYPT_SALT = os.environ.get("ENCRYPT_SALT")
+    SECURITY_PASSWORD_SALT = Config.SECURITY_PASSWORD_SALT
+    SECRET_KEY = Config.SECRET_KEY
+    ENCRYPT_SALT = Config.ENCRYPT_SALT
+    REDISCLOUD_URL = Config.REDISCLOUD_URL
