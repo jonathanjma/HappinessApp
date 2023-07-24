@@ -42,6 +42,11 @@ def init_app(app):
         scheduler_log("Queuing job for sending notification emails")
         q.enqueue("jobs.jobs.queue_send_notification_emails")
 
+    @sched.scheduled_job('interval', seconds=10)
+    def test():
+        scheduler_log("Queuing job for cleaning tokens")
+        q.enqueue("jobs.jobs.clean_tokens")
+
     scheduler_log("Starting scheduler")
     sched.start()
 

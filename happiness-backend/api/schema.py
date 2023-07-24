@@ -67,6 +67,7 @@ class PasswordResetReqSchema(ma.Schema):
 
 class PasswordResetSchema(ma.Schema):
     password = ma.Str(required=True)
+    recovery_phrase = ma.Str()
 
 
 class CreateUserSchema(ma.Schema):
@@ -116,7 +117,7 @@ class HappinessSchema(ma.SQLAlchemySchema):
     user_id = ma.auto_field(dump_only=True)
     value = ma.auto_field(required=True)
     comment = ma.auto_field()
-    timestamp = ma.Str(required=True)
+    timestamp = ma.Str()
 
     @post_dump
     def fix_time(self, data, **kwargs):
@@ -124,6 +125,9 @@ class HappinessSchema(ma.SQLAlchemySchema):
             data['timestamp'] = data['timestamp'].split()[0]
         return data
 
+class HappinessGetBySchema(ma.Schema):
+    id = ma.Int()
+    date = ma.Str()
 
 class HappinessEditSchema(ma.Schema):
     value = ma.Float()
@@ -182,15 +186,18 @@ class JournalSchema(ma.SQLAlchemySchema):
 
 DecryptedJournalSchema = JournalSchema(many=True)
 
+class JournalGetBySchema(ma.Schema):
+    id = ma.Int(required=True)
 
 class JournalGetSchema(ma.Schema):
     page = ma.Int()
     count = ma.Int()
 
+class JournalEditSchema(ma.Schema):
+    data = ma.Str(required=True)
 
 class PasswordKeySchema(ma.Schema):
     password_key = ma.Str(data_key='Password-Key', required=True)
-
 
 class PasswordKeyOptSchema(ma.Schema):
     password_key = ma.Str(data_key='Password-Key')
