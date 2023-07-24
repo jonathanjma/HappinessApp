@@ -21,7 +21,7 @@ statistic = Blueprint('statistic', __name__)
 @body(StatisticSchema)
 @response(StatisticSchema, 201)
 @other_responses({400: "Date already exists or is malformed."})
-def create_statistic(req, community_id):
+def create_statistic(req):
     """
     Create Statistic Entry \n
     Creates a new statistic with the given statistics
@@ -33,8 +33,8 @@ def create_statistic(req, community_id):
     Returns: Statistic value with the given information.
     """
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
-    mean, median, stdev, minval, maxval, firstquar, thirdquar, timestamp = req.get(
-        "mean"), req.get("median"), req.get("stdev"), req.get("minval"), req.get(
+    community_id, mean, median, stdev, minval, maxval, firstquar, thirdquar, timestamp = req.get(
+        "community_id"), req.get("mean"), req.get("median"), req.get("stdev"), req.get("minval"), req.get(
         "maxval"), req.get("firstquar"), req.get("thirdquar"), req.get("timestamp", today)
 
     # validate timestamp format

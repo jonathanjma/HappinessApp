@@ -126,6 +126,11 @@ class HappinessSchema(ma.SQLAlchemySchema):
         return data
 
 
+class HappinessGetBySchema(ma.Schema):
+    id = ma.Int()
+    date = ma.Str()
+
+
 class HappinessEditSchema(ma.Schema):
     value = ma.Float()
     comment = ma.Str()
@@ -232,7 +237,7 @@ class StatisticSchema(ma.SQLAlchemySchema):
         ordered = True
 
     id = ma.auto_field(dump_only=True)
-    community_id = ma.auto_field(dump_only=True)
+    community_id = ma.auto_field(required=True)
     mean = ma.auto_field(required=True)
     median = ma.auto_field(required=True)
     stdev = ma.auto_field(required=True)

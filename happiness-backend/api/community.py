@@ -11,7 +11,7 @@ from api.dao.statistic_dao import get_statistic_by_timestamp
 from api.models import Community
 from api.token import token_auth
 from api.schema import CommunitySchema, CreateCommunitySchema, EditCommunitySchema, \
-    StatisticSchema, HappinessGetTime
+    StatisticSchema, HappinessGetTimeSchema
 
 
 community = Blueprint('community', __name__)
@@ -25,7 +25,7 @@ def check_community(cur_community):
         return failure_response('Community Not Found', 404)
 
     # TODO: should users be able to see the statistics of communities they're not a part of?
-    elif token_auth.current_user not in cur_community.users:
+    elif token_auth.current_user() not in cur_community.users:
         return failure_response('Not Allowed', 403)
 
 
@@ -59,8 +59,8 @@ def community_info(community_id):
     """
     Get Community Info
     Get a happiness community's name and data about its users.
-    User must be a member of the community they are viewing.
-    Requires: valid community ID
+    User must be a member of the community they are viewing. \n
+    Requires: valid community ID \n
     Returns: JSON representation for the requested community
     """
 
@@ -69,31 +69,6 @@ def community_info(community_id):
     check_community(cur_community)
 
     return cur_community
-
-
-@community.get('/<int:community_id>/statistics')
-@authenticate(token_auth)
-@arguments(HappinessGetTime)
-@response(StatisticSchema(many=True))
-@other_responses({404: 'Invalid Community', 403: 'Not Allowed'})
-def community_statistics(req, community_id):
-    """
-    Get Community Statistics
-    Gets the statistics of a community between a specified start and end date (inclusive).
-    User must be a member of the community they are viewing. \n
-    Requires: valid community ID, the time represented by start date comes before the end date (which defaults to today) \n
-    Returns: List of all statistics entries by day in the community between start and end date in sequential order
-    """
-
-    # Return 404 if invalid community or 403 if user is not in community
-    cur_community = get_community_by_id(community_id)
-    check_community(cur_community)
-
-    today = datetime.strftime(datetime.today(), "%Y-%m-%d")
-    start_date = datetime.strptime(req.get("start"), "%Y-%m-%d")
-    end_date = datetime.strptime(req.get("end", today), "%Y-%m-%d")
-
-    return get_statistic_by_timestamp(community_id, start_date, end_date)
 
 
 @community.put('/<int:community_id>')
@@ -130,6 +105,10 @@ def edit_community(req, community_id):
         # delete community if all users removed
         if len(cur_community.users) == 0:
             db.session.delete(cur_community)
+
+    db.session.commit()
+
+    return cur_community
 
 
 @community.delete('/<int:community_id>')
