@@ -107,6 +107,17 @@ def test_edit_community_members(init_client):
         '/api/community/4', json={'new_name': 'bye'}, headers=auth_header(tokens[1]))
     assert fake_name_edit.status_code == 404
 
+    # test cascade delete
+    client.put('/api/community/1',
+               json={'remove_users': ['user3']}, headers=auth_header(tokens[0]))
+    assert len(get_community_by_id(1).users) == 1
+    cascade_delete = client.put('/api/community/1',
+                                json={'remove_users': ['user1']}, headers=auth_header(tokens[0]))
+    assert cascade_delete.status_code == 200
+    view_deleted_group = client.get(
+        '/api/community/1', headers=auth_header(tokens[0]))
+    assert view_deleted_group.status_code == 404
+
 
 def test_community_info(init_client):
     client, tokens = init_client
@@ -152,4 +163,3 @@ def test_community_delete(init_client):
     removed_view = client.get(
         '/api/community/1', headers=auth_header(tokens[0]))
     assert removed_view.status_code == 404
-

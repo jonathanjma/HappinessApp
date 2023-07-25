@@ -58,7 +58,7 @@ def create_statistic(req):
 @statistic.put('/<int:id>')
 @body(StatisticEditSchema)
 @response(StatisticSchema)
-@other_responses({403: "Not Allowed.", 404: "Statistic Not Found."})
+@other_responses({404: "Statistic Not Found."})
 def edit_statistic(req, id):
     """
     Edit Statistic by ID
@@ -72,6 +72,8 @@ def edit_statistic(req, id):
         mean, median, stdev, minval, maxval, firstquar, thirdquar = req.get(
             "mean"), req.get("median"), req.get("stdev"), req.get("minval"), req.get(
             "maxval"), req.get("firstquar"), req.get("thirdquar")
+
+        # perform editing
         if mean:
             query_data.mean = mean
         if median:
@@ -91,11 +93,26 @@ def edit_statistic(req, id):
     return failure_response("Statistic Not Found.", 404)
 
 
+@statistic.delete('/<int:id>')
+@other_responses({404: "Happiness Not Found"})
+def delete_statistic(id):
+    """
+    Delete Statistic
+    Deletes the statistic corresponding to a specific ID. \n
+    Requires: ID must be valid
+    """
+    query_data = get_statistic_by_id(id)
+    if query_data:
+        db.session.delete(query_data)
+        return "", 204
+    return failure_response("Statistic Not Found", 404)
+
+
 @statistic.get('/')
 @authenticate(token_auth)
 @arguments(StatisticGetTimeSchema)
 @response(StatisticSchema(many=True))
-@other_responses({403: "Not Allowed.", 400: "Malformed Date."})
+@other_responses({403: "Not Allowed.", 400: "Malformed Date.", 404: "Community Not Found."})
 def get_statistic_time(req):
     """
     Get Statistic by Time Range \n
@@ -106,22 +123,24 @@ def get_statistic_time(req):
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
     start, end, community_id = req.get("start"), req.get(
         "end", today), req.get("community_id")
+
+    # validate timestamp
     try:
         stfor = datetime.strptime(start, "%Y-%m-%d")
         enfor = datetime.strptime(end, "%Y-%m-%d")
     except ValueError:
         return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)
 
-    if check_community(community_id):
-        return get_statistic_by_timestamp(community_id, stfor, enfor)
-    return failure_response("Not Allowed.", 403)
+    check_community(get_community_by_id(community_id))
+
+    return get_statistic_by_timestamp(community_id, stfor, enfor)
 
 
 @statistic.get('/count')
 @authenticate(token_auth)
 @arguments(StatisticGetCountSchema)
 @response(StatisticSchema(many=True))
-@other_responses({403: "Not Allowed."})
+@other_responses({403: "Not Allowed.", 404: "Community Not Found."})
 def get_paginated_statistic(req):
     """
     Get Statistic by Count
@@ -133,6 +152,5 @@ def get_paginated_statistic(req):
     """
     page, count, community_id = req.get("page", 1), req.get(
         "count", 10), req.get("community_id")
-    if check_community(community_id):
-        return get_statistic_by_count(community_id, page, count)
-    return failure_response("Not Allowed.", 403)
+    check_community(get_community_by_id(community_id))
+    return get_statistic_by_count(community_id, page, count)
