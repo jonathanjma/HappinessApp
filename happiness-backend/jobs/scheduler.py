@@ -42,6 +42,11 @@ def init_app(app):
         scheduler_log("Queuing job for sending notification emails")
         q.enqueue("jobs.jobs.queue_send_notification_emails")
 
+    @sched.scheduled_job('cron', hour="12")
+    def scheduled_calculate_global_statistics():
+        scheduler_log("Queing job for calculating global statistics")
+        q.enqueue("jobs.jobs.calculate_global_statistic")
+
     scheduler_log("Starting scheduler")
     sched.start()
 

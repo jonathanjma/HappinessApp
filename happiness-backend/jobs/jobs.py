@@ -5,13 +5,15 @@ from datetime import datetime, timedelta
 
 import redis
 from dotenv import load_dotenv
-from flask import render_template
+from flask import render_template, db
 from rq import Queue
 
 from api import create_app
 from api.dao import happiness_dao, users_dao
 from api.email_methods import send_email_helper
-from api.models import Token, Setting
+from api.models import Token, Setting, Community, Statistic
+
+import statistics
 
 """
 jobs.py contains all scheduled jobs that will be queued by scheduler.py
@@ -78,9 +80,12 @@ def export_happiness(user_id):
             subject="Your Happiness Export :)",
             sender="noreply@happinessapp.org",
             recipients=[current_user.email],
-            text_body=render_template('happiness_export.txt', user=current_user),
-            html_body=render_template('happiness_export.html', user=current_user),
-            attachments=[(f"{current_user.username} happiness export.csv", "text/csv", file.read())]
+            text_body=render_template(
+                'happiness_export.txt', user=current_user),
+            html_body=render_template(
+                'happiness_export.html', user=current_user),
+            attachments=[
+                (f"{current_user.username} happiness export.csv", "text/csv", file.read())]
         )
     # Leftover files are deleted by a scheduled job, so no need to be worried about that here.
 
@@ -96,7 +101,8 @@ def send_notification_email(user_id):
     ]
     yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     last_week = (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d")
-    entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=yesterday, user_id=user_id)
+    entries = happiness_dao.get_happiness_by_timestamp(
+        start=last_week, end=yesterday, user_id=user_id)
     entries = list(filter(lambda x: x is not None, entries))
     entries = [x.timestamp.strftime("%Y-%m-%d") for x in entries]
 
@@ -114,8 +120,10 @@ def send_notification_email(user_id):
         subject="Enter Your Happiness :)",
         sender="noreply@happinessapp.org",
         recipients=[user_to_send.email],
-        text_body=render_template('notify_happiness.txt', user=user_to_send, dates=missing_dates_str),
-        html_body=render_template('notify_happiness.html', user=user_to_send, dates=missing_dates_str)
+        text_body=render_template(
+            'notify_happiness.txt', user=user_to_send, dates=missing_dates_str),
+        html_body=render_template(
+            'notify_happiness.html', user=user_to_send, dates=missing_dates_str)
     )
 
 
@@ -144,7 +152,8 @@ def queue_send_notification_emails():
         # Check if user is missing happiness entries:
         # print(f"start: {last_week}")
         # print(f"end: {today}")
-        entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=today, user_id=setting.user_id)
+        entries = happiness_dao.get_happiness_by_timestamp(
+            start=last_week, end=today, user_id=setting.user_id)
         entries = list(filter(lambda x: x is not None, entries))
         # print(f"entries: {entries}")
         # print("timestamps: \n\n")
@@ -152,3 +161,37 @@ def queue_send_notification_emails():
             # They are missing an entry, and we are guaranteed to send an email which is expensive
             # Therefore we queue another job to redis
             q.enqueue("jobs.jobs.send_notification_email", setting.user_id)
+
+
+def calculate_global_statistic(community_id):
+    """
+    Calculates global statistics for all communities, and then adds each entry to the backend.
+    """
+    to_calculate = Community.query.all()
+    print(f"to calculate: {to_calculate}")
+
+    for community in to_calculate:
+        date = (datetime.now() - timedelta(days=1))
+        user_ids = community.users
+        happiness_entries = happiness_dao.get_happiness_by_group_timestamp(
+            user_ids, date, date)
+
+        if len(happiness_entries) > 0:
+            happiness_values = list(
+                map(lambda x: x['value'], happiness_entries))
+
+            mean = statistics.mean(happiness_values)
+            median = statistics.median(happiness_values)
+            stdev = statistics.stdev(happiness_values)
+            minval = min(happiness_values)
+            maxval = max(happiness_values)
+
+            quartiles = statistics.quantiles()
+            firstquar = quartiles[0]
+            thirdquar = quartiles[2]
+
+            statistic = Statistic(community_id=community_id, mean=mean, median=median,
+                                  stdev=stdev, minval=minval, maxval=maxval, firstquar=firstquar,
+                                  thirdquar=thirdquar, timestamp=date)
+            db.session.add(statistic)
+            db.session.commit()
