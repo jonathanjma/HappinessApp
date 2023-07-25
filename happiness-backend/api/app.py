@@ -9,6 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 import api.email_methods as email_methods
 from config import Config
+from jobs import scheduler
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -21,7 +22,8 @@ cors = CORS()
 def create_app(config=Config):
     app = Flask(__name__)
     app.config.from_object(config)
-
+    app.redis = redis.from_url(app.config['REDISCLOUD_URL'])
+    app.job_queue = rq.Queue('happiness-backend-jobs', connection=app.redis)
     # Do not remove!
     from api import models
 
@@ -31,6 +33,7 @@ def create_app(config=Config):
     apifairy.init_app(app)
     email_methods.init_app(app)
     cors.init_app(app)
+    scheduler.init_app(app)
 
     from api.user import user
     app.register_blueprint(user, url_prefix='/api/user')
@@ -48,9 +51,6 @@ def create_app(config=Config):
     app.register_blueprint(statistic, url_prefix='/api/statistic')
     from api.errors import errors
     app.register_blueprint(errors)
-
-    app.redis = redis.from_url(app.config['REDISCLOUD_URL'])
-    app.job_queue = rq.Queue('happiness-backend-jobs', connection=app.redis)
 
     @app.route('/')
     @app.route('/api')
