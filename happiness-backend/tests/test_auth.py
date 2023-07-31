@@ -211,12 +211,12 @@ def test_add_user_setting(client):
                                          json={
                                              "key": k1,
                                              "enabled": v1
-    })
+                                         })
     add_mean_setting_res = client.post('/api/user/settings/', headers={"Authorization": f"Bearer {bearer_token}"},
                                        json={
                                            "key": k2,
                                            "enabled": v2
-    })
+                                       })
     assert add_median_setting_res.status_code == 201
     assert add_mean_setting_res.status_code == 201
 
@@ -281,12 +281,12 @@ def test_add_user_setting(client):
                                          json={
                                              "key": k1,
                                              "enabled": v1
-    })
+                                         })
     add_mean_setting_res = client.post('/api/user/settings/', headers={"Authorization": f"Bearer {bearer_token}"},
                                        json={
                                            "key": k2,
                                            "enabled": v2
-    })
+                                       })
     assert add_median_setting_res.status_code == 201
     assert add_mean_setting_res.status_code == 201
     get_settings_res = client.get(

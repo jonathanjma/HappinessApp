@@ -1,9 +1,9 @@
 import csv
 import os
-import uuid
 from datetime import datetime, timedelta
 
 import redis
+from dateutil import parser
 from dotenv import load_dotenv
 from flask import render_template
 from rq import Queue
@@ -126,29 +126,60 @@ def queue_send_notification_emails():
     Has a setting with the key "notify"
     The value of the setting is a 24-hour time with hours and minutes and matches the current time
     They have less than 6 Happiness entries from yesterday to 1 week before today
+    TODO test new implementation!
     """
+    # All happiness app entries are in UTC, so it is fine that the current time is in UTC.
     current_time = str(datetime.now().time().strftime("%H:%M"))
-    # For some reason, the between query for SQLAlchemy seems to be exclusive for the end date
-    # This is very confusing since according to the docs between should be inclusive
-    # It translates to BETWEEN in SQL:
-    # https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.between
-    # BETWEEN is inclusive: https://www.w3schools.com/sql/sql_between.asp
-    # But it works so for now I will keep it.
-
-    today = (datetime.now())
-    last_week = (datetime.now() - timedelta(days=6))
-    to_notify = Setting.query.filter(Setting.value == str(current_time), Setting.key == "notify",
+    """
+    Suppose it is 11:30PM EST, a user has a notify setting for 3:30AM UTC
+    This job runs, and the user is checked for if they are missing happiness app entries 1 day in the past.
+    
+    """
+    to_notify = Setting.query.filter(Setting.key == "notify",
                                      Setting.enabled.is_(True)).all()
-    print(f"to_notify: {to_notify}")
+
+    # Helper function for later
+    def get_current_time_from_timezone_by_iso_time(time: str):
+        """
+        Gets a date object containing the current time in the timezone of the time given in the parameter
+        :param time: A timezone string compliant with ISO 8601
+        :return: a date time object containing the current time in said timezone
+        """
+        # Parse the input string to a datetime object
+        time_in_given_tz = parser.isoparse(time)
+
+        # Get timezone of the parsed datetime
+        timezone = time_in_given_tz.tzinfo
+        print(f"timezone = {timezone}")
+
+        # Get current time in timezone of the parsed datetime
+        now_in_given_tz = datetime.now(tz=timezone)
+
+        return now_in_given_tz
+
+    def get_utc_time(time):
+        """
+        Gets the time of an ISO 8601 compliant string in UTC time, in the %H%M format.
+        """
+        # TODO
+        return ""
+
     for setting in to_notify:
+        notify_time = setting.value
         # Check if user is missing happiness entries:
-        # print(f"start: {last_week}")
-        # print(f"end: {today}")
-        entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=today, user_id=setting.user_id)
-        entries = list(filter(lambda x: x is not None, entries))
-        # print(f"entries: {entries}")
-        # print("timestamps: \n\n")
-        if len(entries) < 6:
-            # They are missing an entry, and we are guaranteed to send an email which is expensive
-            # Therefore we queue another job to redis
-            q.enqueue("jobs.jobs.send_notification_email", setting.user_id)
+        if get_utc_time(notify_time) == current_time:
+            yesterday = (get_current_time_from_timezone_by_iso_time(notify_time) - timedelta(days=1)).replace(hour=23,
+                                                                                                              minute=59,
+                                                                                                              second=59)
+            last_week = (get_current_time_from_timezone_by_iso_time(notify_time) - timedelta(days=6)).replace(hour=0,
+                                                                                                              minute=0,
+                                                                                                              second=0)
+            yesterday_utc = get_utc_time(yesterday)
+            last_week_utc = get_utc_time(last_week)
+            entries = happiness_dao.get_happiness_by_timestamp(start=last_week_utc, end=yesterday_utc,
+                                                               user_id=setting.user_id)
+            entries = list(filter(lambda x: x is not None, entries))
+            if len(entries) < 6:
+                # They are missing an entry, and we are guaranteed to send an email which is expensive
+                # Therefore we queue another job to redis
+                q.enqueue("jobs.jobs.send_notification_email", setting.user_id)
