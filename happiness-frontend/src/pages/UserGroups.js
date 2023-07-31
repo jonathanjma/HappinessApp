@@ -31,7 +31,7 @@ export default function UserGroups() {
             </p>
           ) : (
             <>
-              {data.groups.length === 0 ? (
+              {data.length === 0 ? (
                 <p className="text-xl font-medium text-raisin-600 m-3">
                   You are not a member of any groups.
                 </p>
@@ -39,7 +39,7 @@ export default function UserGroups() {
                 <div
                   className={"grid md:grid-cols-" + Math.min(data.length, 3)}
                 >
-                  {data.groups.map((group) => (
+                  {data.map((group) => (
                     <GroupCard key={group.id} data={group} />
                   ))}
                 </div>

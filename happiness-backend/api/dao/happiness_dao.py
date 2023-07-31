@@ -7,7 +7,7 @@ def get_happiness_by_id(id):
     :param id: ID of the Happiness object being searched for.
     :return: A Happiness object with the same ID as the one provided.
     """
-    return Happiness.query.filter(Happiness.id == id).first()
+    return Happiness.query.filter_by(id=id).first()
 
 
 def get_happiness_by_date(user_id, date):
@@ -17,14 +17,14 @@ def get_happiness_by_date(user_id, date):
     :param date: Date object representing the day the happiness value was recorded.
     :return: A Happiness object of the given User ID corresponding to the given date.
     """
-    return Happiness.query.filter(Happiness.user_id == user_id, Happiness.timestamp == date).first()
+    return Happiness.query.filter_by(user_id=user_id, timestamp=date).first()
 
 
 def get_user_happiness(user_id):
     """
     Returns a list of all Happiness objects corresponding to the given User ID.
     """
-    return Happiness.query.filter(Happiness.user_id == user_id).all()
+    return Happiness.query.filter_by(user_id=user_id).all()
 
 
 def get_happiness_by_timestamp(user_id, start, end):
@@ -41,7 +41,7 @@ def get_happiness_by_count(user_id, page, n):
     Returns a list of n Happiness objects given a User ID (sorted from newest to oldest).
     Page variable can be changed to show the next n objects for pagination.
     """
-    return Happiness.query.filter(Happiness.user_id == user_id).order_by(Happiness.timestamp.desc()) \
+    return Happiness.query.filter_by(user_id=user_id).order_by(Happiness.timestamp.desc()) \
         .paginate(page=page, per_page=n, error_out=False)
 
 
@@ -66,6 +66,5 @@ def get_happiness_by_group_count(user_ids, page, n):
 
 
 def get_paginated_happiness_by_query(user_id, query, page, n):
-    print(f"query = {query}")
     return Happiness.query.filter_by(user_id=user_id) \
         .filter(Happiness.comment.like(f"%{query}%")).paginate(page=page, per_page=n, error_out=False)

@@ -1,9 +1,5 @@
-import os
-
-import redis
-from apscheduler.schedulers.blocking import BlockingScheduler
-from dotenv import load_dotenv
-from rq import Queue
+from apscheduler.schedulers.background import BackgroundScheduler
+from colorama import Fore, Style
 
 """
 scheduler.py is the publisher responsible for publishing jobs to the redis db. 
@@ -18,28 +14,37 @@ Interval jobs:
 https://apscheduler.readthedocs.io/en/3.x/modules/triggers/interval.html
 """
 
-sched = BlockingScheduler()
-
-load_dotenv()
-redis_url = os.getenv('REDISCLOUD_URL')
-
-conn = redis.from_url(redis_url)
-q = Queue('happiness-backend-jobs', connection=conn)
+scheduler_color = Fore.CYAN
+is_scheduler_running = False
 
 
-@sched.scheduled_job('interval', days=1)
-def scheduled_clear_exported_happiness():
-    q.enqueue("jobs.jobs.clear_exported_happiness")
+# Run scheduler on separate thread in main server to avoid Heroku fees
+# When testing, multiple schedulers may be created.
+# This is because the production server has restarts.
+# Use the terminal option `--no-reload` to fix this.
+def init_app(app):
+    sched = BackgroundScheduler()
+
+    q = app.job_queue
+
+    @sched.scheduled_job('interval', days=1)
+    def scheduled_clear_exported_happiness():
+        scheduler_log("Queuing job for exporting happiness")
+        q.enqueue("jobs.jobs.clear_exported_happiness")
+
+    @sched.scheduled_job('interval', days=1)
+    def scheduled_clean_tokens():
+        scheduler_log("Queuing job for cleaning tokens")
+        q.enqueue("jobs.jobs.clean_tokens")
+
+    @sched.scheduled_job('cron', minute="0,30")
+    def scheduled_queue_send_notification_emails():
+        scheduler_log("Queuing job for sending notification emails")
+        q.enqueue("jobs.jobs.queue_send_notification_emails")
+
+    scheduler_log("Starting scheduler")
+    sched.start()
 
 
-@sched.scheduled_job('interval', days=1)
-def scheduled_clean_tokens():
-    q.enqueue("jobs.jobs.clean_tokens")
-
-
-@sched.scheduled_job('cron', minute="0,30")
-def scheduled_queue_send_notification_emails():
-    q.enqueue("jobs.jobs.queue_send_notification_emails")
-
-
-sched.start()
+def scheduler_log(text: str):
+    print(scheduler_color + text + Style.RESET_ALL)

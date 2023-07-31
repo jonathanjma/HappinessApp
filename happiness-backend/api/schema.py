@@ -2,7 +2,9 @@ from apifairy.fields import FileField
 from marshmallow import post_dump
 
 from api.app import ma
-from api.models import User, Group, Happiness, Setting
+from api.auth import token_auth
+from api.errors import failure_response
+from api.models import User, Group, Happiness, Setting, Comment, Journal
 
 
 class EmptySchema(ma.Schema):
@@ -65,6 +67,7 @@ class PasswordResetReqSchema(ma.Schema):
 
 class PasswordResetSchema(ma.Schema):
     password = ma.Str(required=True)
+    recovery_phrase = ma.Str()
 
 
 class CreateUserSchema(ma.Schema):
@@ -81,12 +84,6 @@ class GroupSchema(ma.SQLAlchemySchema):
     id = ma.auto_field(required=True)
     name = ma.auto_field(required=True)
     users = ma.Nested(SimpleUserSchema, many=True, required=True)
-    invited_users = ma.Nested(SimpleUserSchema, many=True, required=True)
-
-
-class UserGroupsSchema(ma.Schema):
-    groups = ma.Nested(GroupSchema, many=True, required=True)
-    group_invites = ma.Nested(GroupSchema, many=True, required=True)
 
 
 class CreateGroupSchema(ma.Schema):
@@ -94,9 +91,21 @@ class CreateGroupSchema(ma.Schema):
 
 
 class EditGroupSchema(ma.Schema):
-    name = ma.Str()
-    invite_users = ma.List(ma.Str(), many=True)
+    new_name = ma.Str()
+    add_users = ma.List(ma.Str(), many=True)
     remove_users = ma.List(ma.Str(), many=True)
+
+
+class CommentSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Comment
+        ordered = True
+
+    id = ma.auto_field(dump_only=True)
+    happiness_id = ma.auto_field(dump_only=True)
+    author = ma.Nested(SimpleUserSchema, dump_only=True)
+    text = ma.auto_field(required=True)
+    timestamp = ma.Str(dump_only=True)
 
 
 class HappinessSchema(ma.SQLAlchemySchema):
@@ -108,7 +117,7 @@ class HappinessSchema(ma.SQLAlchemySchema):
     user_id = ma.auto_field(dump_only=True)
     value = ma.auto_field(required=True)
     comment = ma.auto_field()
-    timestamp = ma.Str(required=True)
+    timestamp = ma.Str()
 
     @post_dump
     def fix_time(self, data, **kwargs):
@@ -116,19 +125,22 @@ class HappinessSchema(ma.SQLAlchemySchema):
             data['timestamp'] = data['timestamp'].split()[0]
         return data
 
+class HappinessGetBySchema(ma.Schema):
+    id = ma.Int()
+    date = ma.Str()
 
 class HappinessEditSchema(ma.Schema):
     value = ma.Float()
     comment = ma.Str()
 
 
-class HappinessGetTime(ma.Schema):
+class HappinessGetTimeSchema(ma.Schema):
     start = ma.Str(required=True)
     end = ma.Str()
     id = ma.Int()
 
 
-class HappinessGetCount(ma.Schema):
+class HappinessGetCountSchema(ma.Schema):
     page = ma.Int()
     count = ma.Int()
     id = ma.Int()
@@ -146,5 +158,46 @@ class FileUploadSchema(ma.Schema):
 
 
 class UserInfoSchema(ma.Schema):
-    data = ma.Str()
-    data_type = ma.Str()
+    data = ma.Str(required=True)
+    data_type = ma.Str(required=True)
+
+
+class JournalSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Journal
+        ordered = True
+
+    id = ma.auto_field(dump_only=True)
+    user_id = ma.auto_field(dump_only=True)
+    data = ma.auto_field(required=True)
+    timestamp = ma.Str(dump_only=True)
+
+    @post_dump
+    def decrypt_entry(self, data, **kwargs):
+        try:
+            if self.context.get('password_key'):
+                decrypted = token_auth.current_user().decrypt_data(self.context['password_key'], data['data'])
+                data['data'] = decrypted.decode('utf-8')
+        except Exception as e:
+            print(e)
+            return failure_response('Invalid password key.', 400)
+        return data
+
+
+DecryptedJournalSchema = JournalSchema(many=True)
+
+class JournalGetBySchema(ma.Schema):
+    id = ma.Int(required=True)
+
+class JournalGetSchema(ma.Schema):
+    page = ma.Int()
+    count = ma.Int()
+
+class JournalEditSchema(ma.Schema):
+    data = ma.Str(required=True)
+
+class PasswordKeySchema(ma.Schema):
+    password_key = ma.Str(data_key='Password-Key', required=True)
+
+class PasswordKeyOptSchema(ma.Schema):
+    password_key = ma.Str(data_key='Password-Key')
