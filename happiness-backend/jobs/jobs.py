@@ -94,11 +94,9 @@ def send_notification_email(user_id):
     """
     user_to_send = users_dao.get_user_by_id(user_id)
     user_setting = Setting.query.filter_by(key="notify", user_id=user_id).first()
-    print(user_setting)
-    print(f'their timezone = {user_setting.value.split(" ")[1]}')
     timezone = pytz.timezone(user_setting.value.split(" ")[1])
     now = datetime.now(tz=timezone)
-    print(f"Now in their timezone = {now}")
+
     dates_should_be_present = [
         (now - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(1, 7)
     ]
@@ -150,15 +148,9 @@ def queue_send_notification_emails():
     last_week = (datetime.now() - timedelta(days=6))
     to_notify = Setting.query.filter(Setting.value.startswith(str(current_time)), Setting.key == "notify",
                                      Setting.enabled.is_(True)).all()
-    print(f"to_notify: {to_notify}")
     for setting in to_notify:
-        # Check if user is missing happiness entries:
-        # print(f"start: {last_week}")
-        # print(f"end: {today}")
         entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=today, user_id=setting.user_id)
         entries = list(filter(lambda x: x is not None, entries))
-        # print(f"entries: {entries}")
-        # print("timestamps: \n\n")
         if len(entries) < 6:
             # They are missing an entry, and we are guaranteed to send an email which is expensive
             # Therefore we queue another job to redis
