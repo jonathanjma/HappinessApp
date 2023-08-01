@@ -137,19 +137,20 @@ def queue_send_notification_emails():
     They have less than 6 Happiness entries from yesterday to 1 week before today
     """
     current_time = str(datetime.now().time().strftime("%H:%M"))
-    # For some reason, the between query for SQLAlchemy seems to be exclusive for the end date
-    # This is very confusing since according to the docs between should be inclusive
-    # It translates to BETWEEN in SQL:
-    # https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.between
-    # BETWEEN is inclusive: https://www.w3schools.com/sql/sql_between.asp
-    # But it works so for now I will keep it.
 
-    today = (datetime.now())
-    last_week = (datetime.now() - timedelta(days=6))
     to_notify = Setting.query.filter(Setting.value.startswith(str(current_time)), Setting.key == "notify",
                                      Setting.enabled.is_(True)).all()
     for setting in to_notify:
-        entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=today, user_id=setting.user_id)
+        timezone = pytz.timezone(setting.value.split(" ")[1])
+        now = datetime.now(tz=timezone)
+        last_week = (now - timedelta(days=6))
+        # For some reason, the between query for SQLAlchemy seems to be exclusive for the end date
+        # This is very confusing since according to the docs between should be inclusive
+        # It translates to BETWEEN in SQL:
+        # https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.between
+        # BETWEEN is inclusive: https://www.w3schools.com/sql/sql_between.asp
+        # But it works so for now I will keep it
+        entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=now, user_id=setting.user_id)
         entries = list(filter(lambda x: x is not None, entries))
         if len(entries) < 6:
             # They are missing an entry, and we are guaranteed to send an email which is expensive
