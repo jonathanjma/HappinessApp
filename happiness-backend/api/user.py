@@ -1,6 +1,3 @@
-import uuid
-from datetime import datetime
-
 import threading
 import uuid
 from datetime import datetime

@@ -6,13 +6,14 @@ from flask import Blueprint
 from api.app import db
 from api.dao.groups_dao import get_group_by_id
 from api.dao.happiness_dao import get_happiness_by_group_timestamp
-from api.models import Group
 from api.errors import failure_response
+from api.models import Group
 from api.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
     HappinessGetTimeSchema
 from api.token import token_auth
 
 group = Blueprint('group', __name__)
+
 
 # Makes sure requested group exists and user has permissions to view/edit it,
 # otherwise throws appropriate errors
@@ -91,6 +92,7 @@ def group_happiness(req, group_id):
 
     return get_happiness_by_group_timestamp(list(map(lambda x: x.id, cur_group.users)), start_date, end_data)
 
+
 @group.put('/<int:group_id>')
 @authenticate(token_auth)
 @body(EditGroupSchema)
@@ -129,6 +131,7 @@ def edit_group(req, group_id):
     db.session.commit()
 
     return cur_group
+
 
 @group.delete('/<int:group_id>')
 @authenticate(token_auth)
