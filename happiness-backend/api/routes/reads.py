@@ -70,7 +70,7 @@ def get_read_happiness(req):
     """
     page, per_page = req.get("page", 1), req.get("count", 10)
     user = token_auth.current_user()
-    return user.posts_read.paginate(page=page, per_page=per_page, error_out=False)
+    return user.posts_read.order_by(Happiness.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
 
 
 @reads.get("/unread/")
@@ -110,7 +110,7 @@ def get_unread_happiness(req):
             # We want Happiness objects that where the user's id doesn't exist in its readers
             # https://docs.sqlalchemy.org/en/20/orm/queryguide/select.html#exists-forms-has-any
             ~Happiness.readers.any(User.id == current_user.id)
-        )),
+        ).order_by(Happiness.timestamp.desc())),
         per_page=per_page,
         page=page
     )
