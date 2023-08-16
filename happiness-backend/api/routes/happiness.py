@@ -6,12 +6,12 @@ from flask import Blueprint, request, current_app
 from api.app import db
 from api.dao import happiness_dao, users_dao
 from api.dao.users_dao import get_user_by_id
-from api.errors import failure_response
-from api.models import Happiness, Comment
-from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, \
+from api.models.models import Happiness, Comment
+from api.models.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, \
     HappinessGetCountSchema, \
     HappinessGetQuery, CommentSchema, HappinessGetBySchema
-from api.token import token_auth
+from api.routes.token import token_auth
+from api.util.errors import failure_response
 
 happiness = Blueprint('happiness', __name__)
 
@@ -75,7 +75,7 @@ def edit_happiness(args, req):
     if id is not None:
         query_data = happiness_dao.get_happiness_by_id(id)
     elif date is not None:
-        try: # validate timestamp format
+        try:  # validate timestamp format
             date = datetime.strptime(date, "%Y-%m-%d")
         except ValueError:
             return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)
@@ -111,7 +111,7 @@ def delete_happiness(args):
     if id is not None:
         query_data = happiness_dao.get_happiness_by_id(id)
     elif date is not None:
-        try: # validate timestamp format
+        try:  # validate timestamp format
             date = datetime.strptime(date, "%Y-%m-%d")
         except ValueError:
             return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)

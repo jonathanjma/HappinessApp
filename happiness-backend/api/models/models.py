@@ -171,6 +171,20 @@ class User(db.Model):
             return False
         return self.groups.intersect(user_to_check.groups).count() > 0
 
+    # Returns true if the user has read that happiness entry, false otherwise
+    def has_read_happiness(self, happiness):
+        return self.posts_read.filter_by(id=happiness.id).count() > 0
+
+    # Adds a read entry for the user
+    def read_happiness(self, happiness):
+        if not self.has_read_happiness(happiness):
+            self.posts_read.append(happiness)
+
+    # Removes a read entry for the user
+    def unread_happiness(self, happiness):
+        if self.has_read_happiness(happiness):
+            self.posts_read.remove(happiness)
+
 
 class Setting(db.Model):
     """

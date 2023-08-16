@@ -1,4 +1,4 @@
-from api.models import Group
+from api.models.models import Group
 
 
 def get_group_by_id(group_id):

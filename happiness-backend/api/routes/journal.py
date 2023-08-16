@@ -2,14 +2,15 @@ from apifairy import authenticate, body, response, other_responses, arguments
 from flask import Blueprint
 
 from api.app import db
-from api.auth import token_auth
+from api.authentication.auth import token_auth
 from api.dao import journal_dao
-from api.errors import failure_response
-from api.models import Journal
-from api.schema import JournalSchema, JournalGetSchema, DecryptedJournalSchema, PasswordKeySchema, \
+from api.models.models import Journal
+from api.models.schema import JournalSchema, JournalGetSchema, DecryptedJournalSchema, PasswordKeySchema, \
     JournalEditSchema, JournalGetBySchema
+from api.util.errors import failure_response
 
 journal = Blueprint('journal', __name__)
+
 
 @journal.post('/')
 @authenticate(token_auth)
@@ -34,6 +35,7 @@ def create_entry(req, headers):
         print(e)
         return failure_response('Invalid password key.', 400)
 
+
 @journal.get('/')
 @authenticate(token_auth)
 @arguments(JournalGetSchema)
@@ -52,6 +54,7 @@ def get_entries(args, headers):
     # add password key to schema context so entries can be decrypted
     DecryptedJournalSchema.context['password_key'] = headers.get('password_key')
     return journal_dao.get_entries_by_count(user.id, page, count)
+
 
 @journal.put('/')
 @authenticate(token_auth)
@@ -76,6 +79,7 @@ def edit_entry(args, headers, req):
     except Exception as e:
         print(e)
         return failure_response('Invalid password key.', 400)
+
 
 @journal.delete('/')
 @authenticate(token_auth)

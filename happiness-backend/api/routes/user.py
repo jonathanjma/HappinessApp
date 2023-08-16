@@ -8,16 +8,16 @@ from apifairy import authenticate, response, body, other_responses, arguments
 from flask import Blueprint
 from flask import current_app
 
-from api import email_methods
 from api.app import db
+from api.authentication.email_token_methods import confirm_email_token
 from api.dao import users_dao
-from api.email_token_methods import confirm_email_token
-from api.errors import failure_response
-from api.models import User, Setting
-from api.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
+from api.models.models import User, Setting
+from api.models.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     UserInfoSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
     FileUploadSchema, GroupSchema, PasswordKeyOptSchema
-from api.token import token_auth
+from api.routes.token import token_auth
+from api.util import email_methods
+from api.util.errors import failure_response
 
 user = Blueprint('user', __name__)
 

@@ -2,11 +2,11 @@ from apifairy import authenticate, response, other_responses
 from flask import Blueprint, request
 
 from api.app import db
-from api.auth import basic_auth, token_auth
+from api.authentication.auth import basic_auth, token_auth
 from api.dao.users_dao import get_token
-from api.errors import failure_response
-from api.models import Token
-from api.schema import TokenSchema, PasswordKeySchema
+from api.models.models import Token
+from api.models.schema import TokenSchema, PasswordKeySchema
+from api.util.errors import failure_response
 
 token = Blueprint('token', __name__)
 

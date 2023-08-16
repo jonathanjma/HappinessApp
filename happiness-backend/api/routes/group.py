@@ -6,11 +6,11 @@ from flask import Blueprint
 from api.app import db
 from api.dao.groups_dao import get_group_by_id
 from api.dao.happiness_dao import get_happiness_by_group_timestamp
-from api.errors import failure_response
-from api.models import Group
-from api.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
+from api.models.models import Group
+from api.models.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
     HappinessGetTimeSchema
-from api.token import token_auth
+from api.routes.token import token_auth
+from api.util.errors import failure_response
 
 group = Blueprint('group', __name__)
 

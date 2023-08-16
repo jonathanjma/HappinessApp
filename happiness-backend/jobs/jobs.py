@@ -10,8 +10,8 @@ from rq import Queue
 
 from api import create_app
 from api.dao import happiness_dao, users_dao
-from api.email_methods import send_email_helper
-from api.models import Token, Setting
+from api.models.models import Token, Setting
+from api.util.email_methods import send_email_helper
 
 """
 jobs.py contains all scheduled jobs that will be queued by scheduler.py

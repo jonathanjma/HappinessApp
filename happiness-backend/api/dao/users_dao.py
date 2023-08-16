@@ -4,7 +4,7 @@ DAO (Data Access Object) file
 Helper file containing functions for accessing data in our database
 """
 
-from api.models import User, Token
+from api.models.models import User, Token
 
 
 def get_user_by_id(id):
