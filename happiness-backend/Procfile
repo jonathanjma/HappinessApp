@@ -1,2 +1,2 @@
-web: flask db upgrade; gunicorn happiness_backend:app
+web: flask db upgrade; gunicorn happiness_backend:app --preload
 worker: rq worker -u $REDISCLOUD_URL happiness-backend-jobs
