@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Statistics from "./pages/Statistics";
 import Profile from "./pages/Profile";
 import Header from "./components/Header";
+import Sidebar from "./components/Sidebar";
 import Welcome from "./pages/Welcome";
 import Container from "react-bootstrap/Container";
 import Settings from "./pages/Settings";
@@ -16,9 +17,10 @@ import PublicRoute from "./components/PublicRoute";
 import SubmitHappiness from "./pages/SubmitHappiness";
 import RequestResetPassword from "./pages/authentication/RequestResetPassword";
 import ResetPassword from "./pages/authentication/ResetPassword";
+import Stat from "./components/statGraphs/Stat";
 
 export default function App() {
-  const bgStyle = "max-w-7xl mx-auto px-3 py-2";
+  const bgStyle = "mx-auto px-3 py-2";
 
   return (
     <Container fluid className="App bg-buff-50 min-h-screen">
@@ -54,14 +56,17 @@ export default function App() {
                 path="*"
                 element={
                   <PrivateRoute>
-                    <Header />
+                    {/* <Header /> */}
                     <Routes>
-                      <Route path="/home" element={<SubmitHappiness />} />
+                      <Route
+                        path="/home"
+                        element={<Sidebar element={<SubmitHappiness />} />}
+                      />
                       <Route
                         path="/statistics"
                         element={
                           <div className={bgStyle}>
-                            <Statistics />
+                            <Sidebar element={<Statistics />} />
                           </div>
                         }
                       />
@@ -69,7 +74,7 @@ export default function App() {
                         path="/profile/:userID"
                         element={
                           <div className={bgStyle}>
-                            <Profile />
+                            <Sidebar element={<Profile />} />
                           </div>
                         }
                       />
@@ -77,7 +82,7 @@ export default function App() {
                         path="/groups"
                         element={
                           <div className={bgStyle}>
-                            <UserGroups />
+                            <Sidebar element={<UserGroups />} />
                           </div>
                         }
                       />
@@ -85,7 +90,7 @@ export default function App() {
                         path="/groups/:groupID"
                         element={
                           <div className={bgStyle}>
-                            <Group />
+                            <Sidebar element={<Group />} />
                           </div>
                         }
                       />
@@ -93,16 +98,20 @@ export default function App() {
                         path="/settings"
                         element={
                           <div className={bgStyle}>
-                            <Settings />
+                            <Sidebar element={<Settings />} />
                           </div>
                         }
                       />
                       <Route
                         path="/history/:userID"
                         element={
-                          <div className={bgStyle}>
-                            <History />
-                          </div>
+                          <Sidebar
+                            element={
+                              <div className={bgStyle}>
+                                <History />
+                              </div>
+                            }
+                          />
                         }
                       />
                       <Route path="*" element={<Navigate to="/" />} />

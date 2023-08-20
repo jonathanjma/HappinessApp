@@ -4,7 +4,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
     "@headlessui/react": "^1.7.7",
+    "@mui/icons-material": "^5.14.3",
+    "@mui/material": "^5.14.3",
     "@tailwindcss/container-queries": "^0.1.0",
     "@tailwindcss/line-clamp": "^0.4.2",
     "@testing-library/jest-dom": "^5.16.5",
