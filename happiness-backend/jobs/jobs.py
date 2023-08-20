@@ -1,5 +1,6 @@
 import csv
 import os
+import uuid
 from datetime import datetime, timedelta
 
 import pytz
@@ -68,7 +69,8 @@ def export_happiness(user_id):
 
     entries_dict = map(to_dict_entry, entries)
     fields = ['value', 'comment', 'timestamp']
-    file_path = "export/{filename}"
+    filename = f"happiness_export_{uuid.uuid4()}"
+    file_path = f"export/{filename}"
     with open(file_path, 'w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=fields)
         writer.writeheader()
