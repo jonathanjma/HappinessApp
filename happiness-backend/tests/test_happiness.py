@@ -65,6 +65,34 @@ def test_create_happiness(init_client):
     assert happiness.timestamp == datetime.strptime('2023-01-11', "%Y-%m-%d")
 
 
+def test_overwrite_create_happiness(init_client):
+    client, tokens = init_client
+    happiness_create_response = client.post('/api/happiness/', json={
+        'value': 4,
+        'comment': 'great day',
+        'timestamp': '2023-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_create_response.status_code == 201
+
+    happiness_create_response_2 = client.post('/api/happiness/', json={
+        'value': 8,
+        'comment': 'amazing day',
+        'timestamp': '2023-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_create_response_2.status_code == 201
+    happiness = json.loads(happiness_create_response_2.get_data())
+    assert happiness.get("comment") == "amazing day"
+    assert happiness.get("value") == 8
+    start_end_response = client.get('/api/happiness/', query_string={
+        'start': '2023-01-11',
+        'end': '2023-01-11',
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert start_end_response.status_code == 200
+    happiness_list = json.loads(start_end_response.get_data())
+    assert happiness_list[0].get("comment") == "amazing day"
+    assert happiness_list[0].get("value") == 8
+
+
 def test_edit_delete_happiness(init_client):
     client, tokens = init_client
     user_create_response = client.post('/api/user/', json={

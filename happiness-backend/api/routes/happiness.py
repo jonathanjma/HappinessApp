@@ -27,8 +27,8 @@ def create_happiness(req):
     Creates a new happiness entry with a given value. \n
     Optional values: comment, timestamp (defaults to current day) \n
     Requires: Happiness value must be between 0 and 10 in 0.5 increments.
-    Timestamp must be given in the YYY-MM-DD format.
-    User must not have already submitted a happiness entry for the specified day. \n
+    Timestamp must be given in the %Y-%m-%d format.
+    If the user has already submitted a happiness entry for the specified day, the entry will be overwritten. \n
     Returns: Happiness entry with the given information.
     """
     current_user = token_auth.current_user()
@@ -42,8 +42,12 @@ def create_happiness(req):
         return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)
 
     # check if date already exists
-    if happiness_dao.get_happiness_by_date(current_user.id, timestamp):
-        return failure_response("Date already exists.", 400)
+    potential_happiness = happiness_dao.get_happiness_by_date(current_user.id, timestamp)
+    if potential_happiness:
+        potential_happiness.comment = comment
+        potential_happiness.value = value
+        db.session.commit()
+        return potential_happiness
 
     # validate happiness value
     if not (value * 2).is_integer() or value < 0 or value > 10:
