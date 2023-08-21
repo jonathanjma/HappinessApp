@@ -107,6 +107,46 @@ def test_get_unread_happiness(init_client):
     assert all([h.get("id") != 2 for h in happiness_list])
 
 
+def test_get_unread_happiness_2(init_client):
+    client, tokens = test_create_read(init_client)
+    # Set up test by adding new user and new group, give new user happiness entry
+
+    add_group()
+    user4 = User(email='test4@example.app', username='user4', password='test')
+    happiness4 = Happiness(user_id=4, value=8, comment="test4", timestamp=datetime.datetime.utcnow())
+    db.session.add_all([user4, happiness4])
+    db.session.commit()
+
+    group2 = Group(name="super special test")
+    group2.add_users(["user4", "user2"])
+    db.session.add(group2)
+    db.session.commit()
+
+    # Perform test: we should now see 3 unread happiness entries, one of them should be the new entry
+    # We should only see this for user 2
+    get1 = client.get(url + "unread/", headers=auth_header(tokens[1]))
+    assert get1.status_code == 200
+    happiness_list = json.loads(get1.get_data())
+    assert len(happiness_list) == 4
+    assert any([h.get("comment") == "test4" for h in happiness_list])
+    # For the first user, since they don't share a group with user 4 they should not see their happiness.
+    # They have also read user 2's happiness, so they should only get 2 entries
+    get2 = client.get(url + "unread/", headers=auth_header(tokens[0]))
+    assert get2.status_code == 200
+    happiness_list2 = json.loads(get2.get_data())
+    assert len(happiness_list2) == 2
+    assert all([h.get("comment") != "test4" for h in happiness_list2])
+
+    # Finally, try reading a Happiness entry with user 2 and ensure that there is 1 less unread entry
+    read1 = client.post(url, json={
+        "happiness_id": 3,
+    }, headers=auth_header(tokens[1]))
+    get3 = client.get(url + "unread/", headers=auth_header(tokens[1]))
+    happiness_list3 = json.loads(get3.get_data())
+    assert all([h.get("id") != 3 for h in happiness_list3])
+    assert len(happiness_list3) == 3
+
+
 def test_get_empty_unread_happiness_1(init_client):
     # should be empty because the user doesn't share any groups with other users
     client, tokens = test_create_read(init_client)
