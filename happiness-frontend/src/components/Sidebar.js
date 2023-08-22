@@ -11,6 +11,12 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import MenuIcon from "@mui/icons-material/Menu";
+import { ListItemIcon } from "@mui/material";
+import EntriesIcon from "../media/bookmark-book-icon.svg";
+import StatsIcon from "../media/graph-up-icon.svg";
+import GroupIcon from "../media/group-icon.svg";
+import SettingsIcon from "../media/settings-icon.svg";
+
 import TextField from "@mui/material/TextField";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -32,6 +38,7 @@ function ResponsiveDrawer(props) {
 
   const [happiness, setHappiness] = useState(5.0);
   const [comment, setComment] = useState("");
+  const [updated, setUpdated] = useState(true);
   const commentBox = useRef();
 
   const weekday = [
@@ -83,6 +90,7 @@ function ResponsiveDrawer(props) {
   };
 
   const linkNames = ["/history/" + me.id, "/statistics", "/groups"];
+  const icons = [EntriesIcon, StatsIcon, GroupIcon];
 
   const drawer = (
     <div className="h-full mx-3 my-4">
@@ -191,11 +199,12 @@ function ResponsiveDrawer(props) {
               scrollbarColor: "#9191b6",
             }}
             // placeholder={
-            //   <div className="text-raisin-600 mx-4 text-right text-sm">
-            //     {500 - comment.length + " characters remaining"}
-            //   </div>
+            // <div className="text-raisin-600 mx-4 text-right text-sm">
+            //   {500 - comment.length + " characters remaining"}
+            // </div>
             // }
             placeholder={"Description"}
+            maxLength="500"
             onChange={(e) => {
               handleChange("name");
               setComment(e.target.value);
@@ -203,7 +212,11 @@ function ResponsiveDrawer(props) {
             helperText={`${comment.length}/500`}
           />
         </div>
-
+        <div className="w-full text-right">
+          <div className="text-raisin-600 mx-4 text-right text-sm">
+            {comment.length + "/500"}
+          </div>
+        </div>
         <div className="w-full text-sm mx-4 flex">
           <div className="w-2/3">
             {today.toLocaleTimeString([], {
@@ -211,8 +224,12 @@ function ResponsiveDrawer(props) {
               minute: "2-digit",
             })}
           </div>
+          <div className="w-1/3 text-right">
+            <div className="text-raisin-600 text-right text-sm">
+              {updated ? "Updated" : "Unsaved"}
+            </div>
+          </div>
           {/* Currently the time doesn't update so i need to fix that */}
-          <div className="w-1/3 text-right">Updated</div>
         </div>
 
         <button
@@ -229,20 +246,23 @@ function ResponsiveDrawer(props) {
         {["Entries", "Stats", "Groups"].map((text, index) => (
           <ListItem key={text} disablePadding>
             <ListItemButton component={NavLink} to={linkNames[index]}>
+              <ListItemIcon>
+                <img src={icons[index]} />
+              </ListItemIcon>
               <ListItemText primary={text} />
             </ListItemButton>
           </ListItem>
         ))}
       </List>
-      <Divider />
-      <List>
-        {["Settings"].map((text) => (
-          <ListItem key={text} disablePadding>
-            <ListItemButton commponent={NavLink} to={"/settings"}>
-              <ListItemText primary={text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+      <List sx={{ justifyContent: "flex-end", height: "25%" }}>
+        <ListItem key={"Settings"} disablePadding>
+          <ListItemButton commponent={NavLink} to={"/settings"}>
+            <ListItemIcon>
+              <img src={SettingsIcon} />
+            </ListItemIcon>
+            <ListItemText primary={"Settings"} />
+          </ListItemButton>
+        </ListItem>
       </List>
     </div>
   );
