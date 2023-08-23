@@ -17,10 +17,65 @@ import PublicRoute from "./components/PublicRoute";
 import SubmitHappiness from "./pages/SubmitHappiness";
 import RequestResetPassword from "./pages/authentication/RequestResetPassword";
 import ResetPassword from "./pages/authentication/ResetPassword";
-import Stat from "./components/statGraphs/Stat";
 
 export default function App() {
-  const bgStyle = "mx-auto px-3 py-2";
+  const USE_NEW_UI = process.env.REACT_APP_USE_NEW_UI;
+  const bgStyle = "mx-auto px-3 py-2" + (!USE_NEW_UI ? " max-w-7xl" : "");
+
+  const privateRoutes = (
+    <Routes>
+      <Route path="/home" element={<SubmitHappiness />} />
+      <Route
+        path="/statistics"
+        element={
+          <div className={bgStyle}>
+            <Statistics />
+          </div>
+        }
+      />
+      <Route
+        path="/profile/:userID"
+        element={
+          <div className={bgStyle}>
+            <Profile />
+          </div>
+        }
+      />
+      <Route
+        path="/groups"
+        element={
+          <div className={bgStyle}>
+            <UserGroups />
+          </div>
+        }
+      />
+      <Route
+        path="/groups/:groupID"
+        element={
+          <div className={bgStyle}>
+            <Group />
+          </div>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <div className={bgStyle}>
+            <Settings />
+          </div>
+        }
+      />
+      <Route
+        path="/history/:userID"
+        element={
+          <div className={bgStyle}>
+            <History />
+          </div>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
 
   return (
     <Container fluid className="App bg-buff-50 min-h-screen">
@@ -56,66 +111,14 @@ export default function App() {
                 path="*"
                 element={
                   <PrivateRoute>
-                    {/* <Header /> */}
-                    <Routes>
-                      <Route
-                        path="/home"
-                        element={<Sidebar element={<SubmitHappiness />} />}
-                      />
-                      <Route
-                        path="/statistics"
-                        element={
-                          <div className={bgStyle}>
-                            <Sidebar element={<Statistics />} />
-                          </div>
-                        }
-                      />
-                      <Route
-                        path="/profile/:userID"
-                        element={
-                          <div className={bgStyle}>
-                            <Sidebar element={<Profile />} />
-                          </div>
-                        }
-                      />
-                      <Route
-                        path="/groups"
-                        element={
-                          <div className={bgStyle}>
-                            <Sidebar element={<UserGroups />} />
-                          </div>
-                        }
-                      />
-                      <Route
-                        path="/groups/:groupID"
-                        element={
-                          <div className={bgStyle}>
-                            <Sidebar element={<Group />} />
-                          </div>
-                        }
-                      />
-                      <Route
-                        path="/settings"
-                        element={
-                          <div className={bgStyle}>
-                            <Sidebar element={<Settings />} />
-                          </div>
-                        }
-                      />
-                      <Route
-                        path="/history/:userID"
-                        element={
-                          <Sidebar
-                            element={
-                              <div className={bgStyle}>
-                                <History />
-                              </div>
-                            }
-                          />
-                        }
-                      />
-                      <Route path="*" element={<Navigate to="/" />} />
-                    </Routes>
+                    {USE_NEW_UI ? (
+                      <Sidebar element={privateRoutes} />
+                    ) : (
+                      <>
+                        <Header />
+                        {privateRoutes}
+                      </>
+                    )}
                   </PrivateRoute>
                 }
               />

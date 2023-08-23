@@ -21,11 +21,12 @@ import TextField from "@mui/material/TextField";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
-import { Link, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useUser } from "../contexts/UserProvider";
-import { useState, useRef } from "react";
-import { formatHappinessNum } from "../pages/SubmitHappiness";
-
+import { useState, useRef, useEffect } from "react";
+import { formatDate, formatHappinessNum } from "../pages/SubmitHappiness";
+import { useQuery, useMutation } from "react-query";
+import { useApi } from "../contexts/ApiProvider";
 const drawerWidth = 340;
 
 const buttonStyle =
@@ -34,10 +35,19 @@ const textStyle = "text-raisin-600";
 
 function ResponsiveDrawer(props) {
   const { user: userState, Logout } = useUser();
+  const api = useApi();
   const me = userState.user;
 
-  const [happiness, setHappiness] = useState(5.0);
+  const [happiness, setHappiness] = useState("-");
+  const isValidHappiness = (happiness) =>
+    happiness !== "-" && happiness % 0.5 === 0 && 0 <= happiness <= 10;
   const [comment, setComment] = useState("");
+  const [submissionStatus, setSubmissionStatus] = useState("Updated");
+  // TODO refactor to use useRef! the let def was being reassigned
+  // on every recomposition
+  const postHappinessTimeout = useRef(undefined);
+  const isInitialRender = useRef(true);
+
   const [updated, setUpdated] = useState(true);
   const commentBox = useRef();
 
@@ -64,6 +74,40 @@ function ResponsiveDrawer(props) {
     "November",
     "December",
   ];
+  const UNSUBMITTED = "Unsubmitted (change the number to submit)";
+  const UPDATING = "Updating...";
+  const UPDATED = "Updated";
+  const ERROR = "Error loading/retrieving happiness";
+
+  const postHappinessMutation = useMutation({
+    mutationFn: (newHappiness) => {
+      return api.post("/happiness/", newHappiness);
+    },
+  });
+
+  useEffect(() => {
+    console.log(`Updating network: ${isValidHappiness(happiness)}`);
+    if (isValidHappiness(happiness)) {
+      console.log("loading network request");
+      setSubmissionStatus(UPDATING);
+      clearTimeout(postHappinessTimeout.current);
+      postHappinessTimeout.current = setTimeout(() => {
+        console.log("Sending request");
+        postHappinessMutation.mutate({
+          value: happiness,
+          comment: comment,
+          timestamp: formatDate(new Date()),
+        });
+      }, 1000);
+    }
+  }, [comment, happiness]);
+
+  useEffect(() => {
+    if (postHappinessMutation.isSuccess) {
+      setSubmissionStatus("Updated");
+    }
+  }, [postHappinessMutation.isSuccess]);
+
   const today = new Date();
   const todayFormatted =
     weekday[today.getDay()] +
@@ -91,6 +135,48 @@ function ResponsiveDrawer(props) {
 
   const linkNames = ["/history/" + me.id, "/statistics", "/groups"];
   const icons = [EntriesIcon, StatsIcon, GroupIcon];
+
+  // Networking
+
+  // Make initial networking request to check for today's Happiness entry
+  const { isLoading, data, isError, refetch, isSuccess } = useQuery(
+    `happiness for ${me.id}`,
+    () => {
+      return api
+        .get("/happiness/", {
+          start: formatDate(today),
+          end: formatDate(today),
+        })
+        .then((res) => res.data);
+    }
+  );
+
+  // react to initial query
+  useEffect(() => {
+    if (isLoading) {
+      // TODO from design: loading state for this submission box
+      console.log(`Loading!`);
+      setSubmissionStatus(UPDATING);
+    } else if (isError) {
+      // TODO from design: error state for this submission box
+      console.log("Error!");
+      setSubmissionStatus(ERROR);
+    } else {
+      console.log(`My successful data: ${data}`);
+      console.log(`Something about my data: ${data[0] == null}`);
+      if (data[0] == null) {
+        setSubmissionStatus(UNSUBMITTED);
+      } else {
+        setSubmissionStatus(UPDATED);
+        setHappiness(data[0].value);
+        setComment(data[0].comment);
+      }
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    console.log("submission status changed " + submissionStatus);
+  }, [submissionStatus]);
 
   const drawer = (
     <div className="h-full mx-3 my-4">
@@ -139,12 +225,15 @@ function ResponsiveDrawer(props) {
               value={happiness}
               placeholder=""
               onChange={(e) => {
-                setHappiness(e.target.value);
+                console.log("changed");
                 if (e.target.value < 0) {
                   setHappiness(0);
-                }
-                if (e.target.value.length > 3) {
+                } else if (e.target.value > 10) {
+                  setHappiness(10);
+                } else if (e.target.value.length > 3) {
                   setHappiness(e.target.value.toString().substring(0, 3));
+                } else {
+                  setHappiness(e.target.value);
                 }
               }}
               onBlur={() => {
@@ -157,39 +246,12 @@ function ResponsiveDrawer(props) {
             />
           </div>
         </div>
-        {/* <TextField
-          fullwidth
-          multiline
-          maxRows={10}
-          label="Description"
-          inputProps={{
-            maxlength: 500,
-          }}
-          value={values.name}
-          helperText={`${values.name.length}/500`}
-          onChange={handleChange("name")}
-          margin="normal"
-          variant="filled"
-          sx={{ width: 0.9, m: 2.5 }}
-        /> */}
-        {/* <TextField
-          fullwidth
-          id="filled-multiline-flexible-fullwidth"
-          label="Description"
-          multiline
-          focused
-          maxRows={10}
-          helperText={"Characters remaining: "}
-          variant="filled"
-          sx={{ width: 0.9, m: 2.5 }}
-        /> */}
-        <div className="w-full">
-          <div className="w-full"></div>
+        <div className="w-full flex justify-center">
           <textarea
             ref={commentBox}
             id="large-input"
             value={comment}
-            className={`w-[275px] mt-3 mx-3 rounded-lg p-2 outline-none border-raisin-100 focus:border-raisin-200 border-2 focus:border-4 text-left`}
+            className={`w-full mt-3 mx-3 rounded-lg p-2 outline-none border-raisin-100 focus:border-raisin-200 border-2 focus:border-4 text-left text-sm`}
             style={{
               height: `${
                 commentBox.current === undefined
@@ -198,23 +260,17 @@ function ResponsiveDrawer(props) {
               }px`,
               scrollbarColor: "#9191b6",
             }}
-            // placeholder={
-            // <div className="text-raisin-600 mx-4 text-right text-sm">
-            //   {500 - comment.length + " characters remaining"}
-            // </div>
-            // }
             placeholder={"Description"}
-            maxLength="500"
+            maxLength="750"
             onChange={(e) => {
               handleChange("name");
               setComment(e.target.value);
             }}
-            helperText={`${comment.length}/500`}
           />
         </div>
         <div className="w-full text-right">
           <div className="text-raisin-600 mx-4 text-right text-sm">
-            {comment.length + "/500"}
+            {comment.length + "/750"}
           </div>
         </div>
         <div className="w-full text-sm mx-4 flex">
@@ -224,12 +280,8 @@ function ResponsiveDrawer(props) {
               minute: "2-digit",
             })}
           </div>
-          <div className="w-1/3 text-right">
-            <div className="text-raisin-600 text-right text-sm">
-              {updated ? "Updated" : "Unsaved"}
-            </div>
-          </div>
           {/* Currently the time doesn't update so i need to fix that */}
+          <div className="w-1/3 text-right">{submissionStatus}</div>
         </div>
 
         <button
@@ -239,9 +291,6 @@ function ResponsiveDrawer(props) {
           Open Journal
         </button>
       </div>
-      <Divider />
-      <div className=""></div>
-      <Divider />
       <List>
         {["Entries", "Stats", "Groups"].map((text, index) => (
           <ListItem key={text} disablePadding>
@@ -254,7 +303,7 @@ function ResponsiveDrawer(props) {
           </ListItem>
         ))}
       </List>
-      <List sx={{ justifyContent: "flex-end", height: "25%" }}>
+      <List sx={{ justifyContent: "flex-end", width: "full" }}>
         <ListItem key={"Settings"} disablePadding>
           <ListItemButton commponent={NavLink} to={"/settings"}>
             <ListItemIcon>
