@@ -16,19 +16,23 @@ export default function ScrollableCalendar() {
   // let oldestDate = new Date();
 
   // ***use date instead of count***
-  const fetcher = ({ page = 1 }) =>
+  const fetcher = (page) =>
     api.get("/happiness/count", { page: page }).then((res) => {
       res.data.page = page;
       return res.data;
     });
 
   const { isLoading, data, error, fetchNextPage, hasNextPage } =
-    useInfiniteQuery(["happiness calendar"], fetcher, {
-      getNextPageParam: (lastPage) => {
-        if (lastPage.length === 0) return false; // detect if last page is reached (no more entries)
-        return lastPage.page + 1; // increment page number to fetch
-      },
-    });
+    useInfiniteQuery(
+      ["happiness calendar"],
+      ({ pageParam = 1 }) => fetcher(pageParam),
+      {
+        getNextPageParam: (lastPage) => {
+          if (lastPage.length === 0) return false; // detect if last page is reached (no more entries)
+          return lastPage.page + 1; // increment page number to fetch
+        },
+      }
+    );
 
   const allEntries = useMemo(
     () =>
