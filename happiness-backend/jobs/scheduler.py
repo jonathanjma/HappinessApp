@@ -15,7 +15,7 @@ https://apscheduler.readthedocs.io/en/3.x/modules/triggers/interval.html
 """
 
 scheduler_color = Fore.CYAN
-is_scheduler_running = False
+RUN_SCHEDULER = False  # TODO change to true, for testing only!!!
 
 
 # Run scheduler on separate thread in main server to avoid Heroku fees
@@ -42,8 +42,9 @@ def init_app(app):
         scheduler_log("Queuing job for sending notification emails")
         q.enqueue("jobs.jobs.queue_send_notification_emails")
 
-    scheduler_log("Starting scheduler")
-    sched.start()
+    if RUN_SCHEDULER:
+        scheduler_log("Starting scheduler")
+        sched.start()
 
 
 def scheduler_log(text: str):

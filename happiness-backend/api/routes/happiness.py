@@ -6,12 +6,12 @@ from flask import Blueprint, request, current_app
 from api.app import db
 from api.dao import happiness_dao, users_dao
 from api.dao.users_dao import get_user_by_id
-from api.errors import failure_response
-from api.models import Happiness, Comment
-from api.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, \
+from api.models.models import Happiness, Comment
+from api.models.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, \
     HappinessGetCountSchema, \
     HappinessGetQuery, CommentSchema, HappinessGetBySchema
-from api.token import token_auth
+from api.routes.token import token_auth
+from api.util.errors import failure_response
 
 happiness = Blueprint('happiness', __name__)
 

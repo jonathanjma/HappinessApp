@@ -9,7 +9,7 @@ from api.app import db
 from api.dao.groups_dao import get_group_by_id
 from api.dao.happiness_dao import *
 from api.dao.users_dao import get_user_by_id
-from api.models import User
+from api.models.models import User
 from config import TestConfig
 
 
