@@ -36,6 +36,8 @@ export default function ScrollableCalendar() {
     // add page attribute so page number is remembered
     res.data.page = page;
 
+    console.log("Data from " + formatDate(start) + " fetched");
+
     let itr = new Date(start);
     while (itr <= end) {
       // create empty happiness entry for submitted days
@@ -84,9 +86,9 @@ export default function ScrollableCalendar() {
   );
 
   return (
-    <div className="h-full max-w-[175px] overflow-auto">
+    <div className="h-full w-[130px] overflow-auto ms-2">
       {isLoading ? (
-        <Spinner animation="border" />
+        <Spinner className="m-3" animation="border" />
       ) : (
         <>
           {error ? (
