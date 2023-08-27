@@ -5,7 +5,7 @@ import Typography from "@mui/material/Typography";
 import { CardActionArea } from "@mui/material";
 
 export default function HappinessCard({ data, click }) {
-  const date = new Date(data.timestamp);
+  const date = new Date(data.timestamp + "T00:00:00");
 
   return (
     <Card className={"m-2"}>
@@ -21,7 +21,9 @@ export default function HappinessCard({ data, click }) {
             <Typography sx={{ fontSize: 14 }} color="text.secondary">
               Score
             </Typography>
-            <Typography variant="h4">{data.value.toFixed(1)}</Typography>
+            <Typography variant="h4">
+              {data.value !== undefined ? data.value.toFixed(1) : "-"}
+            </Typography>
           </div>
         </CardContent>
       </CardActionArea>
