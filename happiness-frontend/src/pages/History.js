@@ -116,42 +116,49 @@ export default function History() {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   if (USE_NEW_UI) {
-    return (<Box className="flex flex-row">
-      <Box className="flex flex-col w-32  h-96 mt-8" />
-      {/* Entry and comments box */}
-      <Box className="flex flex-col w-100%   h-96 mt-16 w-full mx-8" >
-        <h3 className="subheader">{formattedDate}</h3>
-        <Box className="flex flex-row   pt-8">
-          <h1 className="header1">Your Public Entry</h1>
-          <Box className="flex-1" />
-          <Button startIcon={<EditIcon />}>Edit Entry</Button>
-        </Box>
-        {/* Happiness score and entry box */}
-        <Box className="mt-6 flex flex-row">
-          <Box className="flex flex-col items-center w-4/12">
-            <h4 className="body1 mb-4">Happiness Score</h4>
-            <h1 className="header1">7.5</h1>
-          </Box>
-          <Box className="w-1/12" />
-          <Box className="w-7/12 p-4">
-            <h4 className="body1">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibu
-            </h4>
-          </Box>
-
-        </Box>
+    return (
+      <Box>
         <Box className="flex flex-row">
-          {Array(2).fill(0).map((_, i) => <CommentCard
-            comment={"This is such a good story haha!"}
-            commenterAvatar={"https://happinessapp.s3.us-east-2.amazonaws.com/20230712144115_30c8c858-32f1-40a2-b9b1-8f20945e24c6.jpg"}
-            groupName={"Cornell"}
-            commentDate={"12/31"}
-            commenter={"Fiddle01"}
-          />)}
+          <Box className="flex flex-col w-32  h-96 mt-8 border-red-500 border-solid" />
+          {/* Entry and comments box */}
+          <Box className="flex flex-col w-100%   h-96 mt-16 w-full mx-8" >
+            <h3 className="subheader">{formattedDate}</h3>
+            <Box className="flex flex-row   pt-8">
+              <h1 className="header1">Your Public Entry</h1>
+              <Box className="flex-1" />
+              <Button startIcon={<EditIcon />}>Edit Entry</Button>
+            </Box>
+            {/* Happiness score and entry box */}
+            <Box className="mt-6 flex flex-row">
+              <Box className="flex flex-col items-center w-4/12">
+                <h4 className="body1 mb-4">Happiness Score</h4>
+                <h1 className="header1">7.5</h1>
+              </Box>
+              <Box className="w-1/12" />
+              <Box className="w-7/12 p-4">
+                <h4 className="body1">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibu
+                </h4>
+              </Box>
 
+            </Box>
+            <Typography>Test</Typography>
+          </Box>
         </Box>
-
+        {/* Comments */}
+        <Box className="flex flex-row w-full ">
+          <Box className="flex flex-row overflow-x-auto py-1">
+            {Array(10).fill(0).map((_, i) => <CommentCard
+              comment={"This is such a good story haha!"}
+              commenterAvatar={"https://happinessapp.s3.us-east-2.amazonaws.com/20230712144115_30c8c858-32f1-40a2-b9b1-8f20945e24c6.jpg"}
+              groupName={"Cornell"}
+              commentDate={"12/31"}
+              commenter={"Fiddle01"}
+            />)}
+          </Box>
+        </Box>
       </Box>
-    </Box>)
+
+    )
   }
   return (
     <>

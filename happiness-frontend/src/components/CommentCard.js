@@ -9,7 +9,7 @@ export default function CommentCard({
   comment
 }) {
   return (
-    <Card className='w-[300px] mr-3 rounded-xl' style={{ borderRadius: "12px" }}>
+    <Card className='min-w-[300px] mr-3 rounded-xl' style={{ borderRadius: "12px" }}>
       {/* TODO ensure CardHeader supports long usernames / group naems */}
       <CardHeader
         title={commenter}
