@@ -16,6 +16,7 @@ import EntriesIcon from "../media/bookmark-book-icon.svg";
 import StatsIcon from "../media/graph-up-icon.svg";
 import GroupIcon from "../media/group-icon.svg";
 import SettingsIcon from "../media/settings-icon.svg";
+import { useLocation } from "react-router-dom";
 
 import TextField from "@mui/material/TextField";
 import Toolbar from "@mui/material/Toolbar";
@@ -38,6 +39,8 @@ function ResponsiveDrawer(props) {
   const api = useApi();
   const me = userState.user;
 
+  const [select, setSelect] = useState();
+
   const [happiness, setHappiness] = useState("-");
   const isValidHappiness = (happiness) =>
     happiness !== "-" && happiness % 0.5 === 0 && 0 <= happiness <= 10;
@@ -48,7 +51,6 @@ function ResponsiveDrawer(props) {
   const postHappinessTimeout = useRef(undefined);
   const isInitialRender = useRef(true);
 
-  const [updated, setUpdated] = useState(true);
   const commentBox = useRef();
 
   const weekday = [
@@ -109,14 +111,7 @@ function ResponsiveDrawer(props) {
   }, [postHappinessMutation.isSuccess]);
 
   const today = new Date();
-  const todayFormatted =
-    weekday[today.getDay()] +
-    ", " +
-    today.toDateString().substring(4, 7) +
-    " " +
-    today.getDate() +
-    ", " +
-    today.getFullYear();
+  const pathname = useLocation();
 
   const { window } = props;
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -133,8 +128,9 @@ function ResponsiveDrawer(props) {
     setValues({ ...values, [name]: event.target.value });
   };
 
-  const linkNames = ["/history/" + me.id, "/statistics", "/groups"];
-  const icons = [EntriesIcon, StatsIcon, GroupIcon];
+  const routes = ["/history/" + me.id, "/statistics", "/groups", "/settings"];
+  const icons = [EntriesIcon, StatsIcon, GroupIcon, SettingsIcon];
+  const text = ["Entries", "Stats", "Groups"];
 
   // Networking
 
@@ -188,16 +184,16 @@ function ResponsiveDrawer(props) {
           style={{ textDecoration: "none" }}
           className="flex items-center w-full"
         >
-          <div className="items-center mr-2">
+          <div className="items-center mr-2" onClick={() => setSelect()}>
             <img
-              className="mx-3 justify-center max-w-[50px] max-h-[50px] block mx-auto rounded-full sm:mx-0 sm:shrink-0"
+              className="mx-3 justify-center max-w-[45px] max-h-[45px] block mx-auto rounded-full sm:mx-0 sm:shrink-0"
               src={me.profile_picture}
               alt="profile"
             />
           </div>
           <div className="text-raisin-600">
             <div className="font-semibold text-lg">{me.username}</div>
-            <div className="text-sm">
+            <div className="text-xs">
               Member since {me.created.substring(0, 4)}
             </div>
           </div>
@@ -292,26 +288,42 @@ function ResponsiveDrawer(props) {
         </button>
       </div>
       <List>
-        {["Entries", "Stats", "Groups"].map((text, index) => (
-          <ListItem key={text} disablePadding>
-            <ListItemButton component={NavLink} to={linkNames[index]}>
+        {text.map((routeName, index) => {
+          return (
+            <ListItem key={text[index]} disablePadding>
+              <ListItemButton
+                selected={select === routeName}
+                component={NavLink}
+                to={routes[index]}
+                onClick={() => setSelect(routeName)}
+              >
+                <ListItemIcon>
+                  <img src={icons[index]} />
+                </ListItemIcon>
+                <ListItemText primary={text[index]} />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+        <div>
+          <ListItem key={"Settings"} disablePadding>
+            <ListItemButton
+              selected={select === "/settings"}
+              commponent={NavLink}
+              to={"/settings"}
+              onClick={() => {
+                console.log("hi");
+                setSelect("/settings");
+                console.log("yes");
+              }}
+            >
               <ListItemIcon>
-                <img src={icons[index]} />
+                <img src={SettingsIcon} />
               </ListItemIcon>
-              <ListItemText primary={text} />
+              <ListItemText primary={"Settings"} />
             </ListItemButton>
           </ListItem>
-        ))}
-      </List>
-      <List sx={{ justifyContent: "flex-end", width: "full" }}>
-        <ListItem key={"Settings"} disablePadding>
-          <ListItemButton commponent={NavLink} to={"/settings"}>
-            <ListItemIcon>
-              <img src={SettingsIcon} />
-            </ListItemIcon>
-            <ListItemText primary={"Settings"} />
-          </ListItemButton>
-        </ListItem>
+        </div>
       </List>
     </div>
   );
