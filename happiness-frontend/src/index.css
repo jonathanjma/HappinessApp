@@ -7,7 +7,7 @@
 }
 
 :root {
-    --headerHeight : 60px
+    --headerHeight: 60px
 }
 
 .header {
@@ -15,7 +15,7 @@
 }
 
 .fullbg {
-    height: calc(100vh - var(--headerHeight))!important
+    height: calc(100vh - var(--headerHeight)) !important
 }
 
 .dropdown-toggle::after {
@@ -49,4 +49,34 @@
     border: 3.5px solid transparent;
     border-top-color: #000;
     border-right-color: #000;
+}
+
+.header1 {
+    color: var(--components-switch-slide-fill, #000);
+    font-family: "Inter";
+    font-size: 2rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 2.25rem;
+    /* 112.5% */
+}
+
+.subheader {
+    color: var(--gray-5, #575F68);
+    font-family: "Inter";
+    font-size: 1.25rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 1.5rem;
+    /* 120% */
+}
+
+.body1 {
+    color: var(--components-switch-slide-fill, #000);
+    font-family: Inter;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 1.5rem;
+    /* 150% */
 }

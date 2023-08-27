@@ -17,10 +17,19 @@ import PublicRoute from "./components/PublicRoute";
 import SubmitHappiness from "./pages/SubmitHappiness";
 import RequestResetPassword from "./pages/authentication/RequestResetPassword";
 import ResetPassword from "./pages/authentication/ResetPassword";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+
 
 export default function App() {
   const USE_NEW_UI = process.env.REACT_APP_USE_NEW_UI;
   const bgStyle = "mx-auto px-3 py-2" + (!USE_NEW_UI ? " max-w-7xl" : "");
+  const theme = createTheme({
+    typography: {
+      fontFamily: ["Inter", "cursive"].join(","),
+    },
+  });
+
+
 
   const privateRoutes = (
     <Routes>
@@ -79,53 +88,56 @@ export default function App() {
 
   return (
     <Container fluid className="App bg-buff-50 min-h-screen">
-      <BrowserRouter>
-        <ApiProvider>
-          <UserProvider>
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <PublicRoute>
-                    <Welcome />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/reset-pass"
-                element={
-                  <PublicRoute>
-                    <RequestResetPassword newPassword={false} />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/reset-pass/change-pass/:token"
-                element={
-                  <PublicRoute>
-                    <ResetPassword newPassword={true} />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="*"
-                element={
-                  <PrivateRoute>
-                    {USE_NEW_UI ? (
-                      <Sidebar element={privateRoutes} />
-                    ) : (
-                      <>
-                        <Header />
-                        {privateRoutes}
-                      </>
-                    )}
-                  </PrivateRoute>
-                }
-              />
-            </Routes>
-          </UserProvider>
-        </ApiProvider>
-      </BrowserRouter>
+      <ThemeProvider theme={theme}>
+        <BrowserRouter>
+          <ApiProvider>
+            <UserProvider>
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <PublicRoute>
+                      <Welcome />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/reset-pass"
+                  element={
+                    <PublicRoute>
+                      <RequestResetPassword newPassword={false} />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/reset-pass/change-pass/:token"
+                  element={
+                    <PublicRoute>
+                      <ResetPassword newPassword={true} />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="*"
+                  element={
+                    <PrivateRoute>
+                      {USE_NEW_UI ? (
+                        <Sidebar element={privateRoutes} />
+                      ) : (
+                        <>
+                          <Header />
+                          {privateRoutes}
+                        </>
+                      )}
+                    </PrivateRoute>
+                  }
+                />
+              </Routes>
+            </UserProvider>
+          </ApiProvider>
+        </BrowserRouter>
+      </ThemeProvider>
+
     </Container>
   );
 }

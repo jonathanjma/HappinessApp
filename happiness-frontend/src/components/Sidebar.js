@@ -1,32 +1,30 @@
-import * as React from "react";
-import PropTypes from "prop-types";
+import MenuIcon from "@mui/icons-material/Menu";
+import { ListItemIcon } from "@mui/material";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
-import Divider from "@mui/material/Divider";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
-import MenuIcon from "@mui/icons-material/Menu";
-import { ListItemIcon } from "@mui/material";
+import PropTypes from "prop-types";
+import * as React from "react";
 import EntriesIcon from "../media/bookmark-book-icon.svg";
 import StatsIcon from "../media/graph-up-icon.svg";
 import GroupIcon from "../media/group-icon.svg";
 import SettingsIcon from "../media/settings-icon.svg";
 
-import TextField from "@mui/material/TextField";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
+import { useEffect, useRef, useState } from "react";
+import { useMutation, useQuery } from "react-query";
 import { NavLink } from "react-router-dom";
-import { useUser } from "../contexts/UserProvider";
-import { useState, useRef, useEffect } from "react";
-import { formatDate, formatHappinessNum } from "../pages/SubmitHappiness";
-import { useQuery, useMutation } from "react-query";
 import { useApi } from "../contexts/ApiProvider";
+import { useUser } from "../contexts/UserProvider";
+import { formatDate, formatHappinessNum } from "../pages/SubmitHappiness";
 const drawerWidth = 340;
 
 const buttonStyle =
@@ -253,11 +251,10 @@ function ResponsiveDrawer(props) {
             value={comment}
             className={`w-full mt-3 mx-3 rounded-lg p-2 outline-none border-raisin-100 focus:border-raisin-200 border-2 focus:border-4 text-left text-sm`}
             style={{
-              height: `${
-                commentBox.current === undefined
-                  ? 100
-                  : Math.max(commentBox.current.scrollHeight, `100`)
-              }px`,
+              height: `${commentBox.current === undefined
+                ? 100
+                : Math.max(commentBox.current.scrollHeight, `100`)
+                }px`,
               scrollbarColor: "#9191b6",
             }}
             placeholder={"Description"}

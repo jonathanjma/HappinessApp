@@ -54,6 +54,11 @@
 }
 
 @font-face {
+    font-family: "inter-regular";
+    src: local("Inter-Regular"), url("./fonts/inter/Inter-Regular.ttf") format("truetype");
+}
+
+@font-face {
     font-family: "rubik-bold";
     src: local("Rubik-Bold"), url("./fonts/rubik/Rubik-Bold.ttf") format("truetype");
 }
@@ -64,6 +69,10 @@
 
 .font-rubik {
     font-family: rubik-regular, sans-serif;
+}
+
+.font-inter {
+    font-family: inter-regular, sans-serif;
 }
 
 .text-stroke-8 {
@@ -100,6 +109,7 @@
     from {
         background-position: 0 center;
     }
+
     to {
         background-position: 200% center;
     }
@@ -130,6 +140,10 @@
 
 .font-roboto {
     font-family: "Roboto Light", sans-serif;
+}
+
+.font-inter {
+    font-family: inter-me, sans-serif;
 }
 
 @media (max-width: 768px) {

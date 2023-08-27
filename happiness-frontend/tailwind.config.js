@@ -4,7 +4,8 @@ module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx,html}"],
   theme: {
     fontFamily: {
-      custom: ['Roboto', 'Roboto']
+      custom: ['Roboto', 'Roboto'],
+      inter: ['Inter', 'Inter']
     },
     extend: {
       colors: {
