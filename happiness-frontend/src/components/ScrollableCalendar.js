@@ -33,8 +33,6 @@ export default function ScrollableCalendar() {
       start: formatDate(start),
       end: formatDate(end),
     });
-    // add page attribute so page number is remembered
-    res.data.page = page;
 
     console.log("Data from " + formatDate(start) + " fetched");
 
@@ -53,7 +51,11 @@ export default function ScrollableCalendar() {
     // reverse sort days
     res.data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-    return res.data;
+    // add page attribute so page number is remembered
+    return {
+      data: res.data,
+      page: page,
+    };
   };
 
   // infinite query for fetching happiness
@@ -73,8 +75,8 @@ export default function ScrollableCalendar() {
   const allEntries = useMemo(
     () =>
       data?.pages.reduce((acc, page) => {
-        return [...acc, ...page];
-      }),
+        return [...acc, ...page.data];
+      }, []),
     [data]
   );
 
