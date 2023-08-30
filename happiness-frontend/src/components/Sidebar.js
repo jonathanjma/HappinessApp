@@ -130,7 +130,7 @@ function ResponsiveDrawer(props) {
 
   const routes = ["/history/" + me.id, "/statistics", "/groups", "/settings"];
   const icons = [EntriesIcon, StatsIcon, GroupIcon, SettingsIcon];
-  const text = ["Entries", "Stats", "Groups"];
+  const text = ["Entries", "Stats", "Groups", "Settings"];
 
   // Networking
 
@@ -186,14 +186,14 @@ function ResponsiveDrawer(props) {
         >
           <div className="items-center mr-2" onClick={() => setSelect()}>
             <img
-              className="mx-3 justify-center max-w-[45px] max-h-[45px] block mx-auto rounded-full sm:mx-0 sm:shrink-0"
+              className="mx-3 justify-center max-w-[48px] max-h-[48px] block mx-auto rounded-full sm:mx-0 sm:shrink-0"
               src={me.profile_picture}
               alt="profile"
             />
           </div>
           <div className="text-raisin-600">
-            <div className="font-semibold text-lg">{me.username}</div>
-            <div className="text-xs">
+            <div className="font-semibold text-xl">{me.username}</div>
+            <div className="text-sm">
               Member since {me.created.substring(0, 4)}
             </div>
           </div>
@@ -206,7 +206,7 @@ function ResponsiveDrawer(props) {
       <div className="py-1 text-xl font-semibold">Today's Entry</div>
 
       <div className="bg-buff-300 rounded-lg flex flex-wrap items-center my-2">
-        <div className="w-full flex px-2 pt-4 items-center">
+        <div className="w-full flex px-2 pt-3 items-center">
           <div className="pl-3 w-2/3 text-raisin-600">
             <div className="font-medium">{weekday[today.getDay()]}</div>
             <div className="text-2xl font-semibold">
@@ -247,7 +247,7 @@ function ResponsiveDrawer(props) {
             ref={commentBox}
             id="large-input"
             value={comment}
-            className={`w-full mt-3 mx-3 rounded-lg p-2 outline-none border-raisin-100 focus:border-raisin-200 border-2 focus:border-4 text-left text-sm`}
+            className={`w-full mt-2 mx-3 rounded-lg p-2 outline-none border-raisin-100 focus:border-raisin-200 border-2 focus:border-4 text-left text-sm`}
             style={{
               height: `${
                 commentBox.current === undefined
@@ -305,7 +305,8 @@ function ResponsiveDrawer(props) {
             </ListItem>
           );
         })}
-        <div>
+        {/* NOTE: Putting Settings key in other list causes reload when clicked */}
+        {/* <div>
           <ListItem key={"Settings"} disablePadding>
             <ListItemButton
               selected={select === "/settings"}
@@ -323,7 +324,7 @@ function ResponsiveDrawer(props) {
               <ListItemText primary={"Settings"} />
             </ListItemButton>
           </ListItem>
-        </div>
+        </div> */}
       </List>
     </div>
   );
@@ -334,7 +335,7 @@ function ResponsiveDrawer(props) {
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <AppBar
+      {/* <AppBar
         position="fixed"
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
@@ -342,27 +343,27 @@ function ResponsiveDrawer(props) {
         }}
       >
         <Toolbar sx={{ color: "white" }}>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: "none" } }}
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          edge="start"
+          onClick={handleDrawerToggle}
+          sx={{ mr: 2, display: { md: "none" } }}
+        >
+          <MenuIcon />
+        </IconButton>
+        <NavLink to={"/"} style={{ textDecoration: "none" }}>
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{ color: "white" }}
           >
-            <MenuIcon />
-          </IconButton>
-          <NavLink to={"/"} style={{ textDecoration: "none" }}>
-            <Typography
-              variant="h6"
-              noWrap
-              component="div"
-              sx={{ color: "white" }}
-            >
-              Happiness App
-            </Typography>
-          </NavLink>
+            Happiness App
+          </Typography>
+        </NavLink>
         </Toolbar>
-      </AppBar>
+      </AppBar> */}
       <Box
         // component="nav"
         sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
@@ -408,7 +409,7 @@ function ResponsiveDrawer(props) {
           width: { md: `calc(100% - ${drawerWidth}px)` },
         }}
       >
-        <Toolbar sx={{ color: "white" }} />
+        {/* <Toolbar sx={{ color: "white" }} /> */}
         {props.element}
       </Box>
     </Box>
