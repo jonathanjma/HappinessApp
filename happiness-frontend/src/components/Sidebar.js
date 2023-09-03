@@ -15,6 +15,7 @@ import EntriesIcon from "../media/bookmark-book-icon.svg";
 import StatsIcon from "../media/graph-up-icon.svg";
 import GroupIcon from "../media/group-icon.svg";
 import SettingsIcon from "../media/settings-icon.svg";
+import { useLocation } from "react-router-dom";
 
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -36,6 +37,8 @@ function ResponsiveDrawer(props) {
   const api = useApi();
   const me = userState.user;
 
+  const [select, setSelect] = useState();
+
   const [happiness, setHappiness] = useState("-");
   const isValidHappiness = (happiness) =>
     happiness !== "-" && happiness % 0.5 === 0 && 0 <= happiness <= 10;
@@ -46,7 +49,6 @@ function ResponsiveDrawer(props) {
   const postHappinessTimeout = useRef(undefined);
   const isInitialRender = useRef(true);
 
-  const [updated, setUpdated] = useState(true);
   const commentBox = useRef();
 
   const weekday = [
@@ -107,14 +109,7 @@ function ResponsiveDrawer(props) {
   }, [postHappinessMutation.isSuccess]);
 
   const today = new Date();
-  const todayFormatted =
-    weekday[today.getDay()] +
-    ", " +
-    today.toDateString().substring(4, 7) +
-    " " +
-    today.getDate() +
-    ", " +
-    today.getFullYear();
+  const pathname = useLocation();
 
   const { window } = props;
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -131,8 +126,9 @@ function ResponsiveDrawer(props) {
     setValues({ ...values, [name]: event.target.value });
   };
 
-  const linkNames = ["/history/" + me.id, "/statistics", "/groups"];
-  const icons = [EntriesIcon, StatsIcon, GroupIcon];
+  const routes = ["/history/" + me.id, "/statistics", "/groups", "/settings"];
+  const icons = [EntriesIcon, StatsIcon, GroupIcon, SettingsIcon];
+  const text = ["Entries", "Stats", "Groups", "Settings"];
 
   // Networking
 
@@ -186,15 +182,15 @@ function ResponsiveDrawer(props) {
           style={{ textDecoration: "none" }}
           className="flex items-center w-full"
         >
-          <div className="items-center mr-2">
+          <div className="items-center mr-2" onClick={() => setSelect()}>
             <img
-              className="mx-3 justify-center max-w-[50px] max-h-[50px] block mx-auto rounded-full sm:mx-0 sm:shrink-0"
+              className="mx-3 justify-center max-w-[48px] max-h-[48px] block mx-auto rounded-full sm:mx-0 sm:shrink-0"
               src={me.profile_picture}
               alt="profile"
             />
           </div>
           <div className="text-raisin-600">
-            <div className="font-semibold text-lg">{me.username}</div>
+            <div className="font-semibold text-xl">{me.username}</div>
             <div className="text-sm">
               Member since {me.created.substring(0, 4)}
             </div>
@@ -208,7 +204,7 @@ function ResponsiveDrawer(props) {
       <div className="py-1 text-xl font-semibold">Today's Entry</div>
 
       <div className="bg-buff-300 rounded-lg flex flex-wrap items-center my-2">
-        <div className="w-full flex px-2 pt-4 items-center">
+        <div className="w-full flex px-2 pt-3 items-center">
           <div className="pl-3 w-2/3 text-raisin-600">
             <div className="font-medium">{weekday[today.getDay()]}</div>
             <div className="text-2xl font-semibold">
@@ -249,7 +245,7 @@ function ResponsiveDrawer(props) {
             ref={commentBox}
             id="large-input"
             value={comment}
-            className={`w-full mt-3 mx-3 rounded-lg p-2 outline-none border-raisin-100 focus:border-raisin-200 border-2 focus:border-4 text-left text-sm`}
+            className={`w-full mt-2 mx-3 rounded-lg p-2 outline-none border-raisin-100 focus:border-raisin-200 border-2 focus:border-4 text-left text-sm`}
             style={{
               height: `${commentBox.current === undefined
                 ? 100
@@ -289,26 +285,43 @@ function ResponsiveDrawer(props) {
         </button>
       </div>
       <List>
-        {["Entries", "Stats", "Groups"].map((text, index) => (
-          <ListItem key={text} disablePadding>
-            <ListItemButton component={NavLink} to={linkNames[index]}>
+        {text.map((routeName, index) => {
+          return (
+            <ListItem key={text[index]} disablePadding>
+              <ListItemButton
+                selected={select === routeName}
+                component={NavLink}
+                to={routes[index]}
+                onClick={() => setSelect(routeName)}
+              >
+                <ListItemIcon>
+                  <img src={icons[index]} />
+                </ListItemIcon>
+                <ListItemText primary={text[index]} />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+        {/* NOTE: Putting Settings key in other list causes reload when clicked */}
+        {/* <div>
+          <ListItem key={"Settings"} disablePadding>
+            <ListItemButton
+              selected={select === "/settings"}
+              commponent={NavLink}
+              to={"/settings"}
+              onClick={() => {
+                console.log("hi");
+                setSelect("/settings");
+                console.log("yes");
+              }}
+            >
               <ListItemIcon>
-                <img src={icons[index]} />
+                <img src={SettingsIcon} />
               </ListItemIcon>
-              <ListItemText primary={text} />
+              <ListItemText primary={"Settings"} />
             </ListItemButton>
           </ListItem>
-        ))}
-      </List>
-      <List sx={{ justifyContent: "flex-end", width: "full" }}>
-        <ListItem key={"Settings"} disablePadding>
-          <ListItemButton commponent={NavLink} to={"/settings"}>
-            <ListItemIcon>
-              <img src={SettingsIcon} />
-            </ListItemIcon>
-            <ListItemText primary={"Settings"} />
-          </ListItemButton>
-        </ListItem>
+        </div> */}
       </List>
     </div>
   );
@@ -319,7 +332,7 @@ function ResponsiveDrawer(props) {
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <AppBar
+      {/* <AppBar
         position="fixed"
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
@@ -327,27 +340,27 @@ function ResponsiveDrawer(props) {
         }}
       >
         <Toolbar sx={{ color: "white" }}>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: "none" } }}
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          edge="start"
+          onClick={handleDrawerToggle}
+          sx={{ mr: 2, display: { md: "none" } }}
+        >
+          <MenuIcon />
+        </IconButton>
+        <NavLink to={"/"} style={{ textDecoration: "none" }}>
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{ color: "white" }}
           >
-            <MenuIcon />
-          </IconButton>
-          <NavLink to={"/"} style={{ textDecoration: "none" }}>
-            <Typography
-              variant="h6"
-              noWrap
-              component="div"
-              sx={{ color: "white" }}
-            >
-              Happiness App
-            </Typography>
-          </NavLink>
+            Happiness App
+          </Typography>
+        </NavLink>
         </Toolbar>
-      </AppBar>
+      </AppBar> */}
       <Box
         // component="nav"
         sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
@@ -393,7 +406,7 @@ function ResponsiveDrawer(props) {
           width: { md: `calc(100% - ${drawerWidth}px)` },
         }}
       >
-        <Toolbar sx={{ color: "white" }} />
+        {/* <Toolbar sx={{ color: "white" }} /> */}
         {props.element}
       </Box>
     </Box>
