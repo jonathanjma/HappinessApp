@@ -9,9 +9,10 @@ import Histories from "../components/happinessHistory/Histories";
 import MonthView from "../components/happinessHistory/MonthView";
 import Stat from "../components/statGraphs/Stat";
 import { useApi } from "../contexts/ApiProvider";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import CommentCard from "../components/CommentCard";
+import ScrollableCalendar from "../components/ScrollableCalendar";
 
 export default function History() {
   // const { user: userState } = useUser();
@@ -117,15 +118,14 @@ export default function History() {
 
   if (USE_NEW_UI) {
     return (
-      <Box>
-        <Box className="flex flex-row">
-          {/* Scrollabe date view would go here */}
-          <Box className="flex flex-col w-32  h-screen mt-8 border-red-500 border-solid" />
-          {/* Entry and comments box */}
-          <Box className="flex flex-col">
-
-          </Box>
-          <Box className="flex flex-col mt-16 w-full mx-8" >
+      <Box className="flex flex-row overflow-hidden">
+        {/* Scrollabe date view goes here */}
+        <Box className="flex flex-col w-1/6  h-screen mt-8">
+          <ScrollableCalendar />
+        </Box>
+        <Box className={"flex flex-col overflow-x-auto w-full border-solid border-blue-500 items-stretch "}>
+          {/* date, public entry, score, comment, and edit button are here */}
+          <Box className="flex flex-col mt-8 mx-8 border-red-500 border-solid h-1/12" >
             {/* Date */}
             <h3 className="subheader">{formattedDate}</h3>
             {/* Public entry and edit button */}
@@ -135,7 +135,7 @@ export default function History() {
               <Button startIcon={<EditIcon />}>Edit Entry</Button>
             </Box>
             {/* Happiness score and entry box */}
-            <Box className="mt-6 flex flex-row">
+            <Box className="mt-6 flex flex-row ">
               <Box className="flex flex-col items-center w-4/12">
                 <h4 className="body1 mb-4">Happiness Score</h4>
                 <h1 className="header1">7.5</h1>
@@ -145,31 +145,27 @@ export default function History() {
                 <h4 className="body1">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibu
                 </h4>
               </Box>
-
-            </Box>
-            {/* Comments */}
-            <Box className="flex flex-row max-w-[620px]">
-              <Box className="flex flex-row overflow-x-auto py-1">
-                {Array(10).fill(0).map((_, i) => <CommentCard
-                  comment={"This is such a good story haha!"}
-                  commenterAvatar={"https://happinessapp.s3.us-east-2.amazonaws.com/20230712144115_30c8c858-32f1-40a2-b9b1-8f20945e24c6.jpg"}
-                  groupName={"Cornell"}
-                  commentDate={"12/31"}
-                  commenter={"Fiddle01"}
-                  key={i}
-                />)}
-              </Box>
-            </Box>
-            {/* Journal title and button */}
-            <Box className="flex flex-row ">
-              <h3 className="header1" >Journal</h3>
-              <Box className="flex flex-1" />
-              <Button  > Lock</Button>
             </Box>
           </Box>
-
+          {/* Comments */}
+          <Box className="flex flex-row pt-6 pb-1 overflow-x-auto ps-8">
+            {Array(10).fill(0).map((_, i) =>
+              <CommentCard
+                comment={"This is such a good story haha!"}
+                commenterAvatar={"https://happinessapp.s3.us-east-2.amazonaws.com/20230712144115_30c8c858-32f1-40a2-b9b1-8f20945e24c6.jpg"}
+                groupName={"Cornell"}
+                commentDate={"12/31"}
+                commenter={"Fiddle01"}
+                key={i}
+              />)}
+          </Box>
+          {/* Journal title and button */}
+          <Box className="flex flex-row mx-8 pt-8">
+            <h3 className="header1" >Journal</h3>
+            <Box className="flex flex-1" />
+            <Button>Lock</Button>
+          </Box>
         </Box>
-
       </Box>
 
     )

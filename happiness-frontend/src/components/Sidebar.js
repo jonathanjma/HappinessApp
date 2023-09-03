@@ -177,7 +177,7 @@ function ResponsiveDrawer(props) {
   }, [submissionStatus]);
 
   const drawer = (
-    <div className="h-full mx-3 my-4">
+    <div className="h-full mx-3 my-4 overflow-hidden">
       {/* <Toolbar /> */}
       <div className="py-1 text-xl font-semibold">Account</div>
       <div className="pb-3 rounded-xl flex items-center">
