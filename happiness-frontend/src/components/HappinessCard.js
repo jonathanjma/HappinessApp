@@ -8,9 +8,9 @@ export default function HappinessCard({ data, click }) {
   const date = new Date(data.timestamp + "T00:00:00");
 
   return (
-    <Card sx={{ my: 1, boxShadow: 0, border: 1, borderColor: "#808080" }}>
-      <CardActionArea onClick={() => click()}>
-        <CardContent sx={{ p: 1 }}>
+    <Card className="my-2 border border-red-500 shadow-none">
+      <CardActionArea onClick={click}>
+        <CardContent className="p-2">
           <Typography sx={{ fontSize: 14, mb: 3, color: "#6B727A" }}>
             {date.toLocaleString("en-us", { weekday: "long" })}
             <br />
