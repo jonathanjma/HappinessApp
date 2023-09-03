@@ -19,6 +19,7 @@ import RequestResetPassword from "./pages/authentication/RequestResetPassword";
 import ResetPassword from "./pages/authentication/ResetPassword";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
+import ScrollableCalendar from "./components/ScrollableCalendar";
 
 export default function App() {
   const USE_NEW_UI = process.env.REACT_APP_USE_NEW_UI;
@@ -33,7 +34,10 @@ export default function App() {
 
   const privateRoutes = (
     <Routes>
-      <Route path="/home" element={<SubmitHappiness />} />
+      <Route
+        path="/home"
+        element={USE_NEW_UI ? <ScrollableCalendar /> : <SubmitHappiness />}
+      />
       <Route
         path="/statistics"
         element={
