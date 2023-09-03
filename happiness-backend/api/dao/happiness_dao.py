@@ -1,4 +1,4 @@
-from api.models import Happiness
+from api.models.models import Happiness
 
 
 def get_happiness_by_id(id):

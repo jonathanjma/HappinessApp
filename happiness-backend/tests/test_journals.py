@@ -3,9 +3,9 @@ from cryptography.fernet import InvalidToken
 
 from api import create_app
 from api.app import db
-from api.email_token_methods import generate_confirmation_token
-from api.models import Journal
+from api.authentication.email_token_methods import generate_confirmation_token
 from api.dao.users_dao import *
+from api.models.models import Journal
 from config import TestConfig
 
 
@@ -59,6 +59,7 @@ def test_e2e_internals(init_client):
     pwd_key = user.derive_pwd_key('password').decode()
     assert user.decrypt_data(pwd_key, encrypted).decode() == 'super secret data'
 
+
 def test_e2e_recovery_internals(init_client):
     client, token, user = init_client
     pwd_key = user.derive_pwd_key('test').decode()
@@ -102,6 +103,7 @@ def test_create_get(init_client):
     assert get1.status_code == 200 and get2.status_code == 200
     assert get1.json[0]['data'] == 'secret' and get2.json[0]['data'] == 'secret2'
 
+
 def test_change_pwd_get(init_client):
     client, token, user = init_client
     pwd_key = user.derive_pwd_key('test').decode()
@@ -120,6 +122,7 @@ def test_change_pwd_get(init_client):
     assert get.status_code == 200
     assert get.json[1]['data'] == 'secret' and get.json[0]['data'] == 'secret2'
 
+
 def test_reset_pwd_recovery_get(init_client):
     client, token, user = init_client
     pwd_key = user.derive_pwd_key('test').decode()
@@ -127,18 +130,18 @@ def test_reset_pwd_recovery_get(init_client):
     client.post('/api/journal/', json={'data': 'secret2'}, headers=auth_key_header(token, pwd_key))
 
     add_recovery = client.put('/api/user/info/',
-                            json={'data_type': 'key_recovery_phrase', 'data': 'help'},
-                            headers=auth_key_header(token, pwd_key))
+                              json={'data_type': 'key_recovery_phrase', 'data': 'help'},
+                              headers=auth_key_header(token, pwd_key))
     assert add_recovery.status_code == 200
 
     reset_token = generate_confirmation_token('test@example.app')
 
     bad_reset = client.post('/api/user/reset_password/' + reset_token,
-                                 json={'password': 'W password', 'recovery_phrase': 'nope'})
+                            json={'password': 'W password', 'recovery_phrase': 'nope'})
     assert bad_reset.status_code == 400
 
     reset_password = client.post('/api/user/reset_password/' + reset_token,
-                                json={'password': 'W password', 'recovery_phrase': 'HELP'})
+                                 json={'password': 'W password', 'recovery_phrase': 'HELP'})
     assert reset_password.status_code == 204
 
     bad_get = client.get('/api/journal/', headers=auth_key_header(token, pwd_key))
@@ -147,6 +150,7 @@ def test_reset_pwd_recovery_get(init_client):
     get = client.get('/api/journal/', headers=auth_key_header(token, user.derive_pwd_key('W password')))
     assert get.status_code == 200
     assert get.json[1]['data'] == 'secret' and get.json[0]['data'] == 'secret2'
+
 
 def test_edit(init_client):
     client, token, user = init_client
@@ -158,11 +162,12 @@ def test_edit(init_client):
     assert bad_edit.status_code == 400
 
     edit = client.put('/api/journal/?id=2', json={'data': 'happiness app'},
-                          headers=auth_key_header(token, pwd_key))
+                      headers=auth_key_header(token, pwd_key))
     assert edit.status_code == 200
 
     get1 = client.get('/api/journal/', headers=auth_key_header(token, pwd_key))
     assert get1.json[0]['data'] == 'happiness app'
+
 
 def test_delete(init_client):
     client, token, user = init_client

@@ -7,8 +7,8 @@ from flask import json
 
 from api import create_app
 from api.app import db
+from api.authentication.email_token_methods import generate_confirmation_token
 from api.dao.users_dao import *
-from api.email_token_methods import generate_confirmation_token
 from config import TestConfig
 
 
@@ -140,6 +140,7 @@ def test_send_password_reset_email(client):
     })
     assert r2.status_code == 204 and r3.status_code == 204
 
+
 def test_reset_password(client):
     client.post('/api/user/', json={
         'email': 'test@example.com',
@@ -161,6 +162,7 @@ def test_reset_password(client):
     login_response = client.post(
         '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
     assert login_response.status_code == 201
+
 
 def test_login_user(client):
     """
@@ -239,12 +241,12 @@ def test_add_user_setting(client):
                                          json={
                                              "key": k1,
                                              "enabled": v1
-    })
+                                         })
     add_mean_setting_res = client.post('/api/user/settings/', headers={"Authorization": f"Bearer {bearer_token}"},
                                        json={
                                            "key": k2,
                                            "enabled": v2
-    })
+                                       })
     assert add_median_setting_res.status_code == 201
     assert add_mean_setting_res.status_code == 201
 
@@ -309,12 +311,12 @@ def test_add_user_setting(client):
                                          json={
                                              "key": k1,
                                              "enabled": v1
-    })
+                                         })
     add_mean_setting_res = client.post('/api/user/settings/', headers={"Authorization": f"Bearer {bearer_token}"},
                                        json={
                                            "key": k2,
                                            "enabled": v2
-    })
+                                       })
     assert add_median_setting_res.status_code == 201
     assert add_mean_setting_res.status_code == 201
     get_settings_res = client.get(
@@ -336,25 +338,25 @@ def test_change_username(client):
     client, bearer_token = register_and_login_demo_user(client)
     new_username = "Fiddle01"  # Could that name have any meaning associated with it? hmmm
     user_name_change_res = client.put('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
-            "data_type": "username",
-            "data": new_username
-        })
+        "data_type": "username",
+        "data": new_username
+    })
     assert user_name_change_res.status_code == 200
     assert get_user_by_username(new_username) is not None
 
     # Create a new account, attempt to change that account to a username that is already taken, should fail
     client, bearer_token2 = register_and_login_demo_user(client)
     user_name_change_res2 = client.put('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
-            "data_type": "username",
-            "data": "fiDdLe01"
-        })
+        "data_type": "username",
+        "data": "fiDdLe01"
+    })
     assert user_name_change_res2.status_code == 400
     # Then try changing it to a unique username, it should be a success
     new_username2 = "fiDdLe02"
     user_name_change_res3 = client.put('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
-            "data_type": "username",
-            "data": new_username2
-        })
+        "data_type": "username",
+        "data": new_username2
+    })
     assert user_name_change_res3.status_code == 200
     assert get_user_by_username(new_username2) is not None
 
@@ -367,25 +369,25 @@ def test_change_email(client):
     client, bearer_token = register_and_login_demo_user(client)
     new_email = "Fiddle01@gmail.com"  # Could that name have any meaning associated with it? hmmm
     user_name_change_res = client.put('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
-            "data_type": "email",
-            "data": new_email
-        })
+        "data_type": "email",
+        "data": new_email
+    })
     assert user_name_change_res.status_code == 200
     assert get_user_by_email(new_email) is not None
 
     # Create a new account, attempt to change that account to an email that is already taken, should fail
     client, bearer_token2 = register_and_login_demo_user(client)
     user_name_change_res2 = client.put('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
-            "data_type": "email",
-            "data": "fiDdLe01@gmail.com"
-        })
+        "data_type": "email",
+        "data": "fiDdLe01@gmail.com"
+    })
     assert user_name_change_res2.status_code == 400
     # Then try changing it to a unique email, it should be a success
     new_email2 = "Fiddle02@gmail.com"
     user_name_change_res3 = client.put('/api/user/info/', headers={"Authorization": f"Bearer {bearer_token}"}, json={
-            "data_type": "email",
-            "data": new_email2
-        })
+        "data_type": "email",
+        "data": new_email2
+    })
     assert user_name_change_res3.status_code == 200
     assert get_user_by_email(new_email2) is not None
 
@@ -396,10 +398,10 @@ def test_change_password(client):
         client, uname_and_password=username)
     new_password = "Password"
     password_change_res1 = client.put('/api/user/info/',
-        headers={
-            "Authorization": f"Bearer {bearer_token}",
-            "Password-Key": get_user_by_username(username).derive_pwd_key("Hello")
-        }, json={
+                                      headers={
+                                          "Authorization": f"Bearer {bearer_token}",
+                                          "Password-Key": get_user_by_username(username).derive_pwd_key("Hello")
+                                      }, json={
             "data_type": "password",
             "data": new_password
         })
@@ -409,6 +411,7 @@ def test_change_password(client):
     login_res = client.post(
         '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
     assert login_res.status_code == 201
+
 
 @pytest.mark.skip(reason="group invites have not been merged")
 def test_get_user_by_id(client):

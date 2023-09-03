@@ -1,7 +1,7 @@
 from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 
 from api.dao.users_dao import get_user_by_username, get_token, get_user_by_id, get_user_by_email
-from api.errors import error_response
+from api.util.errors import error_response
 
 basic_auth = HTTPBasicAuth()
 token_auth = HTTPTokenAuth()

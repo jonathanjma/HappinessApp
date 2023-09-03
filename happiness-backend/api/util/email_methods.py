@@ -1,7 +1,7 @@
 from flask import render_template
 from flask_mail import Message, Mail
 
-from api.email_token_methods import generate_confirmation_token
+from api.authentication.email_token_methods import generate_confirmation_token
 
 global my_app
 global mail

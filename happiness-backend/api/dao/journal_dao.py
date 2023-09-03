@@ -1,10 +1,12 @@
-from api.models import Journal
+from api.models.models import Journal
+
 
 def get_journal_by_id(entry_id):
     """
     Returns a Journal entry object by ID.
     """
     return Journal.query.filter_by(id=entry_id).first()
+
 
 def get_entries_by_count(user_id, page, n):
     """

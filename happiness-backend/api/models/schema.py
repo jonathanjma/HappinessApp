@@ -2,9 +2,9 @@ from apifairy.fields import FileField
 from marshmallow import post_dump
 
 from api.app import ma
-from api.auth import token_auth
-from api.errors import failure_response
-from api.models import User, Group, Happiness, Setting, Comment, Journal
+from api.authentication.auth import token_auth
+from api.models.models import User, Group, Happiness, Setting, Comment, Journal
+from api.util.errors import failure_response
 
 
 class EmptySchema(ma.Schema):
@@ -125,9 +125,11 @@ class HappinessSchema(ma.SQLAlchemySchema):
             data['timestamp'] = data['timestamp'].split()[0]
         return data
 
+
 class HappinessGetBySchema(ma.Schema):
     id = ma.Int()
     date = ma.Str()
+
 
 class HappinessEditSchema(ma.Schema):
     value = ma.Float()
@@ -144,6 +146,11 @@ class HappinessGetCountSchema(ma.Schema):
     page = ma.Int()
     count = ma.Int()
     id = ma.Int()
+
+
+class HappinessGetPaginatedSchema(ma.Schema):
+    page = ma.Int()
+    count = ma.Int()
 
 
 class HappinessGetQuery(ma.Schema):
@@ -186,18 +193,33 @@ class JournalSchema(ma.SQLAlchemySchema):
 
 DecryptedJournalSchema = JournalSchema(many=True)
 
+
 class JournalGetBySchema(ma.Schema):
     id = ma.Int(required=True)
+
 
 class JournalGetSchema(ma.Schema):
     page = ma.Int()
     count = ma.Int()
 
+
 class JournalEditSchema(ma.Schema):
     data = ma.Str(required=True)
+
 
 class PasswordKeySchema(ma.Schema):
     password_key = ma.Str(data_key='Password-Key', required=True)
 
+
 class PasswordKeyOptSchema(ma.Schema):
     password_key = ma.Str(data_key='Password-Key')
+
+
+class CreateReadsSchema(ma.Schema):
+    happiness_id = ma.Int(required=True)
+
+
+class ReadsSchema(ma.Schema):
+    happiness_id = ma.Int(dump_only=True, required=True)
+    user_id = ma.Int(dump_only=True, required=True)
+    timestamp = ma.Str(dump_only=True, required=True)

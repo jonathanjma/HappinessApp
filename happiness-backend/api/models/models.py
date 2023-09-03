@@ -30,6 +30,19 @@ group_invites = db.Table(
     db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
 )
 
+# Reads association table
+readers_happiness = db.Table(
+    "readers_happiness",
+    db.Model.metadata,
+    db.Column("happiness_id", db.Integer, db.ForeignKey(
+        "happiness.id"
+    )),
+    db.Column("reader_id", db.Integer, db.ForeignKey(
+        "user.id"
+    )),
+    db.Column("timestamp", db.DateTime, default=datetime.utcnow())
+)
+
 
 class User(db.Model):
     """
@@ -49,6 +62,10 @@ class User(db.Model):
 
     settings = db.relationship("Setting", cascade="delete")
     groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
+    posts_read = db.relationship("Happiness",
+                                 secondary=readers_happiness,
+                                 back_populates="readers",
+                                 lazy="dynamic")
 
     def __init__(self, **kwargs):
         """
@@ -137,7 +154,7 @@ class User(db.Model):
         else:
             # creates new user key, rendering previously created encrypted data useless
             self.e2e_init(new_pwd)
-            db.session.execute(delete(Journal).where(Journal.user_id == self.id)) # delete entries
+            db.session.execute(delete(Journal).where(Journal.user_id == self.id))  # delete entries
 
     def create_token(self):
         """
@@ -153,6 +170,20 @@ class User(db.Model):
         if user_to_check is None:
             return False
         return self.groups.intersect(user_to_check.groups).count() > 0
+
+    # Returns true if the user has read that happiness entry, false otherwise
+    def has_read_happiness(self, happiness):
+        return self.posts_read.filter_by(id=happiness.id).count() > 0
+
+    # Adds a read entry for the user
+    def read_happiness(self, happiness):
+        if not self.has_read_happiness(happiness):
+            self.posts_read.append(happiness)
+
+    # Removes a read entry for the user
+    def unread_happiness(self, happiness):
+        if self.has_read_happiness(happiness):
+            self.posts_read.remove(happiness)
 
 
 class Setting(db.Model):
@@ -229,6 +260,10 @@ class Happiness(db.Model):
     timestamp = db.Column(db.DateTime)
 
     discussion_comments = db.relationship("Comment", cascade='delete', lazy='dynamic')
+    readers = db.relationship("User",
+                              secondary=readers_happiness,
+                              back_populates="posts_read",
+                              lazy="dynamic")
 
     def __init__(self, **kwargs):
         """
@@ -239,6 +274,7 @@ class Happiness(db.Model):
         self.value = kwargs.get("value")
         self.comment = kwargs.get("comment")
         self.timestamp = kwargs.get("timestamp")
+
 
 class Comment(db.Model):
     """
@@ -263,6 +299,7 @@ class Comment(db.Model):
         self.text = kwargs.get("text")
         self.timestamp = datetime.utcnow()
 
+
 class Journal(db.Model):
     """
     Journal model. Has a many-to-one relationship with user table.
@@ -281,6 +318,7 @@ class Journal(db.Model):
         self.user_id = kwargs.get("user_id")
         self.data = kwargs.get("encrypted_data")
         self.timestamp = datetime.utcnow()
+
 
 class Token(db.Model):
     """
@@ -312,3 +350,17 @@ class Token(db.Model):
         yesterday = datetime.utcnow() - timedelta(days=1)
         db.session.execute(delete(Token).where(
             Token.session_expiration < yesterday))
+
+# class Reads(db.Model):
+#     """
+#     The Reads model.
+#     A user can have many read posts, and a read post can have many users, so this is a many-to-many relationship.
+#     Each read has an associated timestamp.
+#     Happiness is the first entity of this relationship, and Users are the second entity.
+#     Each read has an id (primary key), timestamp, user ID, and Happiness ID.
+#     """
+#     __tablename__ = "reads"
+#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+#     reader_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+#     happiness_id = db.Column(db.Integer, db.ForeignKey("happiness.id"))
+#     timestamp = db.Column(db.DateTime)

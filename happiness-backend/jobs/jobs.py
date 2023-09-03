@@ -3,6 +3,7 @@ import os
 import uuid
 from datetime import datetime, timedelta
 
+import pytz
 import redis
 from dotenv import load_dotenv
 from flask import render_template
@@ -10,8 +11,8 @@ from rq import Queue
 
 from api import create_app
 from api.dao import happiness_dao, users_dao
-from api.email_methods import send_email_helper
-from api.models import Token, Setting
+from api.models.models import Token, Setting
+from api.util.email_methods import send_email_helper
 
 """
 jobs.py contains all scheduled jobs that will be queued by scheduler.py
@@ -68,7 +69,8 @@ def export_happiness(user_id):
 
     entries_dict = map(to_dict_entry, entries)
     fields = ['value', 'comment', 'timestamp']
-    file_path = "export/{filename}"
+    filename = f"happiness_export_{uuid.uuid4()}"
+    file_path = f"export/{filename}"
     with open(file_path, 'w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=fields)
         writer.writeheader()
@@ -89,13 +91,20 @@ def send_notification_email(user_id):
     """
     Sends a happiness app reminder notification email to the given email.
     Requires: user is missing at least 1 entry in the past week
+    The time must be a 24-hour time in the '%H:%M' format, then a space, followed by a valid pytz timezone.
+    See https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568 for list of valid pytz timezones.
     """
     user_to_send = users_dao.get_user_by_id(user_id)
+    user_setting = Setting.query.filter_by(key="notify", user_id=user_id).first()
+    timezone = pytz.timezone(user_setting.value.split(" ")[1])
+    now = datetime.now(tz=timezone)
+
     dates_should_be_present = [
-        (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(1, 7)
+        (now - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(1, 7)
     ]
-    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-    last_week = (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d")
+
+    yesterday = (now - timedelta(days=1)).strftime("%Y-%m-%d")
+    last_week = (now - timedelta(days=6)).strftime("%Y-%m-%d")
     entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=yesterday, user_id=user_id)
     entries = list(filter(lambda x: x is not None, entries))
     entries = [x.timestamp.strftime("%Y-%m-%d") for x in entries]
@@ -125,29 +134,26 @@ def queue_send_notification_emails():
     A user will be a part of a notification email request if they satisfy the following conditions:
     Has a setting with the key "notify"
     The value of the setting is a 24-hour time with hours and minutes and matches the current time
+    See https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568
+
     They have less than 6 Happiness entries from yesterday to 1 week before today
     """
     current_time = str(datetime.now().time().strftime("%H:%M"))
-    # For some reason, the between query for SQLAlchemy seems to be exclusive for the end date
-    # This is very confusing since according to the docs between should be inclusive
-    # It translates to BETWEEN in SQL:
-    # https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.between
-    # BETWEEN is inclusive: https://www.w3schools.com/sql/sql_between.asp
-    # But it works so for now I will keep it.
 
-    today = (datetime.now())
-    last_week = (datetime.now() - timedelta(days=6))
-    to_notify = Setting.query.filter(Setting.value == str(current_time), Setting.key == "notify",
+    to_notify = Setting.query.filter(Setting.value.startswith(str(current_time)), Setting.key == "notify",
                                      Setting.enabled.is_(True)).all()
-    print(f"to_notify: {to_notify}")
     for setting in to_notify:
-        # Check if user is missing happiness entries:
-        # print(f"start: {last_week}")
-        # print(f"end: {today}")
-        entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=today, user_id=setting.user_id)
+        timezone = pytz.timezone(setting.value.split(" ")[1])
+        now = datetime.now(tz=timezone)
+        last_week = (now - timedelta(days=6))
+        # For some reason, the between query for SQLAlchemy seems to be exclusive for the end date
+        # This is very confusing since according to the docs between should be inclusive
+        # It translates to BETWEEN in SQL:
+        # https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.between
+        # BETWEEN is inclusive: https://www.w3schools.com/sql/sql_between.asp
+        # But it works so for now I will keep it
+        entries = happiness_dao.get_happiness_by_timestamp(start=last_week, end=now, user_id=setting.user_id)
         entries = list(filter(lambda x: x is not None, entries))
-        # print(f"entries: {entries}")
-        # print("timestamps: \n\n")
         if len(entries) < 6:
             # They are missing an entry, and we are guaranteed to send an email which is expensive
             # Therefore we queue another job to redis
