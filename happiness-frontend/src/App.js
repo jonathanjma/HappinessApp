@@ -20,6 +20,7 @@ import ResetPassword from "./pages/authentication/ResetPassword";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 import ScrollableCalendar from "./components/ScrollableCalendar";
+import Entries from "./pages/Entries";
 
 export default function App() {
   const USE_NEW_UI = process.env.REACT_APP_USE_NEW_UI;
@@ -36,7 +37,7 @@ export default function App() {
     <Routes>
       <Route
         path="/home"
-        element={USE_NEW_UI ? <ScrollableCalendar /> : <SubmitHappiness />}
+        element={USE_NEW_UI ? <Entries /> : <SubmitHappiness />}
       />
       <Route
         path="/statistics"

@@ -8,8 +8,9 @@ import { formatDate } from "../pages/SubmitHappiness";
 import { Spinner } from "react-bootstrap";
 import InfiniteScroll from "react-infinite-scroll-component";
 
-export default function ScrollableCalendar() {
-  const api = useApi();
+export default function ScrollableCalendar({isLoading, error, allEntries, fetchNextPage, hasNextPage, onEntrySelected}) {
+    /*
+    const api = useApi();
 
   // use negative ids for days with no happiness entry
   let counter = useRef(-1);
@@ -79,6 +80,7 @@ export default function ScrollableCalendar() {
       }, []),
     [data]
   );
+     */
 
   const loadingSpinner = (
     <div className="m-3">
@@ -100,15 +102,17 @@ export default function ScrollableCalendar() {
           ) : (
             <InfiniteScroll
               dataLength={allEntries ? allEntries.length : 0}
-              next={() => fetchNextPage()}
+              next={fetchNextPage}
               hasMore={!!hasNextPage}
               loader={loadingSpinner}
             >
-              {allEntries.map((entry) => (
+              {allEntries.map((entry, index) => (
                 <HappinessCard
                   key={entry.id}
                   data={entry}
-                  click={() => console.log(entry.id)}
+                  click={() => {
+                      onEntrySelected(index)
+                  }}
                 />
               ))}
             </InfiniteScroll>

@@ -29,6 +29,8 @@ export default function History() {
     api.get("/user/" + userID).then((res) => res.data)
   );
 
+
+
   const [pageLoading, setPageLoading] = useState(true);
   useEffect(() => {
     const refetchAll = async () => {
@@ -111,7 +113,6 @@ export default function History() {
 
   const [card, setCard] = useState();
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  const formattedDate = new Date().toLocaleDateString('en-US', options);
 
 
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -121,7 +122,10 @@ export default function History() {
       <Box className="flex flex-row overflow-hidden">
         {/* Scrollabe date view goes here */}
         <Box className="flex flex-col w-1/6  h-screen mt-8">
-          <ScrollableCalendar />
+            <Box className={"flex-1 flex overflow-auto pb-20"}>
+                <ScrollableCalendar />
+
+                </Box>
         </Box>
         <Box className={"flex flex-col overflow-x-auto w-full border-solid border-blue-500 items-stretch "}>
           {/* date, public entry, score, comment, and edit button are here */}
