@@ -4,15 +4,15 @@ import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import { CardActionArea } from "@mui/material";
 
-export default function HappinessCard({ data, click }) {
+export default function HappinessCard({ data, click, selected }) {
   const date = new Date(data.timestamp + "T00:00:00");
 
   return (
-    <Card className="my-2 border border-red-500 shadow-none">
-      <CardActionArea onClick={click}>
+    <Card className={"my-2 transition-transform duration-1000 border-solid border-[#ECECEC] border-[1px] shadow-none"}>
+      <CardActionArea onClick={click}> 
         <CardContent className="p-2">
           <Typography sx={{ fontSize: 14, mb: 3, color: "#6B727A" }}>
-            {date.toLocaleString("en-us", { weekday: "long" })}
+            {date.toLocaleString("en-us", { weekday: "long" })} 
             <br />
             {date.toLocaleString("en-us", { month: "short", day: "numeric" })}
           </Typography>

@@ -131,7 +131,7 @@ export default function History() {
           {/* date, public entry, score, comment, and edit button are here */}
           <Box className="flex flex-col mt-8 mx-8 border-red-500 border-solid h-1/12" >
             {/* Date */}
-            <h3 className="subheader">{formattedDate}</h3>
+            <h3 className="subheader">{""}</h3>
             {/* Public entry and edit button */}
             <Box className="flex flex-row   pt-8">
               <h1 className="header1">Your Public Entry</h1>
