@@ -18,6 +18,7 @@ import SubmitHappiness from "./pages/SubmitHappiness";
 import RequestResetPassword from "./pages/authentication/RequestResetPassword";
 import ResetPassword from "./pages/authentication/ResetPassword";
 import ScrollableCalendar from "./components/ScrollableCalendar";
+import { StyledEngineProvider } from "@mui/material";
 
 export default function App() {
   const USE_NEW_UI = process.env.REACT_APP_USE_NEW_UI;
@@ -82,54 +83,56 @@ export default function App() {
   );
 
   return (
-    <Container fluid className="App bg-buff-50 min-h-screen">
-      <BrowserRouter>
-        <ApiProvider>
-          <UserProvider>
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <PublicRoute>
-                    <Welcome />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/reset-pass"
-                element={
-                  <PublicRoute>
-                    <RequestResetPassword newPassword={false} />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/reset-pass/change-pass/:token"
-                element={
-                  <PublicRoute>
-                    <ResetPassword newPassword={true} />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="*"
-                element={
-                  <PrivateRoute>
-                    {USE_NEW_UI ? (
-                      <Sidebar element={privateRoutes} />
-                    ) : (
-                      <>
-                        <Header />
-                        {privateRoutes}
-                      </>
-                    )}
-                  </PrivateRoute>
-                }
-              />
-            </Routes>
-          </UserProvider>
-        </ApiProvider>
-      </BrowserRouter>
-    </Container>
+    <StyledEngineProvider injectFirst>
+      <Container fluid className="App bg-buff-50 min-h-screen">
+        <BrowserRouter>
+          <ApiProvider>
+            <UserProvider>
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <PublicRoute>
+                      <Welcome />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/reset-pass"
+                  element={
+                    <PublicRoute>
+                      <RequestResetPassword newPassword={false} />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/reset-pass/change-pass/:token"
+                  element={
+                    <PublicRoute>
+                      <ResetPassword newPassword={true} />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="*"
+                  element={
+                    <PrivateRoute>
+                      {USE_NEW_UI ? (
+                        <Sidebar element={privateRoutes} />
+                      ) : (
+                        <>
+                          <Header />
+                          {privateRoutes}
+                        </>
+                      )}
+                    </PrivateRoute>
+                  }
+                />
+              </Routes>
+            </UserProvider>
+          </ApiProvider>
+        </BrowserRouter>
+      </Container>
+    </StyledEngineProvider>
   );
 }
