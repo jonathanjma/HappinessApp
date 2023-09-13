@@ -18,11 +18,13 @@ import SubmitHappiness from "./pages/SubmitHappiness";
 import RequestResetPassword from "./pages/authentication/RequestResetPassword";
 import ResetPassword from "./pages/authentication/ResetPassword";
 import ScrollableCalendar from "./components/ScrollableCalendar";
+import NewUserGroups from "./pages/NewUserGroups";
 import { StyledEngineProvider } from "@mui/material";
 
 export default function App() {
   const USE_NEW_UI = process.env.REACT_APP_USE_NEW_UI;
-  const bgStyle = "mx-auto px-3 py-2" + (!USE_NEW_UI ? " max-w-7xl" : "");
+  const bgStyle =
+    "mx-auto mt-5 mb-3 ms-4 me-4 " + (!USE_NEW_UI ? " max-w-7xl" : "");
 
   const privateRoutes = (
     <Routes>
@@ -50,7 +52,7 @@ export default function App() {
         path="/groups"
         element={
           <div className={bgStyle}>
-            <UserGroups />
+            {USE_NEW_UI ? <NewUserGroups /> : <UserGroups />}
           </div>
         }
       />

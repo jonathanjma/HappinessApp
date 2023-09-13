@@ -8,16 +8,18 @@ export default function HappinessCard({ data, click }) {
   const date = new Date(data.timestamp + "T00:00:00");
 
   return (
-    <Card className="my-2 border border-red-500 shadow-none">
+    <Card className="my-2 border shadow-none">
       <CardActionArea onClick={click}>
         <CardContent className="p-2">
-          <Typography sx={{ fontSize: 14, mb: 3, color: "#6B727A" }}>
+          <Typography className="text-sm mb-3" sx={{ color: "#6B727A" }}>
             {date.toLocaleString("en-us", { weekday: "long" })}
             <br />
             {date.toLocaleString("en-us", { month: "short", day: "numeric" })}
           </Typography>
-          <Typography sx={{ fontSize: 14, color: "#575F68" }}>Score</Typography>
-          <Typography sx={{ fontSize: 32, fontWeight: 500, lineHeight: 1 }}>
+          <Typography className="text-sm" sx={{ color: "#575F68" }}>
+            Score
+          </Typography>
+          <Typography className="text-3xl font-medium">
             {data.value !== undefined ? data.value.toFixed(1) : "-"}
           </Typography>
         </CardContent>
