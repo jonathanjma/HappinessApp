@@ -21,10 +21,13 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 import ScrollableCalendar from "./components/ScrollableCalendar";
 import Entries from "./pages/Entries";
+import NewUserGroups from "./pages/NewUserGroups";
+import { StyledEngineProvider } from "@mui/material";
 
 export default function App() {
   const USE_NEW_UI = process.env.REACT_APP_USE_NEW_UI;
-  const bgStyle = "mx-auto px-3 py-2" + (!USE_NEW_UI ? " max-w-7xl" : "");
+  const bgStyle =
+    "mx-auto mt-5 mb-3 ms-4 me-4 " + (!USE_NEW_UI ? " max-w-7xl" : "");
   const theme = createTheme({
     typography: {
       fontFamily: ["Inter", "cursive"].join(","),
@@ -59,7 +62,7 @@ export default function App() {
         path="/groups"
         element={
           <div className={bgStyle}>
-            <UserGroups />
+            {USE_NEW_UI ? <NewUserGroups /> : <UserGroups />}
           </div>
         }
       />
@@ -92,8 +95,9 @@ export default function App() {
   );
 
   return (
-    <Container fluid className="App bg-buff-50 min-h-screen">
-      <ThemeProvider theme={theme}>
+    <StyledEngineProvider injectFirst>
+      <Container fluid className="App bg-buff-50 min-h-screen">
+        <ThemeProvider theme={theme}>
         <BrowserRouter>
           <ApiProvider>
             <UserProvider>
@@ -143,6 +147,7 @@ export default function App() {
         </BrowserRouter>
       </ThemeProvider>
 
-    </Container>
+      </Container>
+    </StyledEngineProvider>
   );
 }

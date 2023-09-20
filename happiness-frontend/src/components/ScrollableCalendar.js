@@ -5,13 +5,13 @@ import { useInfiniteQuery } from "react-query";
 import { useApi } from "../contexts/ApiProvider";
 import HappinessCard from "./HappinessCard";
 import { formatDate } from "../pages/SubmitHappiness";
-import { Spinner } from "react-bootstrap";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { CircularProgress } from "@mui/material";
 
 export default function ScrollableCalendar({isLoading, error, allEntries, fetchNextPage, hasNextPage, onEntrySelected, selectedEntry, scrollableTarget}) {
   const loadingSpinner = (
     <div className="m-3">
-      <Spinner animation="border" />
+      <CircularProgress sx={{ color: "black" }} />
       <p className="mt-2">Loading entries...</p>
     </div>
   );
@@ -19,7 +19,7 @@ export default function ScrollableCalendar({isLoading, error, allEntries, fetchN
   return (
     <div className="h-full w-[130px] overflow-auto ms-2" id="scrollableDiv">
       {isLoading ? (
-        <Spinner className="m-3" animation="border" />
+        <CircularProgress className="m-3" sx={{ color: "black" }} />
       ) : (
         <>
           {error ? (
