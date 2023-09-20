@@ -1,4 +1,6 @@
 from api.models.models import Happiness
+from sqlalchemy import select
+from api.app import db
 
 
 def get_happiness_by_id(id):
@@ -68,3 +70,11 @@ def get_happiness_by_group_count(user_ids, page, n):
 def get_paginated_happiness_by_query(user_id, query, page, n):
     return Happiness.query.filter_by(user_id=user_id) \
         .filter(Happiness.comment.like(f"%{query}%")).paginate(page=page, per_page=n, error_out=False)
+
+
+def get_happiness_by_value_range(user_id, page, per_page, low, high):
+    return db.paginate(
+        select=(select(Happiness).where(Happiness.value >= low, Happiness.value <= high, Happiness.user_id == user_id)),
+        per_page=per_page,
+        page=page
+    )

@@ -223,3 +223,11 @@ class ReadsSchema(ma.Schema):
     happiness_id = ma.Int(dump_only=True, required=True)
     user_id = ma.Int(dump_only=True, required=True)
     timestamp = ma.Str(dump_only=True, required=True)
+
+
+class HappinessRangeSchema(ma.Schema):
+    id = ma.Int()
+    page = ma.Int()
+    count = ma.Int()
+    low = ma.Int()
+    high = ma.Int()

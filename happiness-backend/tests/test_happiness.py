@@ -37,27 +37,13 @@ def auth_header(token):
     return {'Authorization': f'Bearer {token}'}
 
 
-def test_create_happiness(init_client):
+def test_create_happiness_entry(init_client):
     client, tokens = init_client
-    user_create_response = client.post('/api/user/', json={
-        'email': 'test@example.com',
-        'username': 'test',
-        'password': 'test',
-    })
-    user_credentials = base64.b64encode(b"test:test").decode('utf-8')
-    assert user_create_response.status_code == 201
-
-    login_response = client.post(
-        '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
-    assert login_response.status_code == 201
-    bearer_token = json.loads(login_response.get_data()).get("session_token")
-    assert bearer_token is not None
-
     happiness_create_response = client.post('/api/happiness/', json={
         'value': 4,
         'comment': 'great day',
         'timestamp': '2023-01-11'
-    }, headers={"Authorization": f"Bearer {bearer_token}"})
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_create_response.status_code == 201
     happiness = get_happiness_by_id(1)
     assert happiness.value == 4
@@ -65,7 +51,7 @@ def test_create_happiness(init_client):
     assert happiness.timestamp == datetime.strptime('2023-01-11', "%Y-%m-%d")
 
 
-def test_overwrite_create_happiness(init_client):
+def test_overwrite_create_happiness_entry(init_client):
     client, tokens = init_client
     happiness_create_response = client.post('/api/happiness/', json={
         'value': 4,
@@ -93,27 +79,13 @@ def test_overwrite_create_happiness(init_client):
     assert happiness_list[0].get("value") == 8
 
 
-def test_edit_delete_happiness(init_client):
+def test_edit_happiness(init_client):
     client, tokens = init_client
-    user_create_response = client.post('/api/user/', json={
-        'email': 'test@example.com',
-        'username': 'test',
-        'password': 'test',
-    })
-    user_credentials = base64.b64encode(b"test:test").decode('utf-8')
-    assert user_create_response.status_code == 201
-
-    login_response = client.post(
-        '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
-    assert login_response.status_code == 201
-    bearer_token = json.loads(login_response.get_data()).get("session_token")
-    assert bearer_token is not None
-
     happiness_create_response = client.post('/api/happiness/', json={
         'value': 4,
         'comment': 'great day',
         'timestamp': '2023-01-11'
-    }, headers={"Authorization": f"Bearer {bearer_token}"})
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_create_response.status_code == 201
     happiness = get_happiness_by_id(1)
     assert happiness.value == 4
@@ -124,7 +96,7 @@ def test_edit_delete_happiness(init_client):
         'value': 9,
         'comment': 'bad day',
         'timestamp': '2023-01-12'
-    }, headers={"Authorization": f"Bearer {bearer_token}"})
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_create_response2.status_code == 201
     happiness2 = get_happiness_by_id(2)
     assert happiness2.value == 9
@@ -133,7 +105,7 @@ def test_edit_delete_happiness(init_client):
 
     happiness_set_response = client.put('/api/happiness/?id=2', json={
         'value': 6,
-    }, headers={"Authorization": f"Bearer {bearer_token}"})
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_set_response.status_code == 200
     happiness3 = get_happiness_by_id(2)
     assert happiness3.value == 6
@@ -141,7 +113,7 @@ def test_edit_delete_happiness(init_client):
 
     happiness_edit_response = client.put('/api/happiness/?id=1', json={
         'comment': 'test'
-    }, headers={"Authorization": f"Bearer {bearer_token}"})
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_edit_response.status_code == 200
     h = get_happiness_by_id(1)
     assert h.value == 4
@@ -150,16 +122,23 @@ def test_edit_delete_happiness(init_client):
     happiness_set_response2 = client.put('/api/happiness/?id=1', json={
         'value': 0.0,
         'comment': 'asdadsadsad',
-    }, headers={"Authorization": f"Bearer {bearer_token}"})
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_set_response2.status_code == 200
     happiness4 = get_happiness_by_id(1)
     assert happiness4.value == 0.0
     assert happiness4.comment == 'asdadsadsad'
 
+def test_delete_happiness(init_client):
+    client, tokens = init_client
+    happiness_create_response = client.post('/api/happiness/', json={
+        'value': 4,
+        'comment': 'great day',
+        'timestamp': '2023-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_create_response.status_code == 201
     happiness_delete_response = client.delete(
-        '/api/happiness/?id=2', headers={"Authorization": f"Bearer {bearer_token}"})
+        '/api/happiness/?id=1', headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_delete_response.status_code == 204
-
 
 @pytest.mark.skip(reason="group invites have not been merged")
 def test_get_happiness(init_client):
@@ -427,3 +406,61 @@ def test_discussion_comments(init_client):
     comments = comment_access_u3.json
     assert len(comments) == 2
     assert comments[0]['author']['id'] == 1 and comments[1]['author']['id'] == 3
+
+def test_happiness_from_value_range(init_client):
+    client, tokens = init_client
+    #creating a set of happiness values to query
+    client.post('/api/happiness/', json={
+        'value': 4,
+        'comment': 'great day',
+        'timestamp': '2023-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 9,
+        'comment': 'bad day',
+        'timestamp': '2023-01-12'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 3,
+        'comment': 'very happy',
+        'timestamp': '2023-01-13'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 6.5,
+        'comment': 'hmmm',
+        'timestamp': '2023-01-14'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 7.5,
+        'comment': 'oopsies',
+        'timestamp': '2023-01-16'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 9.5,
+        'comment': 'happiest',
+        'timestamp': '2023-01-29'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 3,
+        'comment': 'no',
+        'timestamp': '2023-01-14'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    happiness_range_34 = client.get('api/happiness/range', json={
+        'low': 3,
+        'high':4,
+        'id': 1,
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_range_34.status_code == 200
+    print(happiness_range_34.json)
+    assert happiness_range_34.json == [{'comment': 'great day', 'id': 1, 'timestamp': '2023-01-11', 'user_id': 1,
+    'value': 4.0}, {'comment': 'very happy', 'id': 3, 'timestamp': '2023-01-13', 'user_id': 1, 'value': 3.0},
+    {'comment': 'no', 'id': 4, 'timestamp': '2023-01-14', 'user_id': 1, 'value': 3.0}]
+
+

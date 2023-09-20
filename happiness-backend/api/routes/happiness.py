@@ -8,7 +8,7 @@ from api.dao import happiness_dao, users_dao
 from api.dao.users_dao import get_user_by_id
 from api.models.models import Happiness, Comment
 from api.models.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, \
-    HappinessGetCountSchema, \
+    HappinessGetCountSchema, HappinessRangeSchema, \
     HappinessGetQuery, CommentSchema, HappinessGetBySchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
@@ -173,7 +173,7 @@ def get_paginated_happiness(req):
     Gets a specified number of happiness values in reverse order.
     User must share a group with the user they are viewing. \n
     Paginated based on page number and happiness entries per page. Defaults to page=1 and count=10. \n
-    Returns: Specified number of happiness entries in reverse order.
+    Returns: Specified happiness entries in reverse order.
     """
     user_id = token_auth.current_user().id
     page, count, id = req.get("page", 1), req.get("count", 10), req.get("id", user_id)
@@ -278,3 +278,22 @@ def import_happiness():
     db.session.commit()
 
     return str(len(happiness_objs)) + ' happiness entries imported'
+
+@happiness.get('/range')
+@body(HappinessRangeSchema)
+@response(HappinessSchema(many=True))
+@authenticate(token_auth)
+def get_happiness_from_value_range(req):
+    """
+    Gets all happiness objects for a user which all have happiness values within a specified range (low, high).
+    Is paginated.
+    Requires: User is logged in, high>=low, low,high are of type int.
+    Returns: a list of happiness objects for a user which all have values within a range
+    """
+    user_id = token_auth.current_user().id
+    low, high, id, page, count = req.get("low"), req.get("high"), req.get("id", user_id), \
+        req.get("page", 1), req.get("count", 10)
+
+    if user_id == id or token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(id)):
+        return happiness_dao.get_happiness_by_value_range(id, page, count, low, high)
+    return failure_response("Not Allowed.", 403)
