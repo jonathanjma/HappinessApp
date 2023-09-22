@@ -51,7 +51,7 @@
     border-right-color: #000;
 }
 
-.header1 {
+.h1 {
     color: var(--components-switch-slide-fill, #000);
     font-family: "Inter";
     font-size: 2rem;
@@ -60,23 +60,74 @@
     line-height: 2.25rem;
     /* 112.5% */
 }
-
-.subheader {
-    color: var(--gray-5, #575F68);
-    font-family: "Inter";
+.h5 {
+    /* H5/Medium */
+    color: var(--components-switch-slide-fill, #000);
+    font-family: Inter;
     font-size: 1.25rem;
     font-style: normal;
     font-weight: 500;
-    line-height: 1.5rem;
+    line-height: 1.5rem; /* 120% */
+}
+.comment-header {
+    overflow: hidden;
+color: var(--Gray, var(--Gray-1, #808080));
+text-overflow: ellipsis;
+font-family: Inter;
+font-size: 0.875rem;
+font-style: normal;
+font-weight: 600;
+line-height: 1rem; /* 114.286% */
+}
+.subheader {
+    color: var(--Gray-2, #575F68);
+    font-family: Inter;
+    font-size: 1.25rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 1.5rem; 
     /* 120% */
+}
+.clickable-text {
+    color: #664810;
+    font-family: Inter;
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 1.5rem; /* 171.429% */
 }
 
 .body1 {
-    color: var(--components-switch-slide-fill, #000);
+    color: var(--Gray-2, #575F68);
     font-family: Inter;
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-style: normal;
     font-weight: 500;
-    line-height: 1.5rem;
-    /* 150% */
+    line-height: 1rem; /* 114.286% */
+}
+.body2-grey {
+    color: var(--Gray, var(--Gray-1, #808080));
+font-family: Inter;
+font-size: 0.875rem;
+font-style: normal;
+font-weight: 500;
+line-height: 1rem; /* 114.286% */
+}
+.comment-body {
+    color: var(--Gray-2, #575F68);
+    font-family: Inter;
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 1.25rem; /* 142.857% */
+}
+
+.score-text{
+    color: var(--Black, #212121);
+text-align: center;
+font-family: Inter;
+font-size: 2.5rem;
+font-style: normal;
+font-weight: 600;
+line-height: 3rem; /* 120% */
 }

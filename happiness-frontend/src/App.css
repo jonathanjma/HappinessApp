@@ -151,3 +151,10 @@
         display: none;
     }
 }
+
+.shadow-heavy {
+    box-shadow: 0px 4px 20px 0px rgba(0, 0, 0, 0.10);
+}
+.shadow-medium {
+    box-shadow: 0px 4px 16px 0px rgba(0, 0, 0, 0.12);
+}

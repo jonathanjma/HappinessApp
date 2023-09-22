@@ -1,27 +1,29 @@
-import { Avatar, Card, CardContent, CardHeader, Typography, Box } from '@mui/material'
-import React from 'react'
+import { Avatar, Box, Card, Typography } from "@mui/material";
+import React from "react";
 
 export default function CommentCard({
   commenter,
   commenterAvatar,
   groupName,
   commentDate,
-  comment
+  comment,
 }) {
   return (
-    <Card className='min-w-[300px] mr-3 rounded-xl' style={{ borderRadius: "12px" }}>
-      {/* TODO ensure CardHeader supports long usernames / group naems */}
-      <CardHeader
-        title={commenter}
-        subheader={groupName}
-        avatar={<Avatar alt={commenter} src={commenterAvatar} />}
-        action={<Box className=" flex-1 flex pr-3 mt-0 h-[36px] items-center">
-          <Typography variant='body2'>{commentDate}</Typography>
-        </Box>}
-      />
-      <CardContent>
-        <Typography variant='h7' className='body1'>{comment}</Typography>
-      </CardContent>
+    <Card
+      className="rounded-none py-4 px-6 shadow-none"
+      style={{ borderRadius: "12px" }}
+    >
+      <Box className="flex flex-row">
+        <Avatar src={commenterAvatar} />
+        <Box className="w-4" />
+        <Box className="flex flex-col">
+          <Typography className="comment-header">
+            {commenter + " • " + groupName}
+          </Typography>
+          <Typography className="comment-body"> {comment} </Typography>
+          <Typography className="body2-grey">{commentDate} </Typography>
+        </Box>
+      </Box>
     </Card>
-  )
+  );
 }
