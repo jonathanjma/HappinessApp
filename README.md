@@ -12,7 +12,7 @@ Happiness App is being developed using React for the frontend and Flask + SQLAlc
 Happiness App is currently under development. We have released a minimum viable product for closed beta testing. 
 Right now we are working on the full product. 
 
-We have onboarded designers [Liam Du](https://www.linkedin.com/in/liam-du/) and [Dennis Quizhpi](https://www.linkedin.com/in/dennis-quizhpi/) and they are working on creating the designs for the Happiness App 2.0 update.
+We have onboarded designers  [Dennis Quizhpi](https://www.linkedin.com/in/dennis-quizhpi/), [Joy Alemu](https://www.linkedin.com/in/joy-alemu-180488211/), and [Jennifer Ai](https://www.linkedin.com/in/jenniferaiii/). They are working on creating the designs for the Happiness App 2.0 update.
 This will include a complete redesign of the app, and new features such as commenting on happiness entries, profile picture support, searching and filtering for happiness entries, and completely private journaling using open source end-to-end encryption. 
 
 
