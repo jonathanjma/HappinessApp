@@ -18,8 +18,6 @@ import SubmitHappiness from "./pages/SubmitHappiness";
 import RequestResetPassword from "./pages/authentication/RequestResetPassword";
 import ResetPassword from "./pages/authentication/ResetPassword";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-
-import ScrollableCalendar from "./components/ScrollableCalendar";
 import Entries from "./pages/Entries";
 import NewUserGroups from "./pages/NewUserGroups";
 import { StyledEngineProvider } from "@mui/material";

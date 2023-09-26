@@ -15,7 +15,7 @@ export default function Entries() {
   const [selectedEntry, setSelectedEntry] = useState(0);
   const [currentHappinessId, setCurrentHappinessId] = useState(-1);
   // use negative ids for days with no happiness entry
-  let counter = useRef(-1);
+  let counter = useRef();
 
   // happiness data fetch function
   // where every page represents one week of happiness data
@@ -104,10 +104,6 @@ export default function Entries() {
       }
     }
   );
-  useEffect(() => {
-    console.log("COMMENTS DATA \n\n");
-    console.log(`${commentsResult.data}\n\n`);
-  }, [commentsResult.data]);
 
   const Comments = () => {
     if (
@@ -181,7 +177,7 @@ export default function Entries() {
       ) : (
         <Box
           className={
-            "flex flex-col w-full items-stretch bg-white rounded-2xl mt-8 mx-8 shadow-heavy"
+            "flex flex-col w-full items-stretch bg-white rounded-2xl mt-8 mx-8 shadow-heavy mb-4"
           }
         >
           {/* date, public entry, score, comment, and edit button are here */}
@@ -240,7 +236,7 @@ export default function Entries() {
           <Box className="flex flex-col mx-8 mt-8 h-[58%]">
             <CommentHeader />
             <Box
-              className="w-full h-[calc(100vh-200px)] border-1 overflow-auto"
+              className="w-full h-[54%] border-1 overflow-auto border-red "
               height={500}
             >
               <Comments />
