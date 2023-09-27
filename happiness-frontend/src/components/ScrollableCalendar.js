@@ -4,9 +4,9 @@ import { useMemo, useRef } from "react";
 import { useInfiniteQuery } from "react-query";
 import { useApi } from "../contexts/ApiProvider";
 import HappinessCard from "./HappinessCard";
-import { formatDate } from "../pages/SubmitHappiness";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { CircularProgress } from "@mui/material";
+import {formatDate} from "../util/Formatting";
 
 export default function ScrollableCalendar({isLoading, error, allEntries, fetchNextPage, hasNextPage, onEntrySelected, selectedEntry, scrollableTarget}) {
   const loadingSpinner = (

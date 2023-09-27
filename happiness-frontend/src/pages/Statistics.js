@@ -1,10 +1,10 @@
 import Stat from "../components/statGraphs/Stat";
 import Graph from "../components/statGraphs/Graph";
-import { TimeButtonTitle } from "./Group";
 import { useState, useEffect } from "react";
 import { Spinner } from "react-bootstrap";
 import { useUser } from "../contexts/UserProvider";
 import { GetRangeHappiness } from "../components/happinessHistory/GetHappinessData";
+import {TimeButtonTitle} from "./groups/TimeButtonTitle";
 
 export default function Statistics() {
   const { user: userState } = useUser();

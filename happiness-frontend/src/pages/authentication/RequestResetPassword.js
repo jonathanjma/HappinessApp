@@ -1,4 +1,4 @@
-import DynamicSmile from "../../components/submitHappiness/DynamicSmile";
+import DynamicSmile from "../happiness/DynamicSmile";
 import { useEffect, useState } from "react";
 import { useMutation } from "react-query";
 import { useApi } from "../../contexts/ApiProvider";

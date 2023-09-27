@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import DynamicSmile from "../../components/submitHappiness/DynamicSmile";
+import DynamicSmile from "../happiness/DynamicSmile";
 import { useMutation } from "react-query";
 import { useApi } from "../../contexts/ApiProvider";
 import { useParams } from "react-router-dom";

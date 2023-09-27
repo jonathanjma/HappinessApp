@@ -25,7 +25,7 @@ import { useMutation, useQuery } from "react-query";
 import { NavLink } from "react-router-dom";
 import { useApi } from "../contexts/ApiProvider";
 import { useUser } from "../contexts/UserProvider";
-import { formatDate, formatHappinessNum } from "../pages/SubmitHappiness";
+import {formatDate, formatHappinessNum} from "../util/Formatting";
 const drawerWidth = 340;
 
 const buttonStyle =

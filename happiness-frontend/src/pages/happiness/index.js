@@ -1,12 +1,14 @@
 import EditIcon from "@mui/icons-material/Edit";
-import { Box, Button, Typography } from "@mui/material";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Spinner } from "react-bootstrap";
-import { useInfiniteQuery, useQuery } from "react-query";
-import CommentCard from "../components/CommentCard";
-import ScrollableCalendar from "../components/ScrollableCalendar";
-import { useApi } from "../contexts/ApiProvider";
-import { formatDate } from "./SubmitHappiness";
+import {Box, Button, Typography} from "@mui/material";
+import {useEffect, useMemo, useRef, useState} from "react";
+import {Spinner} from "react-bootstrap";
+import {useInfiniteQuery, useQuery} from "react-query";
+import ScrollableCalendar from "../../components/ScrollableCalendar";
+import {useApi} from "../../contexts/ApiProvider";
+
+import {formatDate} from "../../util/Formatting";
+import CommentHeader from "./CommentHeader";
+import Comments from "./Comments";
 
 export default function Entries() {
   const options = { year: "numeric", month: "long", day: "numeric" };
@@ -60,6 +62,16 @@ export default function Entries() {
       page: page,
     };
   };
+  const commentsResult = useQuery(
+      [`happinessComments ${currentHappinessId}`],
+      () => {
+        if (currentHappinessId >= 0) {
+          return api
+              .get(`/happiness/${currentHappinessId}/comments`)
+              .then((res) => res.data);
+        }
+      }
+  );
 
   // infinite query for fetching happiness
   const happinessResult = useInfiniteQuery(
@@ -94,66 +106,9 @@ export default function Entries() {
       commentsResult.refetch();
     }
   }, [currentHappinessId]);
-  const commentsResult = useQuery(
-    [`happinessComments ${currentHappinessId}`],
-    () => {
-      if (currentHappinessId >= 0) {
-        return api
-          .get(`/happiness/${currentHappinessId}/comments`)
-          .then((res) => res.data);
-      }
-    }
-  );
 
-  const Comments = () => {
-    if (
-      commentsResult.isLoading ||
-      commentsResult.isError ||
-      commentsResult.data == null
-    ) {
-      return (
-        <>
-          <Spinner />
-        </>
-      );
-    }
 
-    return (
-      <Box className="overflow-auto h-full">
-        {commentsResult.data.map((item) => (
-          <CommentCard
-            comment={item.text}
-            commenter={item.author.username}
-            commenterAvatar={item.author.profile_picture}
-            groupName={"Cornell"} // TODO get the actual group
-            commentDate={item.timestamp}
-            key={item.id}
-          />
-        ))}
-      </Box>
-    );
-  };
 
-  const CommentHeader = () => {
-    if (
-      commentsResult.isLoading ||
-      commentsResult.isError ||
-      commentsResult.data == null
-    ) {
-      return (
-        <>
-          <h5 className="h5 border-solid border-[#E4E0E0] border-b-2 border-x-0 border-t-0 py-0.5">
-            Comments
-          </h5>
-        </>
-      );
-    }
-    return (
-      <h5 className="h5 border-solid border-[#E4E0E0] border-b-2 border-x-0 border-t-0 py-0.5">
-        {`Comments (${commentsResult.data.length})`}
-      </h5>
-    );
-  };
 
   return (
     <Box className="flex flex-row h-screen overflow-hidden ">
@@ -234,12 +189,12 @@ export default function Entries() {
           </Box>
           {/* Comments */}
           <Box className="flex flex-col mx-8 mt-8 h-[58%]">
-            <CommentHeader />
+            <CommentHeader commentsResult={commentsResult}/>
             <Box
               className="w-full h-[54%] border-1 overflow-auto border-red "
               height={500}
             >
-              <Comments />
+              <Comments commentsResult={commentsResult} />
             </Box>
           </Box>
         </Box>

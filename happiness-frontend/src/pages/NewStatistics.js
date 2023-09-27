@@ -1,6 +1,5 @@
 import Stat from "../components/statGraphs/Stat";
 import Graph from "../components/statGraphs/Graph";
-import { TimeButtonTitle } from "./Group";
 import { useState, useEffect } from "react";
 import { Spinner } from "react-bootstrap";
 import { useUser } from "../contexts/UserProvider";

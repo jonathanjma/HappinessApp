@@ -1,7 +1,7 @@
 import { useState } from "react";
 import BigHistoryCard from "../happinessHistory/BigHistoryCard";
-import { happinessColor } from "../../pages/SubmitHappiness";
 import { Link } from "react-router-dom";
+import {happinessColor} from "../../util/HappinessColor";
 
 // Sets border styles if table cell marks beginning of new week
 const weekEdge = (isBound) => {

@@ -1,4 +1,4 @@
-import { happinessColor } from "../../pages/SubmitHappiness";
+import {happinessColor} from "../../util/HappinessColor";
 // month value represents month (0-based index, Jan = 0, Feb = 1, etc)
 
 export default function MonthView({
