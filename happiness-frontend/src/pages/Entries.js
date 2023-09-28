@@ -124,16 +124,20 @@ export default function Entries() {
 
     return (
       <Box className="overflow-auto h-full">
-        {commentsResult.data.map((item) => (
-          <CommentCard
-            comment={item.text}
-            commenter={item.author.username}
-            commenterAvatar={item.author.profile_picture}
-            groupName={"Cornell"} // TODO get the actual group
-            commentDate={item.timestamp}
-            key={item.id}
-          />
-        ))}
+        {commentsResult.data.length === 0 ? (
+          <p className="mt-8">Nothing here yet</p>
+        ) : (
+          commentsResult.data.map((item) => (
+            <CommentCard
+              comment={item.text}
+              commenter={item.author.username}
+              commenterAvatar={item.author.profile_picture}
+              groupName={"Cornell"} // TODO get the actual group
+              commentDate={item.timestamp}
+              key={item.id}
+            />
+          ))
+        )}
       </Box>
     );
   };
@@ -154,7 +158,9 @@ export default function Entries() {
     }
     return (
       <h5 className="h5 border-solid border-[#E4E0E0] border-b-2 border-x-0 border-t-0 py-0.5">
-        {`Comments (${commentsResult.data.length})`}
+        {commentsResult.data.length === 0
+          ? "Comments"
+          : `Comments (${commentsResult.data.length})`}
       </h5>
     );
   };
@@ -181,7 +187,7 @@ export default function Entries() {
       ) : (
         <Box
           className={
-            "flex flex-col w-full items-stretch bg-white rounded-2xl mt-8 mx-8 shadow-heavy"
+            "flex flex-col w-full items-stretch bg-white rounded-2xl mt-8 mb-4 mx-8 shadow-heavy"
           }
         >
           {/* date, public entry, score, comment, and edit button are here */}
