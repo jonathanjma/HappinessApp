@@ -8,7 +8,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { CircularProgress } from "@mui/material";
 import {formatDate} from "../util/Formatting";
 
-export default function ScrollableCalendar({isLoading, error, allEntries, fetchNextPage, hasNextPage, onEntrySelected, selectedEntry, scrollableTarget}) {
+export default function ScrollableCalendar({isLoading, error, allEntries, fetchNextPage, hasNextPage, onEntrySelected, selectedEntry}) {
   const loadingSpinner = (
     <div className="m-3">
       <CircularProgress sx={{ color: "black" }} />

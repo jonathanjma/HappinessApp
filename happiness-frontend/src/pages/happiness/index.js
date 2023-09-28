@@ -1,12 +1,12 @@
 import EditIcon from "@mui/icons-material/Edit";
-import {Box, Button, Typography} from "@mui/material";
-import {useEffect, useMemo, useRef, useState} from "react";
-import {Spinner} from "react-bootstrap";
-import {useInfiniteQuery, useQuery} from "react-query";
+import { Box, Button, Typography } from "@mui/material";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Spinner } from "react-bootstrap";
+import { useInfiniteQuery, useQuery } from "react-query";
 import ScrollableCalendar from "../../components/ScrollableCalendar";
-import {useApi} from "../../contexts/ApiProvider";
+import { useApi } from "../../contexts/ApiProvider";
 
-import {formatDate} from "../../util/Formatting";
+import { formatDate } from "../../util/Formatting";
 import CommentHeader from "./CommentHeader";
 import Comments from "./Comments";
 
@@ -63,14 +63,14 @@ export default function Entries() {
     };
   };
   const commentsResult = useQuery(
-      [`happinessComments ${currentHappinessId}`],
-      () => {
-        if (currentHappinessId >= 0) {
-          return api
-              .get(`/happiness/${currentHappinessId}/comments`)
-              .then((res) => res.data);
-        }
+    [`happinessComments ${currentHappinessId}`],
+    () => {
+      if (currentHappinessId >= 0) {
+        return api
+          .get(`/happiness/${currentHappinessId}/comments`)
+          .then((res) => res.data);
       }
+    }
   );
 
   // infinite query for fetching happiness
@@ -107,9 +107,6 @@ export default function Entries() {
     }
   }, [currentHappinessId]);
 
-
-
-
   return (
     <Box className="flex flex-row h-screen overflow-hidden ">
       {/* Scrollable date view goes here */}
@@ -122,7 +119,6 @@ export default function Entries() {
           hasNextPage={happinessResult.hasNextPage}
           onEntrySelected={onEntrySelected}
           selectedEntry={selectedEntry}
-          scrollableTarget={"scrollableDiv"}
         />
       </Box>
       <Box></Box>
@@ -189,7 +185,7 @@ export default function Entries() {
           </Box>
           {/* Comments */}
           <Box className="flex flex-col mx-8 mt-8 h-[58%]">
-            <CommentHeader commentsResult={commentsResult}/>
+            <CommentHeader commentsResult={commentsResult} />
             <Box
               className="w-full h-[54%] border-1 overflow-auto border-red "
               height={500}
