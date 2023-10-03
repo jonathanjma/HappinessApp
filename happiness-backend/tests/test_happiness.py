@@ -458,9 +458,16 @@ def test_happiness_from_value_range(init_client):
         'id': 1,
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_range_34.status_code == 200
-    print(happiness_range_34.json)
     assert happiness_range_34.json == [{'comment': 'great day', 'id': 1, 'timestamp': '2023-01-11', 'user_id': 1,
     'value': 4.0}, {'comment': 'very happy', 'id': 3, 'timestamp': '2023-01-13', 'user_id': 1, 'value': 3.0},
     {'comment': 'no', 'id': 4, 'timestamp': '2023-01-14', 'user_id': 1, 'value': 3.0}]
+
+    happiness_range_9 = client.get('api/happiness/range', json={
+        'low': 9,
+        'high': 9,
+        'id': 1,
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_range_9.status_code == 200
+    assert happiness_range_9.json == [{'comment': 'bad day', 'id': 2, 'timestamp': '2023-01-12', 'user_id': 1, 'value': 9.0}]
 
 
