@@ -259,6 +259,7 @@ class Happiness(db.Model):
     comment = db.Column(db.String)
     timestamp = db.Column(db.DateTime)
 
+    author = db.relationship("User")
     discussion_comments = db.relationship("Comment", cascade='delete', lazy='dynamic')
     readers = db.relationship("User",
                               secondary=readers_happiness,

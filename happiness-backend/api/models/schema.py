@@ -114,7 +114,7 @@ class HappinessSchema(ma.SQLAlchemySchema):
         ordered = True
 
     id = ma.auto_field(dump_only=True)
-    user_id = ma.auto_field(dump_only=True)
+    author = ma.Nested(SimpleUserSchema, dump_only=True)
     value = ma.auto_field(required=True)
     comment = ma.auto_field()
     timestamp = ma.Str()
