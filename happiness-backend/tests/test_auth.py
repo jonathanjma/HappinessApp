@@ -413,7 +413,6 @@ def test_change_password(client):
     assert login_res.status_code == 201
 
 
-@pytest.mark.skip(reason="group invites have not been merged")
 def test_get_user_by_id(client):
     create_user_res = client.post('/api/user/', json={
         'email': 'test@example.com',
