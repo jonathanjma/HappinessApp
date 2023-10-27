@@ -412,7 +412,7 @@ def test_change_password(client):
         '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
     assert login_res.status_code == 201
 
-
+    
 def test_get_user_by_id(client):
     create_user_res = client.post('/api/user/', json={
         'email': 'test@example.com',

@@ -63,7 +63,6 @@ class User(db.Model):
     settings = db.relationship("Setting", cascade="delete")
     groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
     invites = db.relationship("Group", secondary=group_invites, back_populates="invited_users")
-
     posts_read = db.relationship("Happiness",
                                  secondary=readers_happiness,
                                  back_populates="readers",
@@ -365,3 +364,4 @@ class Token(db.Model):
         yesterday = datetime.utcnow() - timedelta(days=1)
         db.session.execute(delete(Token).where(
             Token.session_expiration < yesterday))
+

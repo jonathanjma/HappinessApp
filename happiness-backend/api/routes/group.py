@@ -107,7 +107,7 @@ def edit_group(req, group_id):
     Requires: valid group ID, at least one of: name, users to invite, or users to remove \n
     Returns: JSON representation for the updated group
     """
-
+    
     new_name, add_users, remove_users = req.get('name'), req.get('invite_users'), \
         req.get('remove_users')
     if new_name is None and add_users is None and remove_users is None:

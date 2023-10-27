@@ -161,6 +161,7 @@ def test_edit_delete_happiness(init_client):
     assert happiness_delete_response.status_code == 204
 
 
+@pytest.mark.skip(reason="group invites have not been merged")
 def test_get_happiness(init_client):
     client, tokens = init_client
     client.post('/api/user/', json={
