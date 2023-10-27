@@ -24,6 +24,7 @@
 /happiness-backend/.env
 */.pytest_cache
 **/__pycache__
+*.csv
 
 
 npm-debug.log*

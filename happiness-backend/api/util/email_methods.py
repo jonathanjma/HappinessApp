@@ -1,7 +1,7 @@
-from flask_mail import Message, Mail
 from flask import render_template
+from flask_mail import Message, Mail
 
-from api.email_token_methods import generate_confirmation_token
+from api.authentication.email_token_methods import generate_confirmation_token
 
 global my_app
 global mail
@@ -15,7 +15,7 @@ def init_app(app):
     mail.init_app(my_app)
 
 
-def send_email_helper(subject, sender, recipients, text_body, html_body):
+def send_email_helper(subject, sender, recipients, text_body, html_body, attachments=None):
     """
     Helper method to send emails using Flask-Mail
     :param subject: Subject line of email.
@@ -23,11 +23,15 @@ def send_email_helper(subject, sender, recipients, text_body, html_body):
     :param recipients: Recipients of the email.
     :param text_body: Rendered template of email req text.
     :param html_body: Rendered template of html email req.
+    :param attachments: Optional file attachments to send with the email, defaults to None
     """
     with my_app.app_context():
         msg = Message(subject, sender=sender, recipients=recipients)
         msg.body = text_body
         msg.html = html_body
+        if attachments:
+            for attachment in attachments:
+                msg.attach(*attachment)
         mail.send(msg)
 
 

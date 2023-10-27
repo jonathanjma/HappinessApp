@@ -1,10 +1,9 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import "../App.css";
 import SubmittedHappinessIcon from "../media/submitted-happiness-icon.svg";
 import EditIcon from "../media/pencil-square-outline-icon.png";
-import TrashIcon from "../media/recycle-bin-line-icon.svg"
-import DynamicSmile from "../components/submitHappiness/DynamicSmile";
+import TrashIcon from "../media/recycle-bin-line-icon.svg";
 import DateDropdown from "../components/submitHappiness/DateDropdown";
 import { useApi } from "../contexts/ApiProvider";
 import { useQuery, useMutation } from "react-query";
@@ -13,7 +12,6 @@ import { Spinner } from "react-bootstrap";
 import { PageState } from "../keys";
 import HappinessEditor from "../components/submitHappiness/HappinessEditor";
 import ConfirmModal from "../components/ConfirmModal";
-
 
 export default function SubmitHappiness() {
   // happiness represents how happy the user is on a scale of 0 to 10.
@@ -60,13 +58,13 @@ export default function SubmitHappiness() {
 
   const deleteHappinessMutation = useMutation({
     mutationFn: () => {
-      return api.delete(`/happiness/${happinessId}`);
+      return api.delete(`/happiness/?id=${happinessId}`);
     },
   });
 
   const editHappinessMutation = useMutation({
     mutationFn: (newHappiness) => {
-      return api.put(`/happiness/${happinessId}`, newHappiness);
+      return api.put(`/happiness/?id=${happinessId}`, newHappiness);
     },
   });
 
@@ -92,10 +90,8 @@ export default function SubmitHappiness() {
 
   // When they change date we need to check again if happiness is submitted.
   useEffect(() => {
-    console.log("Checking data")
     checkSubmitted();
   }, [selectedIndex, data]);
-
 
   // Logic for checking whether happiness was submitted.
   const checkSubmitted = () => {
@@ -112,7 +108,6 @@ export default function SubmitHappiness() {
       if (happinessEntry.timestamp === formatDate(dateList[selectedIndex])) {
         setHappiness(happinessEntry.value);
         setComment(happinessEntry.comment);
-        console.log("set happiness id")
         setHappinessId(happinessEntry.id);
         wasFound = true;
         setPageState(PageState.SUBMITTED);
@@ -127,8 +122,11 @@ export default function SubmitHappiness() {
 
   useEffect(() => {
     async function updateScreen() {
-      if (postHappinessMutation.isSuccess || editHappinessMutation.isSuccess
-        || deleteHappinessMutation.isSuccess) {
+      if (
+        postHappinessMutation.isSuccess ||
+        editHappinessMutation.isSuccess ||
+        deleteHappinessMutation.isSuccess
+      ) {
         setPageState(PageState.LOADING);
         await refetch();
         checkSubmitted();
@@ -136,7 +134,11 @@ export default function SubmitHappiness() {
       }
     }
     updateScreen();
-  }, [postHappinessMutation.isSuccess, editHappinessMutation.isSuccess, deleteHappinessMutation.isSuccess])
+  }, [
+    postHappinessMutation.isSuccess,
+    editHappinessMutation.isSuccess,
+    deleteHappinessMutation.isSuccess,
+  ]);
   const submitNewHappiness = async () => {
     // Weird math but avoids floating point rounding errors (hopefully)
     if (happiness % 0.5 !== 0) {
@@ -150,8 +152,8 @@ export default function SubmitHappiness() {
   };
 
   const editHappiness = async () => {
-    if (happiness % .5 !== 0) {
-      setHappiness(formatHappinessNum(happiness))
+    if (happiness % 0.5 !== 0) {
+      setHappiness(formatHappinessNum(happiness));
     }
     editHappinessMutation.mutate({
       value: formatHappinessNum(happiness),
@@ -184,35 +186,44 @@ export default function SubmitHappiness() {
   };
 
   const DeleteButton = () => {
-
     return (
       <>
-        <img src={TrashIcon} className="bg-white p-2 ml-3 rounded-md hover:scale-110 hover:shadow-xl duration-100 hover:cursor-pointer border-2 border-solid" width={50} height={50} onClick={() => {
-          setConfirmDeleteShowing(true)
-        }} />
+        <img
+          src={TrashIcon}
+          className="bg-white p-2 ml-3 rounded-md hover:scale-110 hover:shadow-xl duration-100 hover:cursor-pointer border-2 border-solid"
+          width={50}
+          height={50}
+          onClick={() => {
+            setConfirmDeleteShowing(true);
+          }}
+        />
         <ConfirmModal
-          heading={<div className="font-semibold font-sans text-2xl">Are you sure you want to continue?</div>}
-          body={<>
-            <p>
-              You are deleting happiness for {" "}
-              <b>{`${formatFullDate(dateList[selectedIndex])}`}</b>
-
-            </p>
-          </>}
+          heading={
+            <div className="font-semibold font-sans text-2xl">
+              Are you sure you want to continue?
+            </div>
+          }
+          body={
+            <>
+              <p>
+                You are deleting happiness for{" "}
+                <b>{`${formatFullDate(dateList[selectedIndex])}`}</b>
+              </p>
+            </>
+          }
           show={confirmDeleteShowing}
           setShow={setConfirmDeleteShowing}
           onConfirm={async () => {
-            console.log("Deleting happiness")
+            console.log("Deleting happiness");
             deleteHappinessMutation.mutate();
-            setPageState(PageState.LOADING)
+            setPageState(PageState.LOADING);
             await refetch();
             setPageState(PageState.UNSUBMITTED);
           }}
         />
       </>
-
-    )
-  }
+    );
+  };
 
   if (isLoading) {
     return (
@@ -268,7 +279,6 @@ export default function SubmitHappiness() {
             happiness
           )}`}
         >
-
           <div className="flex items-center">
             <DateDropdown
               selectedIndex={selectedIndex}
@@ -285,7 +295,7 @@ export default function SubmitHappiness() {
             pageState={pageState}
             setPageState={setPageState}
             onSubmitClick={() => {
-              const hours = (new Date()).getHours();
+              const hours = new Date().getHours();
               if (hours < 12 && selectedIndex === 0) {
                 setConfirmSubmitShowing(true);
               } else {
@@ -294,14 +304,31 @@ export default function SubmitHappiness() {
             }}
           />
           <ConfirmModal
-            heading={<div className="font-semibold font-sans text-2xl">Are you sure you want to continue?</div>}
-            body={<>
-              <p>
-                You are already submitting happiness at
-                {`${(new Date()).getHours() === 0 ? ` 12:${(new Date().getMinutes())} AM ` : ` ${(new Date()).getHours()}:${new Date().getMinutes()} AM `}`}
-                for <br /> <b>{`${formatFullDate(dateList[selectedIndex])}`}</b> . Are you sure?
-              </p>
-            </>}
+            heading={
+              <div className="font-semibold font-sans text-2xl">
+                Are you sure you want to continue?
+              </div>
+            }
+            body={
+              <>
+                <p>
+                  Your day
+                  {`${
+                    new Date().getHours() === 0
+                      ? ` 12:${new Date()
+                          .getMinutes()
+                          .toString()
+                          .padStart(2, "0")} AM `
+                      : ` ${new Date().getHours()}:${new Date()
+                          .getMinutes()
+                          .toString()
+                          .padStart(2, "0")} AM `
+                  }`}
+                  for <b>{`${formatFullDate(dateList[selectedIndex])}`}</b> .
+                  Are you sure?
+                </p>
+              </>
+            }
             show={confirmSubmitShowing}
             setShow={setConfirmSubmitShowing}
             onConfirm={async () => {
@@ -339,7 +366,11 @@ export default function SubmitHappiness() {
           />
         </div>
       );
-    default: <>Error: you weren't supposed to see this. Screenshot this and send to the devs :/</>
+    default:
+      <>
+        Error: you weren't supposed to see this. Screenshot this and send to the
+        devs :/
+      </>;
   }
 }
 
@@ -350,9 +381,14 @@ function formatDate(date) {
   return `${year}-${month}-${day}`;
 }
 const formatFullDate = (date) => {
-  const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
-  return date.toLocaleDateString('en-US', options);
-}
+  const options = {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  };
+  return date.toLocaleDateString("en-US", options);
+};
 
 function initializeDateList(dateList) {
   const today = new Date();

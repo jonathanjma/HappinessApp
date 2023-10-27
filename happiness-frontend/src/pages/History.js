@@ -4,13 +4,38 @@ import { useState, Fragment, useEffect } from "react";
 import MonthView from "../components/happinessHistory/MonthView";
 import { GetRangeHappiness } from "../components/happinessHistory/GetHappinessData";
 import { useUser } from "../contexts/UserProvider";
+import { useQuery } from "react-query";
 import { Spinner } from "react-bootstrap";
+import { useParams } from "react-router-dom";
 import Stat from "../components/statGraphs/Stat";
+import { useApi } from "../contexts/ApiProvider";
 import BigHistoryCard from "../components/happinessHistory/BigHistoryCard";
 
 export default function History() {
-  const { user: userState } = useUser();
-  const me = userState.user;
+  // const { user: userState } = useUser();
+  // const me = userState.user;
+  const userID = useParams().userID;
+  const api = useApi();
+  const {
+    isLoading: isLoadingU,
+    data: user,
+    error: errorU,
+    refetch: refetchU,
+  } = useQuery("get user from user id", () =>
+    api.get("/user/" + userID).then((res) => res.data)
+  );
+
+  const [pageLoading, setPageLoading] = useState(true);
+  useEffect(() => {
+    const refetchAll = async () => {
+      setPageLoading(true);
+      console.log("refetching!!");
+      await refetchU();
+      setPageLoading(false);
+      // setPageLoading(false);
+    };
+    refetchAll();
+  }, [userID]);
 
   // initializes dates corresponding to start and end of current week
   const [start, setStart] = useState(new Date());
@@ -37,7 +62,7 @@ export default function History() {
   // fetches data for weekly view
   const [isLoading, data, error, refetch] = GetRangeHappiness(
     true,
-    me.id,
+    userID,
     start.toLocaleDateString("sv").substring(0, 10),
     end.toLocaleDateString("sv").substring(0, 10)
   );
@@ -72,7 +97,7 @@ export default function History() {
   // fetches data for monthly view
   const [isLoadingM, dataM, errorM, refetchM] = GetRangeHappiness(
     true,
-    me.id,
+    userID,
     stMonth.toLocaleDateString("sv").substring(0, 10),
     endMonth.toLocaleDateString("sv").substring(0, 10)
   );
@@ -161,11 +186,11 @@ export default function History() {
                 &gt;
               </button>
             </div>
-            {isLoading ? (
+            {isLoading || isLoadingU ? (
               <Spinner animation="border" />
             ) : (
               <>
-                {error ? (
+                {error || errorU ? (
                   <p className="text-xl font-medium text-raisin-600 m-3 text-center">
                     Error: Could not load happiness.
                   </p>
@@ -177,7 +202,7 @@ export default function History() {
                       </p>
                     ) : (
                       <>
-                        <Histories dataList={data} userList={[me]} />
+                        <Histories dataList={data} userList={[user]} />
                       </>
                     )}
                   </>
@@ -246,11 +271,11 @@ export default function History() {
                       &gt;
                     </button>
                   </div>
-                  {isLoadingM ? (
+                  {isLoadingM || isLoadingU ? (
                     <Spinner animation="border" />
                   ) : (
                     <>
-                      {errorM ? (
+                      {errorM || errorU ? (
                         <p className="text-xl font-medium text-raisin-600 m-3 text-center">
                           Error: Could not load happiness.
                         </p>
@@ -268,11 +293,11 @@ export default function History() {
                   )}
                 </div>
               </div>
-              {isLoadingM ? (
+              {isLoadingM || isLoadingU ? (
                 <Spinner animation="border" />
               ) : (
                 <>
-                  {errorM ? (
+                  {errorM || errorU ? (
                     <p className="text-xl font-medium text-raisin-600 m-3 text-center">
                       Error: Could not load happiness.
                     </p>
@@ -285,7 +310,7 @@ export default function History() {
                       ) : (
                         <>
                           <div className="w-full flex flex-wrap justify-center max-w-[550px] lg:w-1/3 lg:mx-6 -mt-4">
-                            {card && <BigHistoryCard data={card} user={me} />}
+                            {card && <BigHistoryCard data={card} user={user} />}
 
                             <div className="w-full justify-center hidden lg:flex">
                               <Stat

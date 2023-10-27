@@ -1,0 +1,8 @@
+Dear {{user.username}},
+
+Your happiness export is attached to this email.
+Enjoy viewing your data!
+
+Sincerely,
+
+The Happiness App Team
