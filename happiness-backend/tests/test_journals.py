@@ -20,11 +20,11 @@ def init_client():
         user = User(email='test@example.app', username='user', password='test')
         db.session.add(user)
         db.session.commit()
-        token = user.create_token()
-        db.session.add(token)
+        token_obj, token = user.create_token()
+        db.session.add(token_obj)
         db.session.commit()
 
-        yield client, token.session_token, user
+        yield client, token, user
 
 
 def auth_key_header(token, key):

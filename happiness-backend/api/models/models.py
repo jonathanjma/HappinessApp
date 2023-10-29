@@ -82,17 +82,16 @@ class User(db.Model):
         self.created = datetime.today()
         self.e2e_init(raw_pwd)
 
-    # generate user key for encrypting/decrypting data
-    # derive password key for encrypting/decrypting user key from user password
-    # store encrypted user key in db
-    # https://security.stackexchange.com/questions/157422/store-encrypted-user-data-in-database
     def e2e_init(self, password):
+        """Generate user key for encrypting/decrypting data"""
+        # also derive password key for encrypting/decrypting user key from user password
+        # https://security.stackexchange.com/questions/157422/store-encrypted-user-data-in-database
         user_key = base64.urlsafe_b64encode(os.urandom(32))
         password_key = self.derive_pwd_key(password)
         self.encrypted_key = Fernet(password_key).encrypt(user_key)
 
-    # derive password key from user password
     def derive_pwd_key(self, password):
+        """Derive password key from user password"""
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
@@ -101,17 +100,17 @@ class User(db.Model):
         )
         return base64.urlsafe_b64encode(kdf.derive(bytes(password, 'utf-8')))
 
-    # decrypt user key using password key
     def decrypt_user_key(self, pwd_key):
+        """Decrypt user key using password key"""
         return Fernet(bytes(pwd_key, 'utf-8')).decrypt(self.encrypted_key)
 
-    # decrypt user key with password key, then encrypt data with user key
     def encrypt_data(self, pwd_key, data):
+        """Decrypt user key with password key, then encrypt data with user key"""
         user_key = self.decrypt_user_key(pwd_key)
         return Fernet(user_key).encrypt(bytes(data, 'utf-8'))
 
-    # decrypt user key with password key, then decrypt data with user key
     def decrypt_data(self, pwd_key, data):
+        """Decrypt user key with password key, then decrypt data with user key"""
         user_key = self.decrypt_user_key(pwd_key)
         return Fernet(user_key).decrypt(data)
 
@@ -122,25 +121,28 @@ class User(db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password, password)
 
-    # change user password + update encrypted key
-    # (decrypt user key with old password key, then encrypt with new password key, update db)
     def change_password(self, new_pwd, pwd_key):
+        """Changes a user's password and updates its encrypted key"""
+        # Decrypts user key with password key of old password,
+        # then encrypts the user key with new password key of new password
         user_key = self.decrypt_user_key(pwd_key)
         new_pwd_key = self.derive_pwd_key(new_pwd)
         self.encrypted_key = Fernet(new_pwd_key).encrypt(user_key)
         self.password = generate_password_hash(new_pwd)
 
-    # add recovery phrase to prevent data loss if password is forgotten
-    # (stores a copy of the user key encrypted with a recovery phrase)
     def add_key_recovery(self, recovery_phrase, pwd_key):
+        """Add recovery phrase to prevent loss of encrypted data if user forgets their password"""
+        # stores a copy of the user key encrypted with a recovery phrase
         user_key = self.decrypt_user_key(pwd_key)
         recovery_key = self.derive_pwd_key(recovery_phrase.lower())
         self.encrypted_key_recovery = Fernet(recovery_key).encrypt(user_key)
 
-    # reset password
-    # *** !!! Will cause encrypted data to be lost if recovery not set up
-    # or old password key not provided !!! ***
     def reset_password(self, new_pwd, recovery_phrase=None, pwd_key=None):
+        """
+        Resets a user's password
+        *** !!! Will cause encrypted data to be lost if recovery phrase not set up
+        or old password key not provided !!! ***
+        """
         self.password = generate_password_hash(new_pwd)
         if self.encrypted_key_recovery and recovery_phrase:
             # decrypts user key with recovery phrase, allowing user key to be encrypted with new password
@@ -157,10 +159,8 @@ class User(db.Model):
             db.session.execute(delete(Journal).where(Journal.user_id == self.id))  # delete entries
 
     def create_token(self):
-        """
-        Generates a new session token for a user
-        """
-        return Token(user_id=self.id)
+        """Generates a new session token for a user"""
+        return Token().hashed(self.id)
 
     def has_mutual_group(self, user_to_check):
         """
@@ -171,17 +171,17 @@ class User(db.Model):
             return False
         return self.groups.intersect(user_to_check.groups).count() > 0
 
-    # Returns true if the user has read that happiness entry, false otherwise
     def has_read_happiness(self, happiness):
+        """Returns true if the user has read that happiness entry, false otherwise"""
         return self.posts_read.filter_by(id=happiness.id).count() > 0
 
-    # Adds a read entry for the user
     def read_happiness(self, happiness):
+        """Adds a read entry for the user"""
         if not self.has_read_happiness(happiness):
             self.posts_read.append(happiness)
 
-    # Removes a read entry for the user
     def unread_happiness(self, happiness):
+        """Removes a read entry for the user"""
         if self.has_read_happiness(happiness):
             self.posts_read.remove(happiness)
 
@@ -328,13 +328,26 @@ class Token(db.Model):
     __tablename__ = "token"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    session_token = db.Column(db.String, nullable=False, unique=True)
+    session_token = db.Column(db.String, nullable=False, unique=True) # stored using hashing
     session_expiration = db.Column(db.DateTime, nullable=False)
 
+    @staticmethod
+    def hashed(user_id):
+        """
+        Create a hashed session token for a user.
+        Returns the associated token object and the unhashed token.
+        """
+        token = hashlib.sha1(os.urandom(64)).hexdigest()
+        hashed_token = hashlib.sha256(token.encode()).hexdigest()
+        return Token(user_id=user_id, hashed_token=hashed_token), token
+
     def __init__(self, **kwargs):
-        """Generates a new session token for a user."""
+        """
+        Generates a new session token for a user.
+        Requires non-null kwargs: user ID and hashed session token.
+        """
         self.user_id = kwargs.get("user_id")
-        self.session_token = hashlib.sha1(os.urandom(64)).hexdigest()
+        self.session_token = kwargs.get("hashed_token")
         self.session_expiration = datetime.utcnow() + timedelta(weeks=3)
 
     def verify(self):
@@ -349,8 +362,7 @@ class Token(db.Model):
     def clean():
         """Remove any tokens that have been expired for more than a day."""
         yesterday = datetime.utcnow() - timedelta(days=1)
-        db.session.execute(delete(Token).where(
-            Token.session_expiration < yesterday))
+        db.session.execute(delete(Token).where(Token.session_expiration < yesterday))
 
 # class Reads(db.Model):
 #     """

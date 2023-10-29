@@ -24,14 +24,14 @@ def init_client():
         db.session.add_all([user1, user2, user3])
         db.session.commit()
 
-        tokens = [user1.create_token(), user2.create_token(), user3.create_token()]
-        db.session.add_all(tokens)
+        token_objs, tokens = zip(*[user1.create_token(), user2.create_token(), user3.create_token()])
+        db.session.add_all(token_objs)
         db.session.commit()
         minus1hr = datetime.datetime.utcnow() - datetime.timedelta(hours=1)
 
         add_happiness(minus1hr)
 
-        yield client, [tokens[0].session_token, tokens[1].session_token, tokens[2].session_token]
+        yield client, tokens
 
 
 def auth_header(token):

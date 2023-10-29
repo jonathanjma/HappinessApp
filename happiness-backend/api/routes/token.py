@@ -22,8 +22,8 @@ def new_token():
         for accessing encrypted data in the response header
     """
     user = basic_auth.current_user()
-    token = user.create_token()
-    db.session.add(token)
+    token_obj, token = user.create_token()
+    db.session.add(token_obj)
 
     # Initialize end-to-end encryption (needed to migrate existing users)
     if user.encrypted_key is None:
@@ -33,7 +33,7 @@ def new_token():
     db.session.commit()
 
     return ({
-                'session_token': token.session_token
+                'session_token': token
             },
             {
                 'Password-Key': user.derive_pwd_key(request.authorization.password)
