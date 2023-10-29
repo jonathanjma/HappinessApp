@@ -9,7 +9,7 @@ from api.dao.users_dao import get_user_by_id
 from api.models.models import Happiness, Comment
 from api.models.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, \
     HappinessGetCountSchema, \
-    HappinessGetQuery, CommentSchema, HappinessGetBySchema
+    HappinessGetQuery, CommentSchema, HappinessGetBySchema, CommentEditSchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
 
@@ -41,18 +41,19 @@ def create_happiness(req):
     except ValueError:
         return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)
 
-    # check if date already exists
-    potential_happiness = happiness_dao.get_happiness_by_date(current_user.id, timestamp)
-    if potential_happiness:
-        potential_happiness.comment = comment
-        potential_happiness.value = value
+    # overwrite entry if date already exists
+    happiness_obj = happiness_dao.get_happiness_by_date(current_user.id, timestamp)
+    if happiness_obj:
+        happiness_obj.comment = comment
+        happiness_obj.value = value
         db.session.commit()
-        return potential_happiness
+        return happiness_obj
 
     # validate happiness value
     if not (value * 2).is_integer() or value < 0 or value > 10:
         return failure_response("Invalid happiness value.", 400)
 
+    # create new entry
     happiness = Happiness(user_id=current_user.id, value=value, comment=comment, timestamp=timestamp)
     db.session.add(happiness)
     db.session.commit()
@@ -171,7 +172,7 @@ def get_paginated_happiness(req):
     """
     Get Happiness by Count
     Gets a specified number of happiness values in reverse order.
-    User must share a group with the user they are viewing. \n
+    Requires: User must share a group with the user they are viewing. \n
     Paginated based on page number and happiness entries per page. Defaults to page=1 and count=10. \n
     Returns: Specified number of happiness entries in reverse order.
     """
@@ -215,7 +216,7 @@ def get_comments(id):
     """
     Get Discussion Comments
     Gets all the discussion comments for a happiness entry. \n
-    User must share a group with the user who created the happiness entry. \n
+    Requires: User must share a group with the user who created the happiness entry. \n
     Returns: List of discussion comments, only including the comments where
     the commenter shares a group with the current user
     """
@@ -231,6 +232,47 @@ def get_comments(id):
         return failure_response("Not Allowed.", 403)
     return failure_response("Happiness Not Found.", 404)
 
+@happiness.put('/comments/<int:id>')
+@authenticate(token_auth)
+@body(CommentEditSchema)
+@response(CommentSchema)
+@other_responses({404: 'Invalid Comment', 403: 'Not Allowed'})
+def edit_comment(req, id):
+    """
+    Edit Discussion Comment
+    Updates the text of a happiness discussion comment. \n
+    Requires: User must be the author of the post they are editing.
+    """
+    comment_obj = happiness_dao.get_comment_by_id(id)
+    if not comment_obj:
+        return failure_response('Comment Not Found', 404)
+    if comment_obj.user_id != token_auth.current_user().id:
+        return failure_response('Not Allowed', 403)
+
+    comment_obj.text = req.get("data")
+    db.session.commit()
+
+    return comment_obj
+
+@happiness.delete('/comments/<int:id>')
+@authenticate(token_auth)
+@other_responses({404: 'Invalid Comment', 403: 'Not Allowed'})
+def delete_comment(id):
+    """
+    Delete Discussion Comment
+    Deletes a happiness discussion comment. \n
+    Requires: User must be the author of the post they are deleting.
+    """
+    comment_obj = happiness_dao.get_comment_by_id(id)
+    if not comment_obj:
+        return failure_response('Comment Not Found', 404)
+    if comment_obj.user_id != token_auth.current_user().id:
+        return failure_response('Not Allowed', 403)
+
+    db.session.delete(comment_obj)
+    db.session.commit()
+
+    return '', 204
 
 @happiness.get('/search')
 @authenticate(token_auth)

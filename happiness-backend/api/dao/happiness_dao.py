@@ -1,4 +1,4 @@
-from api.models.models import Happiness
+from api.models.models import Happiness, Comment
 
 
 def get_happiness_by_id(id):
@@ -68,3 +68,6 @@ def get_happiness_by_group_count(user_ids, page, n):
 def get_paginated_happiness_by_query(user_id, query, page, n):
     return Happiness.query.filter_by(user_id=user_id) \
         .filter(Happiness.comment.like(f"%{query}%")).paginate(page=page, per_page=n, error_out=False)
+
+def get_comment_by_id(id):
+    return Comment.query.filter_by(id=id).first()
