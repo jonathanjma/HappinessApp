@@ -11,6 +11,7 @@ from sqlalchemy import delete
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from api.app import db
+from api.authentication.email_token_methods import generate_jwt
 
 # Group Users association table
 group_users = db.Table(
@@ -100,6 +101,10 @@ class User(db.Model):
             iterations=200000,
         )
         return base64.urlsafe_b64encode(kdf.derive(bytes(password, 'utf-8')))
+
+    def pwd_key_jwt(self, password):
+        return generate_jwt(
+            {'Password-Key': self.derive_pwd_key(password).decode('utf-8')}, 60)
 
     # decrypt user key using password key
     def decrypt_user_key(self, pwd_key):

@@ -5,17 +5,37 @@ from api.app import db
 from api.authentication.auth import token_auth
 from api.dao import journal_dao
 from api.models.models import Journal
-from api.models.schema import JournalSchema, JournalGetSchema, DecryptedJournalSchema, PasswordKeySchema, \
-    JournalEditSchema, JournalGetBySchema
+from api.models.schema import JournalSchema, JournalGetSchema, DecryptedJournalSchema, \
+    PasswordKeyJWTSchema, \
+    JournalEditSchema, JournalGetBySchema, EmptySchema, GetPasswordKeySchema
 from api.util.errors import failure_response
 
 journal = Blueprint('journal', __name__)
 
+@journal.get('/key')
+@authenticate(token_auth)
+@body(GetPasswordKeySchema)
+@response(EmptySchema, headers=PasswordKeyJWTSchema)
+@other_responses({401: "Incorrect Password"})
+def get_password_key_jwt(req):
+
+    user = token_auth.current_user()
+
+    # Initialize end-to-end encryption (needed to migrate existing users)
+    if user.encrypted_key is None:
+        user.e2e_init(req.get("password"))
+
+    if not user.verify_password(req.get("password")):
+        return failure_response("Incorrect Password", 401)
+
+    return ({}, {
+        'Password-Key': user.pwd_key_jwt(req.get("password"))
+    })
 
 @journal.post('/')
 @authenticate(token_auth)
 @body(JournalSchema)
-@arguments(PasswordKeySchema, location='headers')
+@arguments(PasswordKeyJWTSchema, location='headers')
 @response(JournalSchema, 201)
 @other_responses({400: "Invalid password key."})
 def create_entry(req, headers):
@@ -39,7 +59,7 @@ def create_entry(req, headers):
 @journal.get('/')
 @authenticate(token_auth)
 @arguments(JournalGetSchema)
-@arguments(PasswordKeySchema, location='headers')
+@arguments(PasswordKeyJWTSchema, location='headers')
 @response(DecryptedJournalSchema)
 @other_responses({400: "Invalid password key."})
 def get_entries(args, headers):
@@ -59,7 +79,7 @@ def get_entries(args, headers):
 @journal.put('/')
 @authenticate(token_auth)
 @arguments(JournalGetBySchema)
-@arguments(PasswordKeySchema, location='headers')
+@arguments(PasswordKeyJWTSchema, location='headers')
 @body(JournalEditSchema)
 @response(JournalSchema)
 @other_responses({404: "Entry Not Found.", 400: "Invalid password key."})

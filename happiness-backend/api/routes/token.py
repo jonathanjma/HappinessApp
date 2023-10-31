@@ -5,7 +5,7 @@ from api.app import db
 from api.authentication.auth import basic_auth, token_auth
 from api.dao.users_dao import get_token
 from api.models.models import Token
-from api.models.schema import TokenSchema, PasswordKeySchema
+from api.models.schema import TokenSchema
 from api.util.errors import failure_response
 
 token = Blueprint('token', __name__)
@@ -13,7 +13,7 @@ token = Blueprint('token', __name__)
 
 @token.post('/')
 @authenticate(basic_auth)
-@response(TokenSchema, headers=PasswordKeySchema, status_code=201)
+@response(TokenSchema, status_code=201)
 def new_token():
     """
     Get Token
@@ -25,19 +25,10 @@ def new_token():
     token = user.create_token()
     db.session.add(token)
 
-    # Initialize end-to-end encryption (needed to migrate existing users)
-    if user.encrypted_key is None:
-        user.e2e_init(request.authorization.password)
-
     Token.clean()
     db.session.commit()
 
-    return ({
-                'session_token': token.session_token
-            },
-            {
-                'Password-Key': user.derive_pwd_key(request.authorization.password)
-            })
+    return {'session_token': token.session_token}
 
 
 @token.delete('/')

@@ -3,16 +3,17 @@ from time import time
 from flask import current_app
 import jwt
 
-
-def generate_confirmation_token(email, expiration=10):
+def generate_jwt(payload, expiration):
+    """Generate a JWT with a JSON payload and an expiration time in minutes"""
+    payload['exp'] = time() + expiration * 60
     return jwt.encode(
-        {
-            'exp': time() + expiration * 60, # expiration is in minutes
-            'reset_email': email,
-        },
+        payload,
         current_app.config['SECRET_KEY'],
         algorithm='HS256'
     )
+
+def generate_confirmation_token(email, expiration=10):
+    generate_jwt({'reset_email': email}, expiration)
 
 
 def confirm_email_token(token):

@@ -206,8 +206,10 @@ class JournalGetSchema(ma.Schema):
 class JournalEditSchema(ma.Schema):
     data = ma.Str(required=True)
 
+class GetPasswordKeySchema(ma.Schema):
+    password = ma.Str(required=True)
 
-class PasswordKeySchema(ma.Schema):
+class PasswordKeyJWTSchema(ma.Schema):
     password_key = ma.Str(data_key='Password-Key', required=True)
 
 
