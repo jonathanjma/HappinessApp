@@ -122,14 +122,9 @@ def test_send_password_reset_email(client):
     Tests sending a password reset email to test@example.com
     As long as a success response was returned the email is assumed to have been sent (that's the best we can do)
     """
-    r0 = client.post('/api/user/', json={
+    client.post('/api/user/', json={
         'email': 'test@example.com',
         'username': 'test',
-        'password': 'test',
-    })
-    r1 = client.post('/api/user/', json={
-        'email': 'test2@example.com',
-        'username': 'test2',
         'password': 'test',
     })
     r2 = client.post('/api/user/initiate_password_reset/', json={
@@ -138,7 +133,7 @@ def test_send_password_reset_email(client):
     r3 = client.post('/api/user/initiate_password_reset/', json={
         'email': 'test2@example.com'
     })
-    assert r2.status_code == 204 and r3.status_code == 204
+    assert r2.status_code == 204 and r3.status_code == 400
 
 
 def test_reset_password(client):
@@ -148,12 +143,11 @@ def test_reset_password(client):
         'password': 'test',
     })
 
-    reset_token = generate_confirmation_token('test@example.com')
-
-    bad_reset = client.post('/api/user/reset_password/' + reset_token[:-1] + 'A',
+    bad_reset = client.post('/api/user/reset_password/' + 'reset_token',
                             json={'password': 'W password'})
     assert bad_reset.status_code == 400
 
+    reset_token = generate_confirmation_token('test@example.com')
     reset_password = client.post('/api/user/reset_password/' + reset_token,
                                  json={'password': 'W password'})
     assert reset_password.status_code == 204
@@ -162,6 +156,16 @@ def test_reset_password(client):
     login_response = client.post(
         '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
     assert login_response.status_code == 201
+
+    reset_token2 = generate_confirmation_token('test@example.com', expiration=0)
+    reset_password2 = client.post('/api/user/reset_password/' + reset_token2,
+                                 json={'password': 'bad password'})
+    assert reset_password2.status_code == 400
+
+    user_credentials2 = base64.b64encode("test:bad password".encode()).decode('utf-8')
+    login_response2 = client.post(
+        '/api/token/', headers={"Authorization": f"Basic {user_credentials2}"})
+    assert login_response2.status_code == 401
 
 
 def test_login_user(client):

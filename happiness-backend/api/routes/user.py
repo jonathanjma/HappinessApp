@@ -246,11 +246,11 @@ def reset_password(req, headers, token):
     """
     # Verify token is not expired
     email = confirm_email_token(token)
-    if email is False:
-        return failure_response("Token expired", 400)
+    if not email:
+        return failure_response("Invalid/Expired token", 400)
     current_user = users_dao.get_user_by_email(email)
     if not current_user:
-        return failure_response("Password reset token verification failed, token may be expired", 401)
+        return failure_response("Password reset token verification failed", 401)
 
     try:
         current_user.reset_password(req.get("password"),
@@ -265,17 +265,16 @@ def reset_password(req, headers, token):
 @user.post('/initiate_password_reset/')
 @body(PasswordResetReqSchema)
 @response(EmptySchema, 204, 'Password reset email sent')
-@other_responses({404: "User associated with email address not found"})
+@other_responses({400: "User associated with email address not found"})
 def send_reset_password_email(req):
     """
     Send Reset Password Email
     Sends a password reset request email to email sent in the req of the JSON request. \n
     Returns: a success response or failure response depending on the result of the operation
     """
-    email = req.get("email")
-    user_by_email = users_dao.get_user_by_email(email)
+    user_by_email = users_dao.get_user_by_email(req.get("email"))
     if user_by_email is None:
-        return failure_response("User associated with email address not found", 404)
+        return failure_response("User associated with email address not found", 400)
     threading.Thread(target=email_methods.send_password_reset_email,
                      args=(user_by_email,)).start()
     return '', 204
