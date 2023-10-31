@@ -9,12 +9,12 @@ from flask import Blueprint
 from flask import current_app
 
 from api.app import db
-from api.authentication.email_token_methods import confirm_email_token
+from api.util.jwt_methods import verify_token
 from api.dao import users_dao
 from api.models.models import User, Setting
 from api.models.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     UserInfoSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
-    FileUploadSchema, GroupSchema, PasswordKeyOptSchema
+    FileUploadSchema, GroupSchema
 from api.routes.token import token_auth
 from api.util import email_methods
 from api.util.errors import failure_response
@@ -163,8 +163,7 @@ def get_user_settings():
 @user.put('/info/')
 @authenticate(token_auth)
 @body(UserInfoSchema)
-@arguments(PasswordKeyOptSchema, location='headers')
-@response(SimpleUserSchema, headers=PasswordKeyOptSchema)
+@response(SimpleUserSchema)
 @other_responses({400: "Provided data already exists or empty data field."})
 def change_user_info(req, headers):
     """
@@ -192,8 +191,6 @@ def change_user_info(req, headers):
             return failure_response("Provide data already exists", 400)
 
         current_user.username = new_username
-        db.session.commit()
-        return current_user
     elif data_type == "email":
         # Changes a user's email, which requires their email to be unique.
         new_email = req.get("data")
@@ -202,35 +199,31 @@ def change_user_info(req, headers):
             return failure_response("Provided data already exists", 400)
 
         current_user.email = new_email
-        db.session.commit()
-        return current_user
     elif data_type == "password":
-        # Changes a user's password.
-        try:
-            current_user.change_password(req.get("data"), headers.get("password_key"))
-            db.session.commit()
-            return current_user, {
-                'Password-Key': current_user.derive_pwd_key(req.get('data'))
-            }
-        except Exception as e:
-            print(e)
-            return failure_response('Invalid password key.', 400)
+        # Changes a user's password, which requires their old password and a new one.
+        old_password, new_password = req.get("data"), req.get("data2")
+        if not current_user.verify_password(old_password):
+            return failure_response("Incorrect Password", 401)
+
+        current_user.change_password(old_password, new_password)
     elif data_type == "key_recovery_phrase":
-        # Adds/Changes key recovery phrase to prevent loss of encrypted data on password reset.
-        try:
-            current_user.add_key_recovery(req.get("data"), headers.get("password_key"))
-            db.session.commit()
-            return current_user
-        except Exception as e:
-            print(e)
-            return failure_response('Invalid password key.', 400)
+        # Adds/Changes key recovery phrase to prevent loss of encrypted data on password reset,
+        # which requires their password and a recovery phrase.
+        password, recovery_phrase = req.get("data"), req.get("data2")
+        if not current_user.verify_password(password):
+            return failure_response("Incorrect Password", 401)
+
+        current_user.add_key_recovery(password, recovery_phrase)
     else:
         return failure_response('Unknown data_type.', 400)
+
+    db.session.commit()
+    return current_user
 
 
 @user.post('/reset_password/<token>')
 @body(PasswordResetSchema)
-@arguments(PasswordKeyOptSchema, location='headers')
+#@arguments(PasswordKeyOptSchema, location='headers') ****************************** need to update
 @response(EmptySchema, 204, 'Password reset successful')
 @other_responses({400: "Invalid password reset token or recovery input"})
 def reset_password(req, headers, token):
@@ -245,7 +238,7 @@ def reset_password(req, headers, token):
     (since they will never be able to be decrypted) and therefore will be deleted.
     """
     # Verify token is not expired
-    email = confirm_email_token(token)
+    email = verify_token(token)['reset_email']
     if not email:
         return failure_response("Invalid/Expired token", 400)
     current_user = users_dao.get_user_by_email(email)

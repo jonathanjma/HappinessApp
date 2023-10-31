@@ -12,12 +12,9 @@ def generate_jwt(payload, expiration):
         algorithm='HS256'
     )
 
-def generate_confirmation_token(email, expiration=10):
-    generate_jwt({'reset_email': email}, expiration)
-
-
-def confirm_email_token(token):
+def verify_token(token):
+    """Verify that a JWT is valid and not expired"""
     try:
-        return jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])['reset_email']
+        return jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
     except jwt.PyJWTError:
         return

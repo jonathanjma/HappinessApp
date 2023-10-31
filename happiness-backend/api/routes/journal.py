@@ -9,8 +9,16 @@ from api.models.schema import JournalSchema, JournalGetSchema, DecryptedJournalS
     PasswordKeyJWTSchema, \
     JournalEditSchema, JournalGetBySchema, EmptySchema, GetPasswordKeySchema
 from api.util.errors import failure_response
+from api.util.jwt_methods import verify_token
 
 journal = Blueprint('journal', __name__)
+
+def get_verify_key_token(token):
+    password_key = verify_token(token)['Password-Key']
+    if not token:
+        return failure_response('Invalid password key token.', 400)
+    return password_key
+
 
 @journal.get('/key')
 @authenticate(token_auth)
@@ -21,15 +29,11 @@ def get_password_key_jwt(req):
 
     user = token_auth.current_user()
 
-    # Initialize end-to-end encryption (needed to migrate existing users)
-    if user.encrypted_key is None:
-        user.e2e_init(req.get("password"))
-
     if not user.verify_password(req.get("password")):
         return failure_response("Incorrect Password", 401)
 
     return ({}, {
-        'Password-Key': user.pwd_key_jwt(req.get("password"))
+        'Password-Key': user.generate_password_key_token(req.get("password"))
     })
 
 @journal.post('/')
@@ -44,9 +48,10 @@ def create_entry(req, headers):
     Creates a new private journal entry, which is stored using end-to-end encryption. \n
     Requires: the user's `password_key` for data encryption (provided by server during API token creation)
     """
+    password_key = get_verify_key_token(headers.get('key_token'))
     try:
         user = token_auth.current_user()
-        data = user.encrypt_data(headers.get('password_key'), req.get('data'))
+        data = user.encrypt_data(password_key, req.get('data'))
         entry = Journal(user_id=user.id, encrypted_data=data)
         db.session.add(entry)
         db.session.commit()
@@ -69,10 +74,11 @@ def get_entries(args, headers):
     Paginated based on page number and journal entries per page. Defaults to page=1 and count=10. \n
     Requires: the user's `password_key` for data decryption (provided by server during API token creation)
     """
+    password_key = get_verify_key_token(headers.get('key_token'))
     user = token_auth.current_user()
     page, count = args.get("page", 1), args.get("count", 10)
     # add password key to schema context so entries can be decrypted
-    DecryptedJournalSchema.context['password_key'] = headers.get('password_key')
+    DecryptedJournalSchema.context['password_key'] = password_key
     return journal_dao.get_entries_by_count(user.id, page, count)
 
 
@@ -89,11 +95,12 @@ def edit_entry(args, headers, req):
     Modifies the journal entry corresponding to the provided ID with the given text. \n
     Requires: the user's `password_key` for data encryption (provided by server during API token creation)
     """
+    password_key = get_verify_key_token(headers.get('key_token'))
     entry = journal_dao.get_journal_by_id(args.get('id'))
     if not entry:
         return failure_response("Entry Not Found.", 404)
     try:
-        entry.data = token_auth.current_user().encrypt_data(headers.get('password_key'), req.get('data'))
+        entry.data = token_auth.current_user().encrypt_data(password_key, req.get('data'))
         db.session.commit()
         return entry
     except Exception as e:

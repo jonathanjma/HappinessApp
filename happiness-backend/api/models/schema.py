@@ -165,8 +165,9 @@ class FileUploadSchema(ma.Schema):
 
 
 class UserInfoSchema(ma.Schema):
-    data = ma.Str(required=True)
     data_type = ma.Str(required=True)
+    data = ma.Str(required=True)
+    data2 = ma.Str()
 
 
 class JournalSchema(ma.SQLAlchemySchema):
@@ -210,11 +211,7 @@ class GetPasswordKeySchema(ma.Schema):
     password = ma.Str(required=True)
 
 class PasswordKeyJWTSchema(ma.Schema):
-    password_key = ma.Str(data_key='Password-Key', required=True)
-
-
-class PasswordKeyOptSchema(ma.Schema):
-    password_key = ma.Str(data_key='Password-Key')
+    key_token = ma.Str(data_key='Password-Key', required=True)
 
 
 class CreateReadsSchema(ma.Schema):

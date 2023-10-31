@@ -1,8 +1,6 @@
 from flask import render_template
 from flask_mail import Message, Mail
 
-from api.authentication.email_token_methods import generate_confirmation_token
-
 global my_app
 global mail
 
@@ -41,7 +39,7 @@ def send_password_reset_email(user):
     :param user: The user to send the password reset email to.
     """
     with my_app.app_context():
-        token = generate_confirmation_token(user.email)
+        token = user.generate_password_reset_token()
         send_email_helper('Happiness App Password Reset',
                           sender="noreply@happinessapp.org",
                           recipients=[user.email],

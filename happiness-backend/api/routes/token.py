@@ -25,6 +25,10 @@ def new_token():
     token = user.create_token()
     db.session.add(token)
 
+    # Initialize end-to-end encryption (needed to migrate existing users)
+    if user.encrypted_key is None:
+        user.e2e_init(request.authorization.password)
+
     Token.clean()
     db.session.commit()
 
@@ -39,7 +43,7 @@ def revoke_token():
     Revoke Token
     Expires a user's API access token. Equivalent to "logging out".
     """
-    token = get_token(request.headers['Authorization'].split()[1])
+    token = get_token(request.authorization.token)
     if token and token.user_id == token_auth.current_user().id:
         token.revoke()
         db.session.commit()

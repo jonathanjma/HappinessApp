@@ -7,7 +7,7 @@ from flask import json
 
 from api import create_app
 from api.app import db
-from api.authentication.email_token_methods import generate_confirmation_token
+from api.util.jwt_methods import generate_confirmation_token
 from api.dao.users_dao import *
 from config import TestConfig
 
@@ -404,7 +404,7 @@ def test_change_password(client):
     password_change_res1 = client.put('/api/user/info/',
                                       headers={
                                           "Authorization": f"Bearer {bearer_token}",
-                                          "Password-Key": get_user_by_username(username).derive_pwd_key("Hello")
+                                          "Password-Key": get_user_by_username(username).derive_password_key("Hello")
                                       }, json={
             "data_type": "password",
             "data": new_password

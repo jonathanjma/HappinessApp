@@ -11,7 +11,7 @@ from sqlalchemy import delete
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from api.app import db
-from api.authentication.email_token_methods import generate_jwt
+from api.util.jwt_methods import generate_jwt
 
 # Group Users association table
 group_users = db.Table(
@@ -89,11 +89,11 @@ class User(db.Model):
     # https://security.stackexchange.com/questions/157422/store-encrypted-user-data-in-database
     def e2e_init(self, password):
         user_key = base64.urlsafe_b64encode(os.urandom(32))
-        password_key = self.derive_pwd_key(password)
+        password_key = self.derive_password_key(password)
         self.encrypted_key = Fernet(password_key).encrypt(user_key)
 
     # derive password key from user password
-    def derive_pwd_key(self, password):
+    def derive_password_key(self, password):
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
@@ -102,22 +102,22 @@ class User(db.Model):
         )
         return base64.urlsafe_b64encode(kdf.derive(bytes(password, 'utf-8')))
 
-    def pwd_key_jwt(self, password):
+    def generate_password_key_token(self, password, expiration=60):
         return generate_jwt(
-            {'Password-Key': self.derive_pwd_key(password).decode('utf-8')}, 60)
+            {'Password-Key': self.derive_password_key(password).decode('utf-8')}, expiration)
 
     # decrypt user key using password key
-    def decrypt_user_key(self, pwd_key):
-        return Fernet(bytes(pwd_key, 'utf-8')).decrypt(self.encrypted_key)
+    def decrypt_user_key(self, password_key):
+        return Fernet(bytes(password_key, 'utf-8')).decrypt(self.encrypted_key)
 
     # decrypt user key with password key, then encrypt data with user key
-    def encrypt_data(self, pwd_key, data):
-        user_key = self.decrypt_user_key(pwd_key)
+    def encrypt_data(self, password_key, data):
+        user_key = self.decrypt_user_key(password_key)
         return Fernet(user_key).encrypt(bytes(data, 'utf-8'))
 
     # decrypt user key with password key, then decrypt data with user key
-    def decrypt_data(self, pwd_key, data):
-        user_key = self.decrypt_user_key(pwd_key)
+    def decrypt_data(self, password_key, data):
+        user_key = self.decrypt_user_key(password_key)
         return Fernet(user_key).decrypt(data)
 
     def avatar_url(self):
@@ -128,37 +128,38 @@ class User(db.Model):
         return check_password_hash(self.password, password)
 
     # change user password + update encrypted key
-    # (decrypt user key with old password key, then encrypt with new password key, update db)
-    def change_password(self, new_pwd, pwd_key):
-        user_key = self.decrypt_user_key(pwd_key)
-        new_pwd_key = self.derive_pwd_key(new_pwd)
-        self.encrypted_key = Fernet(new_pwd_key).encrypt(user_key)
-        self.password = generate_password_hash(new_pwd)
+    # (decrypt user key with old password, then encrypt with new password key, update db)
+    def change_password(self, old_password, new_password):
+        user_key = self.decrypt_user_key(self.derive_password_key(old_password))
+        self.encrypted_key = Fernet(self.derive_password_key(new_password)).encrypt(user_key)
+        self.password = generate_password_hash(new_password)
 
     # add recovery phrase to prevent data loss if password is forgotten
     # (stores a copy of the user key encrypted with a recovery phrase)
-    def add_key_recovery(self, recovery_phrase, pwd_key):
-        user_key = self.decrypt_user_key(pwd_key)
-        recovery_key = self.derive_pwd_key(recovery_phrase.lower())
+    def add_key_recovery(self, password, recovery_phrase):
+        user_key = self.decrypt_user_key(self.derive_password_key(password))
+        recovery_key = self.derive_password_key(recovery_phrase.lower())
         self.encrypted_key_recovery = Fernet(recovery_key).encrypt(user_key)
+
+    def generate_password_reset_token(self, expiration=10):
+        return generate_jwt({'reset_email': self.email}, expiration)
 
     # reset password
     # *** !!! Will cause encrypted data to be lost if recovery not set up
     # or old password key not provided !!! ***
-    def reset_password(self, new_pwd, recovery_phrase=None, pwd_key=None):
-        self.password = generate_password_hash(new_pwd)
+    def reset_password(self, new_password, old_password=None, recovery_phrase=None):
+        self.password = generate_password_hash(new_password)
         if self.encrypted_key_recovery and recovery_phrase:
             # decrypts user key with recovery phrase, allowing user key to be encrypted with new password
-            recovery_key = self.derive_pwd_key(recovery_phrase.lower())
+            recovery_key = self.derive_password_key(recovery_phrase.lower())
             user_key = Fernet(recovery_key).decrypt(self.encrypted_key_recovery)
-            new_pwd_key = self.derive_pwd_key(new_pwd)
-            self.encrypted_key = Fernet(new_pwd_key).encrypt(user_key)
-        elif pwd_key:
-            # decrypt data with old password key (useful if old key is still stored in client)
-            self.change_password(new_pwd, pwd_key)
+            self.encrypted_key = Fernet(self.derive_password_key(new_password)).encrypt(user_key)
+        elif old_password:
+            # decrypt data with old password
+            self.change_password(old_password, new_password)
         else:
             # creates new user key, rendering previously created encrypted data useless
-            self.e2e_init(new_pwd)
+            self.e2e_init(new_password)
             db.session.execute(delete(Journal).where(Journal.user_id == self.id))  # delete entries
 
     def create_token(self):
