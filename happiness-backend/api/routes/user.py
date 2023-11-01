@@ -171,11 +171,12 @@ def change_user_info(req):
     Changes a user's info based on 3 different `data_type`(s):
     - "username" (must be unique)
     - "email" (must be unique)
-    - "password"
-    - "key_recovery_phrase"
+    - "password" (requires old password)
+    - "key_recovery_phrase" (requires current password)
     Then the associated data must be put in the `data` field of the request. \n
-    If changing password or adding/changing key_recovery_phrase, the user's `password_key`
-    (provided by server during API token creation) must also be sent.
+    If changing password, put the user's old password in the `data` field and the new password in the `data2` field. \n
+    If adding a password key recovery phrase, put the user's current password in the `data` field \n
+    and the recovery phrase in the `data2` field.
     """
     data_type = req.get("data_type")
     current_user = token_auth.current_user()

@@ -316,11 +316,11 @@ class Journal(db.Model):
     def __init__(self, **kwargs):
         """
         Initializes a Private Journal Entry object.
-        Requires non-null kwargs: user ID and encrypted entry text.
+        Requires non-null kwargs: user ID, date of entry, and encrypted entry text.
         """
         self.user_id = kwargs.get("user_id")
         self.data = kwargs.get("encrypted_data")
-        self.timestamp = datetime.utcnow()
+        self.timestamp = kwargs.get("timestamp")
 
 
 class Token(db.Model):

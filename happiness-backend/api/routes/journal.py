@@ -6,18 +6,28 @@ from api.authentication.auth import token_auth
 from api.dao import journal_dao
 from api.models.models import Journal
 from api.models.schema import JournalSchema, JournalGetSchema, DecryptedJournalSchema, \
-    PasswordKeyJWTSchema, \
-    JournalEditSchema, JournalGetBySchema, EmptySchema, GetPasswordKeySchema
+    PasswordKeyJWTSchema, JournalEditSchema, EmptySchema, GetPasswordKeySchema, DateIdGetSchema
 from api.util.errors import failure_response
 from api.util.jwt_methods import verify_token
 
 journal = Blueprint('journal', __name__)
 
+
 def get_verify_key_token(token):
-    password_key = verify_token(token)['Password-Key']
-    if not token:
+    payload = verify_token(token)
+    if not payload:
         return failure_response('Invalid password key token.', 400)
-    return password_key
+    return payload['Password-Key']
+
+
+def get_by_id_or_date(args):
+    id, date = args.get("id"), args.get("date")
+    if id is not None:
+        return journal_dao.get_journal_by_id(id)
+    elif date is not None:
+        return journal_dao.get_journal_by_date(date)
+    else:
+        return failure_response('Insufficient Information', 400)
 
 
 @journal.get('/key')
@@ -36,6 +46,7 @@ def get_password_key_jwt(req):
         'Password-Key': user.generate_password_key_token(req.get("password"))
     })
 
+
 @journal.post('/')
 @authenticate(token_auth)
 @body(JournalSchema)
@@ -49,10 +60,15 @@ def create_entry(req, headers):
     Requires: the user's `password_key` for data encryption (provided by server during API token creation)
     """
     password_key = get_verify_key_token(headers.get('key_token'))
+    potential_journal = journal_dao.get_journal_by_date(req.get('timestamp'))
+    if potential_journal:
+        return failure_response("Journal entry already exists for this day.", 400)
+
     try:
         user = token_auth.current_user()
-        data = user.encrypt_data(password_key, req.get('data'))
-        entry = Journal(user_id=user.id, encrypted_data=data)
+        encrypted_data = user.encrypt_data(password_key, req.get('data'))
+        entry = Journal(user_id=user.id, encrypted_data=encrypted_data,
+                        timestamp=req.get('timestamp'))
         db.session.add(entry)
         db.session.commit()
         return entry
@@ -84,7 +100,7 @@ def get_entries(args, headers):
 
 @journal.put('/')
 @authenticate(token_auth)
-@arguments(JournalGetBySchema)
+@arguments(DateIdGetSchema)
 @arguments(PasswordKeyJWTSchema, location='headers')
 @body(JournalEditSchema)
 @response(JournalSchema)
@@ -96,7 +112,7 @@ def edit_entry(args, headers, req):
     Requires: the user's `password_key` for data encryption (provided by server during API token creation)
     """
     password_key = get_verify_key_token(headers.get('key_token'))
-    entry = journal_dao.get_journal_by_id(args.get('id'))
+    entry = get_by_id_or_date(args)
     if not entry:
         return failure_response("Entry Not Found.", 404)
     try:
@@ -110,14 +126,14 @@ def edit_entry(args, headers, req):
 
 @journal.delete('/')
 @authenticate(token_auth)
-@arguments(JournalGetBySchema)
+@arguments(DateIdGetSchema)
 @other_responses({404: "Entry Not Found."})
 def delete_entry(args):
     """
     Delete Journal Entry by ID
     Deletes the journal entry corresponding to a specific ID.
     """
-    entry = journal_dao.get_journal_by_id(args.get('id'))
+    entry = get_by_id_or_date(args)
     if not entry:
         return failure_response("Entry Not Found.", 404)
     db.session.delete(entry)

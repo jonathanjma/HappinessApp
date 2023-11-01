@@ -117,18 +117,12 @@ class HappinessSchema(ma.SQLAlchemySchema):
     author = ma.Nested(SimpleUserSchema, dump_only=True)
     value = ma.auto_field(required=True)
     comment = ma.auto_field()
-    timestamp = ma.Str()
-
-    @post_dump
-    def fix_time(self, data, **kwargs):
-        if data.get('timestamp'):
-            data['timestamp'] = data['timestamp'].split()[0]
-        return data
+    timestamp = ma.Date()
 
 
-class HappinessGetBySchema(ma.Schema):
+class DateIdGetSchema(ma.Schema):
     id = ma.Int()
-    date = ma.Str()
+    date = ma.Date()
 
 
 class HappinessEditSchema(ma.Schema):
@@ -137,8 +131,8 @@ class HappinessEditSchema(ma.Schema):
 
 
 class HappinessGetTimeSchema(ma.Schema):
-    start = ma.Str(required=True)
-    end = ma.Str()
+    start = ma.Date(required=True)
+    end = ma.Date()
     id = ma.Int()
 
 
@@ -178,7 +172,7 @@ class JournalSchema(ma.SQLAlchemySchema):
     id = ma.auto_field(dump_only=True)
     user_id = ma.auto_field(dump_only=True)
     data = ma.auto_field(required=True)
-    timestamp = ma.Str(dump_only=True)
+    timestamp = ma.Date(required=True)
 
     @post_dump
     def decrypt_entry(self, data, **kwargs):
@@ -193,10 +187,6 @@ class JournalSchema(ma.SQLAlchemySchema):
 
 
 DecryptedJournalSchema = JournalSchema(many=True)
-
-
-class JournalGetBySchema(ma.Schema):
-    id = ma.Int(required=True)
 
 
 class JournalGetSchema(ma.Schema):

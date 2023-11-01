@@ -9,7 +9,7 @@ from api.dao.users_dao import get_user_by_id
 from api.models.models import Happiness, Comment
 from api.models.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, \
     HappinessGetCountSchema, \
-    HappinessGetQuery, CommentSchema, HappinessGetBySchema
+    HappinessGetQuery, CommentSchema, DateIdGetSchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
 
@@ -20,7 +20,7 @@ happiness = Blueprint('happiness', __name__)
 @authenticate(token_auth)
 @body(HappinessSchema)
 @response(HappinessSchema, 201)
-@other_responses({400: "Date already exists or malformed input."})
+@other_responses({400: "Malformed input."})
 def create_happiness(req):
     """
     Create Happiness Entry
@@ -34,12 +34,6 @@ def create_happiness(req):
     current_user = token_auth.current_user()
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
     value, comment, timestamp = req.get("value"), req.get("comment"), req.get("timestamp", today)
-
-    # validate timestamp format
-    try:
-        timestamp = datetime.strptime(timestamp, "%Y-%m-%d")
-    except ValueError:
-        return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)
 
     # check if date already exists
     potential_happiness = happiness_dao.get_happiness_by_date(current_user.id, timestamp)
@@ -61,7 +55,7 @@ def create_happiness(req):
 
 @happiness.put('/')
 @authenticate(token_auth)
-@arguments(HappinessGetBySchema)
+@arguments(DateIdGetSchema)
 @body(HappinessEditSchema)
 @response(HappinessSchema)
 @other_responses({403: "Not Allowed.", 404: "Happiness Not Found.", 400: "Insufficient Info."})
@@ -79,10 +73,7 @@ def edit_happiness(args, req):
     if id is not None:
         query_data = happiness_dao.get_happiness_by_id(id)
     elif date is not None:
-        try:  # validate timestamp format
-            date = datetime.strptime(date, "%Y-%m-%d")
-        except ValueError:
-            return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)
+        date = datetime.strftime(date, "%Y-%m-%d %H:%M:%S.%f")
         query_data = happiness_dao.get_happiness_by_date(user_id, date)
     else:
         return failure_response('Insufficient Information', 400)
@@ -90,8 +81,12 @@ def edit_happiness(args, req):
     if query_data:
         if query_data.user_id != user_id:
             return failure_response("Not Allowed.", 403)
+
         value, comment = req.get("value"), req.get("comment")
         if value != query_data.value and value is not None:
+            # validate happiness value
+            if not (value * 2).is_integer() or value < 0 or value > 10:
+                return failure_response("Invalid happiness value.", 400)
             query_data.value = value
         if comment:
             query_data.comment = comment
@@ -101,7 +96,7 @@ def edit_happiness(args, req):
 
 
 @happiness.delete('/')
-@arguments(HappinessGetBySchema)
+@arguments(DateIdGetSchema)
 @authenticate(token_auth)
 @other_responses({403: "Not Allowed.", 404: "Happiness Not Found.", 400: "Insufficient Info."})
 def delete_happiness(args):
@@ -115,10 +110,7 @@ def delete_happiness(args):
     if id is not None:
         query_data = happiness_dao.get_happiness_by_id(id)
     elif date is not None:
-        try:  # validate timestamp format
-            date = datetime.strptime(date, "%Y-%m-%d")
-        except ValueError:
-            return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)
+        date = datetime.strftime(date, "%Y-%m-%d %H:%M:%S.%f")
         query_data = happiness_dao.get_happiness_by_date(user_id, date)
     else:
         return failure_response('Insufficient Information', 400)
@@ -136,7 +128,7 @@ def delete_happiness(args):
 @authenticate(token_auth)
 @arguments(HappinessGetTimeSchema)
 @response(HappinessSchema(many=True))
-@other_responses({403: "Not Allowed.", 400: "Malformed Date."})
+@other_responses({403: "Not Allowed."})
 def get_happiness_time(req):
     """
     Get Happiness by Time Range
@@ -150,15 +142,8 @@ def get_happiness_time(req):
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
     start, end, id = req.get("start"), req.get("end", today), req.get("id", user_id)
 
-    # validate timestamp format
-    try:
-        stfor = datetime.strptime(start, "%Y-%m-%d")
-        enfor = datetime.strptime(end, "%Y-%m-%d")
-    except ValueError:
-        return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)
-
     if user_id == id or token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(id)):
-        return happiness_dao.get_happiness_by_timestamp(id, stfor, enfor)
+        return happiness_dao.get_happiness_by_timestamp(id, start, end)
     return failure_response("Not Allowed.", 403)
 
 

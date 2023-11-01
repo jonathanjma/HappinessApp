@@ -84,13 +84,9 @@ def group_happiness(req, group_id):
     check_group(cur_group)
 
     today = datetime.strftime(datetime.today(), "%Y-%m-%d")
-    start_date = datetime.strptime(req.get("start"), "%Y-%m-%d")
-    end_data = datetime.strptime(req.get("end", today), "%Y-%m-%d")
+    start_date, end_date = req.get("start"), req.get("end", today)
 
-    # page, count = req.get('page', 1), req.get('count', 10)
-    # return get_happiness_by_group_count(list(map(lambda x: x.id, cur_group.users)), page, count)
-
-    return get_happiness_by_group_timestamp(list(map(lambda x: x.id, cur_group.users)), start_date, end_data)
+    return get_happiness_by_group_timestamp(list(map(lambda x: x.id, cur_group.users)), start_date, end_date)
 
 
 @group.put('/<int:group_id>')
