@@ -165,7 +165,7 @@ def get_user_settings():
 @body(UserInfoSchema)
 @response(SimpleUserSchema)
 @other_responses({400: "Provided data already exists or empty data field."})
-def change_user_info(req, headers):
+def change_user_info(req):
     """
     Change User Info
     Changes a user's info based on 3 different `data_type`(s):
@@ -223,10 +223,9 @@ def change_user_info(req, headers):
 
 @user.post('/reset_password/<token>')
 @body(PasswordResetSchema)
-#@arguments(PasswordKeyOptSchema, location='headers') ****************************** need to update
 @response(EmptySchema, 204, 'Password reset successful')
 @other_responses({400: "Invalid password reset token or recovery input"})
-def reset_password(req, headers, token):
+def reset_password(req, token):
     """
     Reset Password from Token
     This function was written under the assumption that when the user receives a verify password email,
@@ -246,13 +245,12 @@ def reset_password(req, headers, token):
         return failure_response("Password reset token verification failed", 401)
 
     try:
-        current_user.reset_password(req.get("password"),
-                                    req.get("recovery_phrase"), headers.get('password_key'))
+        current_user.reset_password(req.get("password"), recovery_phrase=req.get("recovery_phrase"))
         db.session.commit()
         return '', 204
     except Exception as e:
         print(e)
-        return failure_response('Invalid recovery input.', 400)
+        return failure_response('Invalid recovery phrase.', 400)
 
 
 @user.post('/initiate_password_reset/')

@@ -13,7 +13,10 @@ def generate_jwt(payload, expiration):
     )
 
 def verify_token(token):
-    """Verify that a JWT is valid and not expired"""
+    """
+    Verify that a JWT is valid and not expired.
+    Returns the JWT payload if it is valid, otherwise returns None
+    """
     try:
         return jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
     except jwt.PyJWTError:

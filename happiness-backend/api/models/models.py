@@ -130,14 +130,14 @@ class User(db.Model):
     # change user password + update encrypted key
     # (decrypt user key with old password, then encrypt with new password key, update db)
     def change_password(self, old_password, new_password):
-        user_key = self.decrypt_user_key(self.derive_password_key(old_password))
+        user_key = self.decrypt_user_key(self.derive_password_key(old_password).decode())
         self.encrypted_key = Fernet(self.derive_password_key(new_password)).encrypt(user_key)
         self.password = generate_password_hash(new_password)
 
     # add recovery phrase to prevent data loss if password is forgotten
     # (stores a copy of the user key encrypted with a recovery phrase)
     def add_key_recovery(self, password, recovery_phrase):
-        user_key = self.decrypt_user_key(self.derive_password_key(password))
+        user_key = self.decrypt_user_key(self.derive_password_key(password).decode())
         recovery_key = self.derive_password_key(recovery_phrase.lower())
         self.encrypted_key_recovery = Fernet(recovery_key).encrypt(user_key)
 
@@ -145,18 +145,14 @@ class User(db.Model):
         return generate_jwt({'reset_email': self.email}, expiration)
 
     # reset password
-    # *** !!! Will cause encrypted data to be lost if recovery not set up
-    # or old password key not provided !!! ***
-    def reset_password(self, new_password, old_password=None, recovery_phrase=None):
+    # *** !!! Will cause encrypted data to be lost if recovery phrase not provided !!! ***
+    def reset_password(self, new_password, recovery_phrase=None):
         self.password = generate_password_hash(new_password)
         if self.encrypted_key_recovery and recovery_phrase:
             # decrypts user key with recovery phrase, allowing user key to be encrypted with new password
             recovery_key = self.derive_password_key(recovery_phrase.lower())
             user_key = Fernet(recovery_key).decrypt(self.encrypted_key_recovery)
             self.encrypted_key = Fernet(self.derive_password_key(new_password)).encrypt(user_key)
-        elif old_password:
-            # decrypt data with old password
-            self.change_password(old_password, new_password)
         else:
             # creates new user key, rendering previously created encrypted data useless
             self.e2e_init(new_password)
