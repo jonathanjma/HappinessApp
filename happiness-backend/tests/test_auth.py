@@ -7,7 +7,6 @@ from flask import json
 
 from api import create_app
 from api.app import db
-from api.util.jwt_methods import generate_confirmation_token
 from api.dao.users_dao import *
 from config import TestConfig
 
@@ -113,8 +112,7 @@ def test_send_invalid_password_reset_email(client):
     r3 = client.post('/api/user/initiate_password_reset/', json={
         'email': 'test0@example.com'
     })
-    assert r2.status_code == 400
-    assert r3.status_code == 404
+    assert r2.status_code == 400 and r3.status_code == 400
 
 
 def test_send_password_reset_email(client):
@@ -142,12 +140,13 @@ def test_reset_password(client):
         'username': 'test',
         'password': 'test',
     })
+    user = get_user_by_id(1)
 
     bad_reset = client.post('/api/user/reset_password/' + 'reset_token',
                             json={'password': 'W password'})
     assert bad_reset.status_code == 400
 
-    reset_token = generate_confirmation_token('test@example.com')
+    reset_token = user.generate_password_reset_token()
     reset_password = client.post('/api/user/reset_password/' + reset_token,
                                  json={'password': 'W password'})
     assert reset_password.status_code == 204
@@ -157,7 +156,7 @@ def test_reset_password(client):
         '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
     assert login_response.status_code == 201
 
-    reset_token2 = generate_confirmation_token('test@example.com', expiration=0)
+    reset_token2 = user.generate_password_reset_token(0)
     reset_password2 = client.post('/api/user/reset_password/' + reset_token2,
                                  json={'password': 'bad password'})
     assert reset_password2.status_code == 400
@@ -398,22 +397,19 @@ def test_change_email(client):
 
 def test_change_password(client):
     username = "Hello"
-    client, bearer_token = register_and_login_demo_user(
-        client, uname_and_password=username)
+    client, bearer_token = register_and_login_demo_user(client, uname_and_password=username)
     new_password = "Password"
     password_change_res1 = client.put('/api/user/info/',
-                                      headers={
-                                          "Authorization": f"Bearer {bearer_token}",
-                                          "Password-Key": get_user_by_username(username).derive_password_key("Hello")
-                                      }, json={
-            "data_type": "password",
-            "data": new_password
-        })
+                                      headers={"Authorization": f"Bearer {bearer_token}"},
+                                      json={
+                                          "data_type": "password",
+                                          "data": username,
+                                          "data2": new_password
+                                      })
     assert password_change_res1.status_code == 200
-    user_credentials = base64.b64encode(
-        (f"{username}:{new_password}".encode())).decode('utf-8')
-    login_res = client.post(
-        '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
+
+    user_credentials = base64.b64encode((f"{username}:{new_password}".encode())).decode('utf-8')
+    login_res = client.post('/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
     assert login_res.status_code == 201
 
 

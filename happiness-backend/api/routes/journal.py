@@ -36,7 +36,13 @@ def get_by_id_or_date(args):
 @response(EmptySchema, headers=PasswordKeyJWTSchema)
 @other_responses({401: "Incorrect Password"})
 def get_password_key_jwt(req):
-
+    """
+    Get Password Key
+    Given the user's password, returns a JWT used for decrypting the user's data encryption key in the database.
+    Required in order to create, edit, and read the end-to-end encrypted journal entries.
+    Must be re-requested once the token has expired.
+    """
+    # should we require a recovery phrase to be setup prior to using journal?
     user = token_auth.current_user()
 
     if not user.verify_password(req.get("password")):
@@ -57,7 +63,7 @@ def create_entry(req, headers):
     """
     Create Journal Entry
     Creates a new private journal entry, which is stored using end-to-end encryption. \n
-    Requires: the user's `password_key` for data encryption (provided by server during API token creation)
+    Requires: the user's password key token for data encryption (provided by the `Get Password Key` endpoint)
     """
     password_key = get_verify_key_token(headers.get('key_token'))
     potential_journal = journal_dao.get_journal_by_date(req.get('timestamp'))
@@ -88,7 +94,7 @@ def get_entries(args, headers):
     Get Journal Entries
     Gets a specified number of journal entries in reverse order.
     Paginated based on page number and journal entries per page. Defaults to page=1 and count=10. \n
-    Requires: the user's `password_key` for data decryption (provided by server during API token creation)
+    Requires: the user's password key token for data decryption (provided by the `Get Password Key` endpoint)
     """
     password_key = get_verify_key_token(headers.get('key_token'))
     user = token_auth.current_user()
@@ -109,7 +115,7 @@ def edit_entry(args, headers, req):
     """
     Edit Journal Entry by ID
     Modifies the journal entry corresponding to the provided ID with the given text. \n
-    Requires: the user's `password_key` for data encryption (provided by server during API token creation)
+    Requires: the user's password key token for data en/decryption (provided by the `Get Password Key` endpoint)
     """
     password_key = get_verify_key_token(headers.get('key_token'))
     entry = get_by_id_or_date(args)

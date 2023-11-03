@@ -1,3 +1,5 @@
+from datetime import timedelta, datetime
+
 from api.models.models import Happiness
 
 
@@ -12,11 +14,12 @@ def get_happiness_by_id(id):
 
 def get_happiness_by_date(user_id, date):
     """
-    Returns a Happiness object, given a User ID and a date.
+    Returns a Happiness object, given a User ID and a Datetime object.
     :param user_id: ID of the User whose Happiness object is being searched for.
     :param date: Date object representing the day the happiness value was recorded.
     :return: A Happiness object of the given User ID corresponding to the given date.
     """
+    date = datetime.strftime(date, "%Y-%m-%d 00:00:00.000000")
     return Happiness.query.filter_by(user_id=user_id, timestamp=date).first()
 
 
@@ -29,11 +32,11 @@ def get_user_happiness(user_id):
 
 def get_happiness_by_timestamp(user_id, start, end):
     """
-    Returns a list of all Happiness objects corresponding to a given User ID between 2 timestamps.
+    Returns a list of all Happiness objects corresponding to a given User ID between 2 Datetime objects.
     """
     return Happiness.query.filter(
-        Happiness.user_id == user_id,
-        Happiness.timestamp.between(start, end)).order_by(Happiness.timestamp.asc()).all()
+        Happiness.user_id == user_id, Happiness.timestamp.between(start, end + timedelta(days=1))
+    ).order_by(Happiness.timestamp.asc()).all()
 
 
 def get_happiness_by_count(user_id, page, n):

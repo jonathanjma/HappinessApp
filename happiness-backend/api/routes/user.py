@@ -175,7 +175,7 @@ def change_user_info(req):
     - "key_recovery_phrase" (requires current password)
     Then the associated data must be put in the `data` field of the request. \n
     If changing password, put the user's old password in the `data` field and the new password in the `data2` field. \n
-    If adding a password key recovery phrase, put the user's current password in the `data` field \n
+    If adding a password key recovery phrase, put the user's current password in the `data` field
     and the recovery phrase in the `data2` field.
     """
     data_type = req.get("data_type")
@@ -229,19 +229,17 @@ def change_user_info(req):
 def reset_password(req, token):
     """
     Reset Password from Token
-    This function was written under the assumption that when the user receives a verify password email,
-    they would be redirected to a page where they are prompted to enter a new password. Then from this page they
-    make a post request to the backend with their new intended password. \n
-
-    If the user has previously added a key recovery phrase and provides their recovery phrase, their
-    encrypted journal entries will not be lost. Otherwise, this will cause them to become lost
+    Resets a user's password using the JWT token which was sent to their email address. \n
+    If a user has encrypted journal entries, they will need to provide their key recovery phrase
+    in order to encrypt their journal entries using their new password. If they did not set up
+    a recovery key or do not provide one, the journal entries will be lost
     (since they will never be able to be decrypted) and therefore will be deleted.
     """
     # Verify token is not expired
-    email = verify_token(token)['reset_email']
-    if not email:
+    token = verify_token(token)
+    if not token:
         return failure_response("Invalid/Expired token", 400)
-    current_user = users_dao.get_user_by_email(email)
+    current_user = users_dao.get_user_by_email(token['reset_email'])
     if not current_user:
         return failure_response("Password reset token verification failed", 401)
 
@@ -261,7 +259,7 @@ def reset_password(req, token):
 def send_reset_password_email(req):
     """
     Send Reset Password Email
-    Sends a password reset request email to email sent in the req of the JSON request. \n
+    Sends a password reset request email to email provided in the JSON request. \n
     Returns: a success response or failure response depending on the result of the operation
     """
     user_by_email = users_dao.get_user_by_email(req.get("email"))

@@ -32,7 +32,7 @@ def create_happiness(req):
     Returns: Happiness entry with the given information.
     """
     current_user = token_auth.current_user()
-    today = datetime.strftime(datetime.today(), "%Y-%m-%d")
+    today = datetime.today().date()
     value, comment, timestamp = req.get("value"), req.get("comment"), req.get("timestamp", today)
 
     # check if date already exists
@@ -52,6 +52,14 @@ def create_happiness(req):
     db.session.commit()
     return happiness
 
+def get_by_id_or_date(args):
+    id, date = args.get("id"), args.get("date")
+    if id is not None:
+        return happiness_dao.get_happiness_by_id(id)
+    elif date is not None:
+        return happiness_dao.get_happiness_by_date(token_auth.current_user().id, date)
+    else:
+        return failure_response('Insufficient Information', 400)
 
 @happiness.put('/')
 @authenticate(token_auth)
@@ -68,18 +76,9 @@ def edit_happiness(args, req):
     Requires: ID must be valid, either value or comment sent. Date in YYYY-MM-DD format. \n
     Returns: Happiness entry with updated information.
     """
-    id, date = args.get("id"), args.get("date")
-    user_id = token_auth.current_user().id
-    if id is not None:
-        query_data = happiness_dao.get_happiness_by_id(id)
-    elif date is not None:
-        date = datetime.strftime(date, "%Y-%m-%d %H:%M:%S.%f")
-        query_data = happiness_dao.get_happiness_by_date(user_id, date)
-    else:
-        return failure_response('Insufficient Information', 400)
-
+    query_data = get_by_id_or_date(args)
     if query_data:
-        if query_data.user_id != user_id:
+        if query_data.user_id != token_auth.current_user().id:
             return failure_response("Not Allowed.", 403)
 
         value, comment = req.get("value"), req.get("comment")
@@ -105,18 +104,9 @@ def delete_happiness(args):
     Deletes the happiness entry corresponding to a specific ID or date (in YYYY-MM-DD format). \n
     Requires: Happiness entry must have been created by the current user.
     """
-    id, date = args.get("id"), args.get("date")
-    user_id = token_auth.current_user().id
-    if id is not None:
-        query_data = happiness_dao.get_happiness_by_id(id)
-    elif date is not None:
-        date = datetime.strftime(date, "%Y-%m-%d %H:%M:%S.%f")
-        query_data = happiness_dao.get_happiness_by_date(user_id, date)
-    else:
-        return failure_response('Insufficient Information', 400)
-
+    query_data = get_by_id_or_date(args)
     if query_data:
-        if query_data.user_id != user_id:
+        if query_data.user_id != token_auth.current_user().id:
             return failure_response("Not Allowed.", 403)
         db.session.delete(query_data)
         db.session.commit()
@@ -139,7 +129,7 @@ def get_happiness_time(req):
     Returns: List of all happiness entries between start and end date in sequential order
     """
     user_id = token_auth.current_user().id
-    today = datetime.strftime(datetime.today(), "%Y-%m-%d")
+    today = datetime.today().date()
     start, end, id = req.get("start"), req.get("end", today), req.get("id", user_id)
 
     if user_id == id or token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(id)):
@@ -252,14 +242,14 @@ def export_happiness():
     return "Happiness entries exported"
 
 
-@happiness.post('/import')
-def import_happiness():
-    happiness_objs = []
-    for entry in request.json:
-        happiness_objs.append(
-            Happiness(user_id=entry['user_id'], value=entry['value'], comment=entry.get('comment'),
-                      timestamp=datetime.strptime(entry['timestamp'], "%Y-%m-%d")))
-    db.session.add_all(happiness_objs)
-    db.session.commit()
-
-    return str(len(happiness_objs)) + ' happiness entries imported'
+# @happiness.post('/import')
+# def import_happiness():
+#     happiness_objs = []
+#     for entry in request.json:
+#         happiness_objs.append(
+#             Happiness(user_id=entry['user_id'], value=entry['value'], comment=entry.get('comment'),
+#                       timestamp=datetime.strptime(entry['timestamp'], "%Y-%m-%d")))
+#     db.session.add_all(happiness_objs)
+#     db.session.commit()
+#
+#     return str(len(happiness_objs)) + ' happiness entries imported'
