@@ -90,7 +90,6 @@ def test_overwrite_create_happiness(init_client):
         'end': '2023-01-11',
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
     happiness_list = json.loads(start_end_response.get_data())
-    print(happiness_list)
     assert start_end_response.status_code == 200
     assert happiness_list[0].get("comment") == "amazing day"
     assert happiness_list[0].get("value") == 8

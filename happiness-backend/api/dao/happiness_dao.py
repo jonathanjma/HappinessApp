@@ -50,12 +50,12 @@ def get_happiness_by_count(user_id, page, n):
 
 def get_happiness_by_group_timestamp(user_ids, start, end):
     """
-    Returns a list of all Happiness objects (sorted from oldest to newest) between 2 timestamps
+    Returns a list of all Happiness objects (sorted from oldest to newest) between 2 Datetime objects
     given a list of User IDs.
     """
     return Happiness.query.filter(
-        Happiness.user_id.in_(user_ids),
-        Happiness.timestamp.between(start, end)).order_by(Happiness.timestamp.asc()).all()
+        Happiness.user_id.in_(user_ids), Happiness.timestamp.between(start, end + timedelta(days=1))
+    ).order_by(Happiness.timestamp.asc()).all()
 
 
 def get_happiness_by_group_count(user_ids, page, n):
