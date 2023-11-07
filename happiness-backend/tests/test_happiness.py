@@ -407,6 +407,7 @@ def test_discussion_comments(init_client):
     assert len(comments) == 2
     assert comments[0]['author']['id'] == 1 and comments[1]['author']['id'] == 3
 
+
 def test_happiness_search(init_client):
     client, tokens = init_client
     client.post('/api/happiness/', json={
