@@ -66,15 +66,74 @@ def get_happiness_by_group_count(user_ids, page, n):
         Happiness.timestamp.desc()) \
         .paginate(page=page, per_page=n, error_out=False)
 
+def get_happiness_by_filter(user_id, page, per_page, start, end, low, high, query):
+    """
+    Filters according to the provided arguments. Checks to see what filters to apply. Will not apply the following
+    filters with the following arguments
+     low/high = 11
+     start/end = None
+     text = "".
+    """
+    if start is not None and low != 11 and query != "":
+        return db.paginate(
+            select=
+            (select(Happiness).where(Happiness.timestamp.between(start, end),
+                                     Happiness.user_id == user_id).where(
+                    Happiness.value >= low, Happiness.value <= high,
+                    Happiness.user_id ==
+                    user_id).where(Happiness.comment.like(f"%{query}%")).order_by(Happiness.timestamp.asc())),
+            per_page=per_page,
+            page=page
+        )
+    elif start is not None and low != 11:
+        return db.paginate(
+            select=
+            (select(Happiness).where(Happiness.timestamp.between(start, end), Happiness.user_id ==
+                                     user_id).where(Happiness.value >= low, Happiness.value <= high,
+                                                    Happiness.user_id == user_id).order_by(Happiness.timestamp.asc())),
+            per_page=per_page,
+            page=page
+        )
+    elif start is not None and query != "":
+        return db.paginate(
+            select=
+            (select(Happiness).where(Happiness.timestamp.between(start, end), Happiness.user_id == user_id)
+             .where(Happiness.comment.like(f"%{query}%")).order_by(Happiness.timestamp.asc())),
+            per_page=per_page,
+            page=page
+        )
+    elif start is not None:
+        return db.paginate(
+            select=
+            (select(Happiness).where(Happiness.timestamp.between(start, end), Happiness.user_id == user_id)
+             .order_by(Happiness.timestamp.asc())),
+            per_page=per_page,
+            page=page
+        )
+    elif low != 11 and query != "":
+        return db.paginate(
+            select=(select(Happiness).where(
+                Happiness.value >= low, Happiness.value <= high,
+                Happiness.user_id ==
+                user_id).where(Happiness.comment.like(f"%{query}%")).order_by(Happiness.timestamp.asc())),
+            per_page=per_page,
+            page=page
+        )
+    elif low != 11:
+        return db.paginate(
+            select=(select(Happiness).where(
+                Happiness.value >= low, Happiness.value <= high, Happiness.user_id == user_id).order_by(Happiness.timestamp.asc())),
+            per_page=per_page,
+            page=page
+        )
+    elif query != "":
+        return db.paginate(
+            select=
+            (select(Happiness).where(Happiness.comment.like(f"%{query}%")).order_by(Happiness.timestamp.asc())),
+            per_page=per_page,
+            page=page
+        )
+    else:
+        return []
 
-def get_paginated_happiness_by_query(user_id, query, page, n):
-    return Happiness.query.filter_by(user_id=user_id) \
-        .filter(Happiness.comment.like(f"%{query}%")).paginate(page=page, per_page=n, error_out=False)
 
-
-def get_happiness_by_value_range(user_id, page, per_page, low, high):
-    return db.paginate(
-        select=(select(Happiness).where(Happiness.value >= low, Happiness.value <= high, Happiness.user_id == user_id)),
-        per_page=per_page,
-        page=page
-    )

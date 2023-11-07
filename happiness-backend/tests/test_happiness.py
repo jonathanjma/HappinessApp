@@ -407,9 +407,8 @@ def test_discussion_comments(init_client):
     assert len(comments) == 2
     assert comments[0]['author']['id'] == 1 and comments[1]['author']['id'] == 3
 
-def test_happiness_from_value_range(init_client):
+def test_happiness_search(init_client):
     client, tokens = init_client
-    #creating a set of happiness values to query
     client.post('/api/happiness/', json={
         'value': 4,
         'comment': 'great day',
@@ -449,25 +448,66 @@ def test_happiness_from_value_range(init_client):
     client.post('/api/happiness/', json={
         'value': 3,
         'comment': 'no',
-        'timestamp': '2023-01-14'
+        'timestamp': '2023-01-15'
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
 
-    happiness_range_34 = client.get('api/happiness/range', json={
+    happiness_range_34 = client.get('api/happiness/search', query_string={
         'low': 3,
-        'high':4,
-        'id': 1,
+        'high': 4,
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_range_34.status_code == 200
-    assert happiness_range_34.json == [{'comment': 'great day', 'id': 1, 'timestamp': '2023-01-11', 'user_id': 1,
-    'value': 4.0}, {'comment': 'very happy', 'id': 3, 'timestamp': '2023-01-13', 'user_id': 1, 'value': 3.0},
-    {'comment': 'no', 'id': 4, 'timestamp': '2023-01-14', 'user_id': 1, 'value': 3.0}]
-
-    happiness_range_9 = client.get('api/happiness/range', json={
-        'low': 9,
-        'high': 9,
-        'id': 1,
+    assert (list(map(lambda d: d.get("comment"), happiness_range_34.json)) == ['great day','very happy','no'] )
+    happiness_date_12_14 = client.get('api/happiness/search', query_string={
+        'start': '2023-01-12',
+        'end': '2023-01-14',
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_date_12_14.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_date_12_14.json)) == ['bad day', 'very happy', 'hmmm'])
+    happiness_text_day = client.get('api/happiness/search', query_string={
+        'text': 'day',
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_text_day.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_text_day.json)) == ['great day', 'bad day'])
+    happiness_34_12_14_very = client.get('api/happiness/search', query_string={
+        'low': 3,
+        'high': 7,
+        'start': '2023-01-12',
+        'end': '2023-01-14',
+        'text': 'very',
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_34_12_14_very.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_34_12_14_very.json)) == ['very happy'])
+    happiness_16_29_810 = client.get('api/happiness/search', query_string={
+        'low': 8,
+        'high': 10,
+        'start': '2023-01-16',
+        'end': '2023-01-29',
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_16_29_810.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_16_29_810.json)) == ['happiest'])
+    happiness_11_14_day = client.get('api/happiness/search', query_string={
+        'start': '2023-01-11',
+        'end': '2023-01-14',
+        'text': 'day',
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_11_14_day.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_11_14_day.json)) == ['great day', 'bad day'])
+    happiness_510_hmmm = client.get('api/happiness/search', query_string={
+        'low': 5,
+        'high': 10,
+        'text': "hmmm",
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_510_hmmm.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_510_hmmm.json)) == ['hmmm'])
+    happiness_empty = client.get('api/happiness/search', query_string={
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_empty.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_empty.json)) == [])
+    happiness_range_9 = client.get('api/happiness/search', query_string={
+            'low': 9,
+            'high': 9,
+        }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_range_9.status_code == 200
-    assert happiness_range_9.json == [{'comment': 'bad day', 'id': 2, 'timestamp': '2023-01-12', 'user_id': 1, 'value': 9.0}]
+    assert (list(map(lambda d: d.get("comment"), happiness_range_9.json)) == ['bad day'])
 
 

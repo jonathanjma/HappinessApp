@@ -6,6 +6,8 @@ from api.authentication.auth import token_auth
 from api.models.models import User, Group, Happiness, Setting, Comment, Journal
 from api.util.errors import failure_response
 
+from datetime import datetime
+
 
 class EmptySchema(ma.Schema):
     pass
@@ -231,3 +233,14 @@ class HappinessRangeSchema(ma.Schema):
     count = ma.Int()
     low = ma.Int()
     high = ma.Int()
+
+
+class HappinessMultiFilterSchema(ma.Schema):
+    user_id = ma.Int()
+    page = ma.Int()
+    count = ma.Int()
+    low = ma.Int(missing=11)
+    high = ma.Int(missing=11)
+    start = ma.Str(missing=None)
+    end = ma.Str(missing=None)
+    text = ma.Str(missing="")

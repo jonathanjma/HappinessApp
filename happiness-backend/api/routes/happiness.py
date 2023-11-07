@@ -9,9 +9,11 @@ from api.dao.users_dao import get_user_by_id
 from api.models.models import Happiness, Comment
 from api.models.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, \
     HappinessGetCountSchema, HappinessRangeSchema, \
-    HappinessGetQuery, CommentSchema, HappinessGetBySchema
+    HappinessGetQuery, CommentSchema, HappinessGetBySchema, HappinessMultiFilterSchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
+
+from typing import List, Any
 
 happiness = Blueprint('happiness', __name__)
 
@@ -232,29 +234,6 @@ def get_comments(id):
     return failure_response("Happiness Not Found.", 404)
 
 
-@happiness.get('/search')
-@authenticate(token_auth)
-@body(HappinessGetQuery)
-@response(HappinessSchema(many=True))
-@other_responses({403: "Not Allowed."})
-def search_happiness(req):
-    """
-    Search Happiness
-    Gets paginated data for happiness entries related by their journal entries to a specific query.
-    Count, id, and page are optional, and will default to 10, current logged-in user's id, and 1 respectively.
-
-    Returns: Happiness entries related to the user's query
-    """
-    user_id = token_auth.current_user().id
-    my_user_obj = users_dao.get_user_by_id(user_id)
-    page, count, target_user_id, query = req.get("page", 1), req.get("count", 10), \
-        req.get("id", user_id), req.get("query")
-    if user_id == target_user_id or my_user_obj.has_mutual_group(users_dao.get_user_by_id(target_user_id)):
-        query_data = happiness_dao.get_paginated_happiness_by_query(target_user_id, query, page, count)
-        return query_data
-    return failure_response("Not Allowed.", 403)
-
-
 @happiness.get('/export')
 @authenticate(token_auth)
 def export_happiness():
@@ -279,21 +258,36 @@ def import_happiness():
 
     return str(len(happiness_objs)) + ' happiness entries imported'
 
-@happiness.get('/range')
-@body(HappinessRangeSchema)
-@response(HappinessSchema(many=True))
-@authenticate(token_auth)
-def get_happiness_from_value_range(req):
-    """
-    Gets all happiness objects for a user which all have happiness values within a specified range (low, high).
-    Is paginated.
-    Requires: User is logged in, high>=low, low,high are of type int.
-    Returns: a list of happiness objects for a user which all have values within a range
-    """
-    user_id = token_auth.current_user().id
-    low, high, id, page, count = req.get("low"), req.get("high"), req.get("id", user_id), \
-        req.get("page", 1), req.get("count", 10)
 
-    if user_id == id or token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(id)):
-        return happiness_dao.get_happiness_by_value_range(id, page, count, low, high)
-    return failure_response("Not Allowed.", 403)
+@happiness.get('/search')
+@authenticate(token_auth)
+@arguments(HappinessMultiFilterSchema)
+@response(HappinessSchema(many=True))
+def multi_filter_search_happiness(req) -> List[Any]:
+    """
+    Gets all happiness objects for a user that match the given constraints in the arguments including
+    Date filter: entries are between [start] and [end] dates
+    Value filter: entries are between [low] value and [high] value
+    Text filter: entries contain [text]
+    Each of these filters are optional to apply, but if no filters are applied, then the empty list is returned.
+    Is paginated
+    """
+    user_id = req.get("user_id", token_auth.current_user().id)
+    start = req.get("start")
+    end = req.get("end")
+    low = req.get("low")
+    high = req.get("high")
+    text = req.get("text")
+    page = req.get("page", 1)
+    count = req.get("count", 10)
+    if start is not None and end is not None:
+        start_datetime = datetime.strptime(start, "%Y-%m-%d")
+        end_datetime = datetime.strptime(end, "%Y-%m-%d")
+    else:
+        start_datetime = None
+        end_datetime = None
+    if not (user_id == token_auth.current_user().id or
+            token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
+        return failure_response("Not Allowed.", 403)
+    return happiness_dao.get_happiness_by_filter(user_id, page, count, start_datetime, end_datetime, low, high, text)
+
