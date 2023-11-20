@@ -24,11 +24,11 @@ def init_client():
         user3 = User(email='test3@example.app', username='user3', password='test')
         db.session.add_all([user1, user2, user3])
         db.session.commit()
-        tokens = [user1.create_token(), user2.create_token(), user3.create_token()]
-        db.session.add_all(tokens)
+        token_objs, tokens = zip(*[user1.create_token(), user2.create_token(), user3.create_token()])
+        db.session.add_all(token_objs)
         db.session.commit()
 
-        yield client, [tokens[0].session_token, tokens[1].session_token, tokens[2].session_token]
+        yield client, tokens
 
 
 def auth_header(token):
