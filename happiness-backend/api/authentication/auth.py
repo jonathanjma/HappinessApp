@@ -1,11 +1,14 @@
 from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 
 from api.dao.users_dao import get_user_by_username, get_token, get_user_by_id, get_user_by_email
+from api.models.models import User
 from api.util.errors import error_response
 
 basic_auth = HTTPBasicAuth()
 token_auth = HTTPTokenAuth()
 
+def token_current_user() -> User:
+    return token_auth.current_user()
 
 @basic_auth.verify_password
 def verify_password(email_or_username, password):

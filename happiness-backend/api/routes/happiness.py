@@ -4,6 +4,7 @@ from apifairy import authenticate, body, arguments, response, other_responses
 from flask import Blueprint, request, current_app
 
 from api.app import db
+from api.authentication.auth import token_current_user
 from api.dao import happiness_dao, users_dao
 from api.dao.users_dao import get_user_by_id
 from api.models.models import Happiness, Comment
@@ -238,6 +239,7 @@ def get_comments(id):
 @response(CommentSchema)
 @other_responses({404: 'Invalid Comment', 403: 'Not Allowed'})
 def edit_comment(req, id):
+    print(type(req))
     """
     Edit Discussion Comment
     Updates the text of a happiness discussion comment. \n
@@ -246,7 +248,7 @@ def edit_comment(req, id):
     comment_obj = happiness_dao.get_comment_by_id(id)
     if not comment_obj:
         return failure_response('Comment Not Found', 404)
-    if comment_obj.user_id != token_auth.current_user().id:
+    if comment_obj.user_id != token_current_user().id:
         return failure_response('Not Allowed', 403)
 
     comment_obj.text = req.get("data")

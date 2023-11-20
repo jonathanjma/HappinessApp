@@ -1,3 +1,6 @@
+from sqlalchemy import select
+
+from api.app import db
 from api.models.models import Happiness, Comment
 
 
@@ -69,5 +72,5 @@ def get_paginated_happiness_by_query(user_id, query, page, n):
     return Happiness.query.filter_by(user_id=user_id) \
         .filter(Happiness.comment.like(f"%{query}%")).paginate(page=page, per_page=n, error_out=False)
 
-def get_comment_by_id(id):
-    return Comment.query.filter_by(id=id).first()
+def get_comment_by_id(id: int) -> Comment:
+    return db.session.execute(select(Comment).where(Comment.id == id)).scalar()

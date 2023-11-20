@@ -7,10 +7,14 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from flask import current_app
-from sqlalchemy import delete
+from flask_sqlalchemy.model import DefaultMeta
+from sqlalchemy import delete, Integer, ForeignKey, String, DateTime
+from sqlalchemy.orm import mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from api.app import db
+
+BaseModel: DefaultMeta = db.Model
 
 # Group Users association table
 group_users = db.Table(
@@ -277,18 +281,18 @@ class Happiness(db.Model):
         self.timestamp = kwargs.get("timestamp")
 
 
-class Comment(db.Model):
+class Comment(BaseModel):
     """
     Comment model. Has a many-to-one relationship with happiness table.
     """
     __tablename__ = "comment"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    happiness_id = db.Column(db.Integer, db.ForeignKey("happiness.id"))
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    text = db.Column(db.String, nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False)
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    happiness_id = mapped_column(ForeignKey("happiness.id"))
+    user_id = mapped_column(ForeignKey("user.id"))
+    text = mapped_column(String, nullable=False)
+    timestamp = mapped_column(DateTime, nullable=False)
 
-    author = db.relationship("User")
+    author = relationship("User")
 
     def __init__(self, **kwargs):
         """

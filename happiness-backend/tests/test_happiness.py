@@ -437,7 +437,7 @@ def test_discussion_comments_edit_delete(init_client):
         'comment': 'bad day',
         'timestamp': '2023-06-19'
     }, headers=auth_header(tokens[0]))
-    h= client.post('/api/happiness/1/comment', json={
+    client.post('/api/happiness/1/comment', json={
         'text': 'oh no what happened?'
     }, headers=auth_header(tokens[1]))
     client.post('/api/happiness/1/comment', json={
