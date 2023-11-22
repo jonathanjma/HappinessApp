@@ -5,7 +5,9 @@ import pytest
 
 from api import create_app
 from api.app import db
+from api.dao.groups_dao import get_group_by_id
 from api.dao.happiness_dao import *
+from api.dao.users_dao import get_user_by_username
 from api.models.models import User, Group
 from config import TestConfig
 
@@ -27,7 +29,7 @@ def init_client():
         token_objs, tokens = zip(*[user1.create_token(), user2.create_token(), user3.create_token()])
         db.session.add_all(token_objs)
         db.session.commit()
-        minus1hr = datetime.datetime.utcnow() - datetime.timedelta(hours=1)
+        minus1hr = datetime.utcnow() - timedelta(hours=1)
 
         add_happiness(minus1hr)
 
@@ -98,6 +100,7 @@ def test_get_empty_read_happiness(init_client):
 
 def test_get_unread_happiness(init_client):
     add_group()
+    print(get_group_by_id(1).users)
 
     client, tokens = test_create_read(init_client)
     get1 = client.get(url + "unread/", headers=auth_header(tokens[0]))
@@ -113,13 +116,15 @@ def test_get_unread_happiness_2(init_client):
 
     add_group()
     user4 = User(email='test4@example.app', username='user4', password='test')
-    happiness4 = Happiness(user_id=4, value=8, comment="test4", timestamp=datetime.datetime.utcnow())
+    happiness4 = Happiness(user_id=4, value=8, comment="test4", timestamp=datetime.utcnow())
     db.session.add_all([user4, happiness4])
     db.session.commit()
 
     group2 = Group(name="super special test")
-    group2.add_users(["user4", "user2"])
     db.session.add(group2)
+    group2.invite_users(["user2", "user4"])
+    group2.add_user(get_user_by_username("user2"))
+    group2.add_user(get_user_by_username("user4"))
     db.session.commit()
 
     # Perform test: we should now see 3 unread happiness entries, one of them should be the new entry
@@ -161,7 +166,7 @@ def test_get_empty_unread_happiness_2(init_client):
     # should be empty because all happiness is outdated and no longer relevant
     db.session.query(Happiness).delete()
     db.session.commit()
-    minus2weeks = datetime.datetime.utcnow() - datetime.timedelta(weeks=2)
+    minus2weeks = datetime.utcnow() - timedelta(weeks=2)
     add_happiness(minus2weeks)
     add_group()
     get = client.get(url + "unread/", headers=auth_header(tokens[0]))
@@ -186,9 +191,12 @@ def test_get_empty_unread_happiness_3(init_client):
 
 
 def add_group():
-    group1 = Group(name="special test")
-    group1.add_users(["user1", "user2", "user3"])
-    db.session.add(group1)
+    group = Group(name="special test")
+    db.session.add(group)
+    group.invite_users(["user1", "user2", "user3"])
+    group.add_user(get_user_by_username("user1"))
+    group.add_user(get_user_by_username("user2"))
+    group.add_user(get_user_by_username("user3"))
     db.session.commit()
 
 

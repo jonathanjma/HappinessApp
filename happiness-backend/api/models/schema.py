@@ -2,7 +2,7 @@ from apifairy.fields import FileField
 from marshmallow import post_dump
 
 from api.app import ma
-from api.authentication.auth import token_auth
+from api.authentication.auth import token_current_user
 from api.models.models import User, Group, Happiness, Setting, Comment, Journal
 from api.util.errors import failure_response
 
@@ -121,18 +121,12 @@ class HappinessSchema(ma.SQLAlchemySchema):
     author = ma.Nested(SimpleUserSchema, dump_only=True)
     value = ma.auto_field(required=True)
     comment = ma.auto_field()
-    timestamp = ma.Str()
-
-    @post_dump
-    def fix_time(self, data, **kwargs):
-        if data.get('timestamp'):
-            data['timestamp'] = data['timestamp'].split()[0]
-        return data
+    timestamp = ma.Date()
 
 
-class HappinessGetBySchema(ma.Schema):
+class DateIdGetSchema(ma.Schema):
     id = ma.Int()
-    date = ma.Str()
+    date = ma.Date()
 
 
 class HappinessEditSchema(ma.Schema):
@@ -141,8 +135,8 @@ class HappinessEditSchema(ma.Schema):
 
 
 class HappinessGetTimeSchema(ma.Schema):
-    start = ma.Str(required=True)
-    end = ma.Str()
+    start = ma.Date(required=True)
+    end = ma.Date()
     id = ma.Int()
 
 
@@ -169,8 +163,9 @@ class FileUploadSchema(ma.Schema):
 
 
 class UserInfoSchema(ma.Schema):
-    data = ma.Str(required=True)
     data_type = ma.Str(required=True)
+    data = ma.Str(required=True)
+    data2 = ma.Str()
 
 
 class JournalSchema(ma.SQLAlchemySchema):
@@ -181,13 +176,13 @@ class JournalSchema(ma.SQLAlchemySchema):
     id = ma.auto_field(dump_only=True)
     user_id = ma.auto_field(dump_only=True)
     data = ma.auto_field(required=True)
-    timestamp = ma.Str(dump_only=True)
+    timestamp = ma.Date(required=True)
 
     @post_dump
     def decrypt_entry(self, data, **kwargs):
         try:
             if self.context.get('password_key'):
-                decrypted = token_auth.current_user().decrypt_data(self.context['password_key'], data['data'])
+                decrypted = token_current_user().decrypt_data(self.context['password_key'], data['data'])
                 data['data'] = decrypted.decode('utf-8')
         except Exception as e:
             print(e)
@@ -198,10 +193,6 @@ class JournalSchema(ma.SQLAlchemySchema):
 DecryptedJournalSchema = JournalSchema(many=True)
 
 
-class JournalGetBySchema(ma.Schema):
-    id = ma.Int(required=True)
-
-
 class JournalGetSchema(ma.Schema):
     page = ma.Int()
     count = ma.Int()
@@ -210,13 +201,11 @@ class JournalGetSchema(ma.Schema):
 class JournalEditSchema(ma.Schema):
     data = ma.Str(required=True)
 
+class GetPasswordKeySchema(ma.Schema):
+    password = ma.Str(required=True)
 
-class PasswordKeySchema(ma.Schema):
-    password_key = ma.Str(data_key='Password-Key', required=True)
-
-
-class PasswordKeyOptSchema(ma.Schema):
-    password_key = ma.Str(data_key='Password-Key')
+class PasswordKeyJWTSchema(ma.Schema):
+    key_token = ma.Str(data_key='Password-Key', required=True)
 
 
 class CreateReadsSchema(ma.Schema):

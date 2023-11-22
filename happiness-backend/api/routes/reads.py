@@ -5,7 +5,7 @@ from flask import Blueprint
 from sqlalchemy import select
 
 from api.app import db
-from api.authentication.auth import token_auth
+from api.authentication.auth import token_auth, token_current_user
 from api.dao import happiness_dao
 from api.models.models import Happiness, User
 from api.models.schema import CreateReadsSchema, HappinessSchema, HappinessGetPaginatedSchema
@@ -24,7 +24,7 @@ def create_read(req):
     Create Read
     Creates a read and adds it to the Reads table.
     """
-    user = token_auth.current_user()
+    user = token_current_user()
     happiness = happiness_dao.get_happiness_by_id(req.get("happiness_id"))
     if happiness is None:
         return {400: "No corresponding Happiness entry found"}
@@ -45,7 +45,7 @@ def mark_unread(req):
     Mark Unread
     Deletes the read record that corresponds to the provided Happiness ID from the Reads table.
     """
-    user = token_auth.current_user()
+    user = token_current_user()
     happiness = happiness_dao.get_happiness_by_id(req.get("happiness_id"))
     if happiness is None:
         return failure_response("No corresponding read Happiness entry found", code=400)
@@ -69,7 +69,7 @@ def get_read_happiness(req):
     Optionally takes "page" and "count" in request body, which default to 1 and 10 respectively.
     """
     page, per_page = req.get("page", 1), req.get("count", 10)
-    user = token_auth.current_user()
+    user = token_current_user()
     return user.posts_read.order_by(Happiness.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
 
 
@@ -84,7 +84,7 @@ def get_unread_happiness(req):
     Optionally takes "page" and "count" in request body, which default to 1 and 10 respectively.
     """
     page, per_page = req.get("page", 1), req.get("count", 10)
-    current_user = token_auth.current_user()
+    current_user = token_current_user()
     # Also I am aware that has_mutual_group exists, but we can't use that as a SQLAlchemy query,
     # and we don't want to for loop through all happiness entries on the db.
 
