@@ -63,6 +63,7 @@ class User(db.Model):
 
     settings = db.relationship("Setting", cascade="delete")
     groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
+    invites = db.relationship("Group", secondary=group_invites, back_populates="invited_users")
     posts_read = db.relationship("Happiness",
                                  secondary=readers_happiness,
                                  back_populates="readers",
@@ -220,6 +221,7 @@ class Group(db.Model):
     name = db.Column(db.String, nullable=False)
 
     users = db.relationship("User", secondary=group_users, back_populates="groups")
+    invited_users = db.relationship("User", secondary=group_invites, back_populates="invites")
 
     def __init__(self, **kwargs):
         """
@@ -228,16 +230,24 @@ class Group(db.Model):
         """
         self.name = kwargs.get("name")
 
-    def add_users(self, new_users):
+    def invite_users(self, users_to_invite):
         """
-        Adds users to a group
-        Requires a list of usernames to add
-        Users to be added must exist and not already be in the group
+        Invites a list of usernames to join a group
+        Requires: Users to be invited must exist and not already be in the group
         """
-        for username in new_users:
+        for username in users_to_invite:
             user = User.query.filter(User.username.ilike(username)).first()
-            if user is not None and user not in self.users:
-                self.users.append(user)
+            if user is not None and user not in self.users and user not in self.invited_users:
+                self.invited_users.append(user)
+
+    def add_user(self, user_to_add):
+        """
+        Adds a user object to a group
+        Requires: User must already have been invited to the group
+        """
+        if user_to_add in self.invited_users:
+            self.invited_users.remove(user_to_add)
+            self.users.append(user_to_add)
 
     def remove_users(self, users_to_remove):
         """
@@ -246,8 +256,11 @@ class Group(db.Model):
         """
         for username in users_to_remove:
             user = User.query.filter(User.username.ilike(username)).first()
-            if user is not None and user in self.users:
-                self.users.remove(user)
+            if user is not None:
+                if user in self.users:
+                    self.users.remove(user)
+                elif user in self.invited_users:
+                    self.invited_users.remove(user)
 
 
 class Happiness(db.Model):
@@ -366,16 +379,3 @@ class Token(db.Model):
         yesterday = datetime.utcnow() - timedelta(days=1)
         db.session.execute(delete(Token).where(Token.session_expiration < yesterday))
 
-# class Reads(db.Model):
-#     """
-#     The Reads model.
-#     A user can have many read posts, and a read post can have many users, so this is a many-to-many relationship.
-#     Each read has an associated timestamp.
-#     Happiness is the first entity of this relationship, and Users are the second entity.
-#     Each read has an id (primary key), timestamp, user ID, and Happiness ID.
-#     """
-#     __tablename__ = "reads"
-#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-#     reader_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-#     happiness_id = db.Column(db.Integer, db.ForeignKey("happiness.id"))
-#     timestamp = db.Column(db.DateTime)
