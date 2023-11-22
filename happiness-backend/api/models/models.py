@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import hashlib
 import os
@@ -7,64 +9,62 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from flask import current_app
-from sqlalchemy import delete
+from flask_sqlalchemy.model import DefaultMeta
+from sqlalchemy import delete, Integer, String, DateTime, ForeignKey, Column, Boolean, Float
+from sqlalchemy.orm import mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from api.app import db
 from api.util.jwt_methods import generate_jwt
 
+BaseModel: DefaultMeta = db.Model
+
 # Group Users association table
 group_users = db.Table(
     "group_users",
-    db.Model.metadata,
-    db.Column("group_id", db.Integer, db.ForeignKey(
-        "group.id", ondelete='cascade')),
-    db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
+    BaseModel.metadata,
+    Column("group_id", Integer, ForeignKey("group.id", ondelete='cascade')),
+    Column("user_id", Integer, ForeignKey("user.id"))
 )
 
 # Group Invites association table
 group_invites = db.Table(
     "group_invites",
-    db.Model.metadata,
-    db.Column("group_id", db.Integer, db.ForeignKey(
-        "group.id", ondelete='cascade')),
-    db.Column("user_id", db.Integer, db.ForeignKey("user.id"))
+    BaseModel.metadata,
+    Column("group_id", Integer, ForeignKey("group.id", ondelete='cascade')),
+    Column("user_id", Integer, ForeignKey("user.id"))
 )
 
 # Reads association table
 readers_happiness = db.Table(
     "readers_happiness",
-    db.Model.metadata,
-    db.Column("happiness_id", db.Integer, db.ForeignKey(
-        "happiness.id"
-    )),
-    db.Column("reader_id", db.Integer, db.ForeignKey(
-        "user.id"
-    )),
-    db.Column("timestamp", db.DateTime, default=datetime.utcnow())
+    BaseModel.metadata,
+    Column("happiness_id", Integer, ForeignKey("happiness.id")),
+    Column("reader_id", Integer, ForeignKey("user.id")),
+    Column("timestamp", DateTime, default=datetime.utcnow())
 )
 
 
-class User(db.Model):
+class User(BaseModel):
     """
     User model. Has a one-to-many relationship with Setting.
     """
     __tablename__ = "user"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     # User information
-    email = db.Column(db.String, nullable=False, unique=True)
-    username = db.Column(db.String, nullable=False, unique=True)
-    password = db.Column(db.String, nullable=False)
-    created = db.Column(db.DateTime)
-    profile_picture = db.Column(db.String, nullable=False)
-    encrypted_key = db.Column(db.String)
-    encrypted_key_recovery = db.Column(db.String)
+    email = mapped_column(String, nullable=False, unique=True)
+    username = mapped_column(String, nullable=False, unique=True)
+    password = mapped_column(String, nullable=False)
+    created = mapped_column(DateTime)
+    profile_picture = mapped_column(String, nullable=False)
+    encrypted_key = mapped_column(String)
+    encrypted_key_recovery = mapped_column(String)
 
-    settings = db.relationship("Setting", cascade="delete")
-    groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
-    invites = db.relationship("Group", secondary=group_invites, back_populates="invited_users")
-    posts_read = db.relationship("Happiness",
+    settings = relationship("Setting", cascade="delete")
+    groups = relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
+    invites = relationship("Group", secondary=group_invites, back_populates="invited_users")
+    posts_read = relationship("Happiness",
                                  secondary=readers_happiness,
                                  back_populates="readers",
                                  lazy="dynamic")
@@ -77,14 +77,14 @@ class User(db.Model):
         self.email = kwargs.get("email")
 
         # Convert raw password into encrypted string that can still be decrypted, but we cannot decrypt it.
-        raw_pwd = kwargs.get("password")
-        self.password = generate_password_hash(raw_pwd)
+        raw_password = kwargs.get("password")
+        self.password = generate_password_hash(raw_password)
         self.username = kwargs.get("username")
         self.profile_picture = kwargs.get("profile_picture", self.avatar_url())
         self.created = datetime.today()
-        self.e2e_init(raw_pwd)
+        self.e2e_init(raw_password)
 
-    def e2e_init(self, password):
+    def e2e_init(self, password: str):
         """Generate user key for encrypting/decrypting data"""
         # also derive password key for encrypting/decrypting user key from user password
         # https://security.stackexchange.com/questions/157422/store-encrypted-user-data-in-database
@@ -92,7 +92,7 @@ class User(db.Model):
         password_key = self.derive_password_key(password)
         self.encrypted_key = Fernet(password_key).encrypt(user_key)
 
-    def derive_password_key(self, password):
+    def derive_password_key(self, password: str) -> bytes:
         """Derive password key from user password"""
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -102,20 +102,20 @@ class User(db.Model):
         )
         return base64.urlsafe_b64encode(kdf.derive(bytes(password, 'utf-8')))
 
-    def generate_password_key_token(self, password, expiration=60):
+    def generate_password_key_token(self, password: str, expiration=60) -> str:
         return generate_jwt(
             {'Password-Key': self.derive_password_key(password).decode('utf-8')}, expiration)
 
-    def decrypt_user_key(self, password_key):
+    def decrypt_user_key(self, password_key: str) -> bytes:
         """Decrypt user key using password key"""
         return Fernet(bytes(password_key, 'utf-8')).decrypt(self.encrypted_key)
 
-    def encrypt_data(self, password_key, data):
+    def encrypt_data(self, password_key: str, data: str) -> bytes:
         """Decrypt user key with password key, then encrypt data with user key"""
         user_key = self.decrypt_user_key(password_key)
         return Fernet(user_key).encrypt(bytes(data, 'utf-8'))
 
-    def decrypt_data(self, password_key, data):
+    def decrypt_data(self, password_key: str, data: str) -> bytes:
         """Decrypt user key with password key, then decrypt data with user key"""
         user_key = self.decrypt_user_key(password_key)
         return Fernet(user_key).decrypt(data)
@@ -124,10 +124,10 @@ class User(db.Model):
         digest = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
         return f'https://www.gravatar.com/avatar/{digest}?d=identicon'
 
-    def verify_password(self, password):
+    def verify_password(self, password: str) -> bool:
         return check_password_hash(self.password, password)
 
-    def change_password(self, old_password, new_password):
+    def change_password(self, old_password: str, new_password: str):
         """Changes a user's password and updates its encrypted key"""
         # Decrypts user key with the user's old password,
         # then encrypts the user key with new password's key
@@ -135,17 +135,17 @@ class User(db.Model):
         self.encrypted_key = Fernet(self.derive_password_key(new_password)).encrypt(user_key)
         self.password = generate_password_hash(new_password)
 
-    def add_key_recovery(self, password, recovery_phrase):
+    def add_key_recovery(self, password: str, recovery_phrase: str):
         """Add recovery phrase to prevent loss of encrypted data if user forgets their password"""
         # stores a copy of the user key encrypted with a recovery phrase
         user_key = self.decrypt_user_key(self.derive_password_key(password).decode())
         recovery_key = self.derive_password_key(recovery_phrase.lower())
         self.encrypted_key_recovery = Fernet(recovery_key).encrypt(user_key)
 
-    def generate_password_reset_token(self, expiration=10):
+    def generate_password_reset_token(self, expiration=10) -> str:
         return generate_jwt({'reset_email': self.email}, expiration)
 
-    def reset_password(self, new_password, recovery_phrase=None):
+    def reset_password(self, new_password: str, recovery_phrase: str=None):
         """
         Resets a user's password
         *** !!! Will cause encrypted data to be lost if recovery phrase not provided !!! ***
@@ -161,11 +161,11 @@ class User(db.Model):
             self.e2e_init(new_password)
             db.session.execute(delete(Journal).where(Journal.user_id == self.id))  # delete entries
 
-    def create_token(self):
+    def create_token(self) -> tuple[Token, str]:
         """Generates a new session token for a user"""
         return Token().hashed(self.id)
 
-    def has_mutual_group(self, user_to_check):
+    def has_mutual_group(self, user_to_check: User) -> bool:
         """
         Checks to see if the current users shares a happiness group user_to_check (a user object)
         """
@@ -189,17 +189,17 @@ class User(db.Model):
             self.posts_read.remove(happiness)
 
 
-class Setting(db.Model):
+class Setting(BaseModel):
     """
     Settings model. Has a many-to-one relationship with User.
     To store settings I chose to use the property bag method.
     """
     __tablename__ = "setting"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    key = db.Column(db.String, nullable=False)
-    enabled = db.Column(db.Boolean, nullable=False)
-    value = db.Column(db.String)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    key = mapped_column(String, nullable=False)
+    enabled = mapped_column(Boolean, nullable=False)
+    value = mapped_column(String)
+    user_id = mapped_column(Integer, ForeignKey("user.id"))
 
     def __init__(self, **kwargs):
         """
@@ -212,16 +212,16 @@ class Setting(db.Model):
         self.user_id = kwargs.get("user_id")
 
 
-class Group(db.Model):
+class Group(BaseModel):
     """
     Group model. Has a many-to-many relationship with User.
     """
     __tablename__ = "group"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String, nullable=False)
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name = mapped_column(String, nullable=False)
 
-    users = db.relationship("User", secondary=group_users, back_populates="groups")
-    invited_users = db.relationship("User", secondary=group_invites, back_populates="invites")
+    users = relationship("User", secondary=group_users, back_populates="groups")
+    invited_users = relationship("User", secondary=group_invites, back_populates="invites")
 
     def __init__(self, **kwargs):
         """
@@ -230,7 +230,7 @@ class Group(db.Model):
         """
         self.name = kwargs.get("name")
 
-    def invite_users(self, users_to_invite):
+    def invite_users(self, users_to_invite: list[str]):
         """
         Invites a list of usernames to join a group
         Requires: Users to be invited must exist and not already be in the group
@@ -240,7 +240,7 @@ class Group(db.Model):
             if user is not None and user not in self.users and user not in self.invited_users:
                 self.invited_users.append(user)
 
-    def add_user(self, user_to_add):
+    def add_user(self, user_to_add: User):
         """
         Adds a user object to a group
         Requires: User must already have been invited to the group
@@ -249,7 +249,7 @@ class Group(db.Model):
             self.invited_users.remove(user_to_add)
             self.users.append(user_to_add)
 
-    def remove_users(self, users_to_remove):
+    def remove_users(self, users_to_remove: list[str]):
         """
         Removes a list of usernames from a group
         Requires: Users to be removed must exist and already be in or invited to the group
@@ -263,20 +263,20 @@ class Group(db.Model):
                     self.invited_users.remove(user)
 
 
-class Happiness(db.Model):
+class Happiness(BaseModel):
     """
     Happiness model. Has a many-to-one relationship with users table.
     """
     __tablename__ = "happiness"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    value = db.Column(db.Float)
-    comment = db.Column(db.String)
-    timestamp = db.Column(db.DateTime)
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id = mapped_column(Integer, ForeignKey("user.id"))
+    value = mapped_column(Float)
+    comment = mapped_column(String)
+    timestamp = mapped_column(DateTime)
 
-    author = db.relationship("User")
-    discussion_comments = db.relationship("Comment", cascade='delete', lazy='dynamic')
-    readers = db.relationship("User",
+    author = relationship("User")
+    discussion_comments = relationship("Comment", cascade='delete', lazy='dynamic')
+    readers = relationship("User",
                               secondary=readers_happiness,
                               back_populates="posts_read",
                               lazy="dynamic")
@@ -316,15 +316,15 @@ class Comment(db.Model):
         self.timestamp = datetime.utcnow()
 
 
-class Journal(db.Model):
+class Journal(BaseModel):
     """
     Journal model. Has a many-to-one relationship with user table.
     """
     __tablename__ = "journal"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    data = db.Column(db.String, nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False)
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id = mapped_column(Integer, ForeignKey("user.id"))
+    data = mapped_column(String, nullable=False)
+    timestamp = mapped_column(DateTime, nullable=False)
 
     def __init__(self, **kwargs):
         """
@@ -336,18 +336,18 @@ class Journal(db.Model):
         self.timestamp = kwargs.get("timestamp")
 
 
-class Token(db.Model):
+class Token(BaseModel):
     """
     Token model. Has a many-to-one relationship with users table.
     """
     __tablename__ = "token"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    session_token = db.Column(db.String, nullable=False, unique=True) # stored using hashing
-    session_expiration = db.Column(db.DateTime, nullable=False)
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id = mapped_column(Integer, ForeignKey("user.id"))
+    session_token = mapped_column(String, nullable=False, unique=True) # stored using hashing
+    session_expiration = mapped_column(DateTime, nullable=False)
 
     @staticmethod
-    def hashed(user_id):
+    def hashed(user_id: int) -> tuple[Token, str]:
         """
         Create a hashed session token for a user.
         Returns the associated token object and the unhashed token.
@@ -365,7 +365,7 @@ class Token(db.Model):
         self.session_token = kwargs.get("hashed_token")
         self.session_expiration = datetime.utcnow() + timedelta(weeks=3)
 
-    def verify(self):
+    def verify(self) -> bool:
         """Verifies a user's session token."""
         return self.session_expiration > datetime.utcnow()
 

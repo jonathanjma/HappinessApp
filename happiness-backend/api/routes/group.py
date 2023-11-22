@@ -4,6 +4,7 @@ from apifairy import authenticate, body, arguments, response, other_responses
 from flask import Blueprint
 
 from api.app import db
+from api.authentication.auth import token_current_user
 from api.dao.groups_dao import get_group_by_id
 from api.dao.happiness_dao import get_happiness_by_group_timestamp
 from api.models.models import Group
@@ -20,8 +21,8 @@ group = Blueprint('group', __name__)
 def check_group(cur_group, allow_invited=False):
     if cur_group is None:
         return failure_response('Group Not Found', 404)
-    elif token_auth.current_user() not in cur_group.users:
-        if not allow_invited or (allow_invited and token_auth.current_user() not in cur_group.invited_users):
+    elif token_current_user() not in cur_group.users:
+        if not allow_invited or (allow_invited and token_current_user() not in cur_group.invited_users):
             return failure_response('Not Allowed', 403)
 
 
@@ -38,7 +39,7 @@ def create_group(req):
     """
 
     new_group = Group(name=req['name'])
-    new_group.users.append(token_auth.current_user())  # add group creator to group
+    new_group.users.append(token_current_user())  # add group creator to group
 
     db.session.add(new_group)
     db.session.commit()
@@ -84,7 +85,7 @@ def group_happiness(req, group_id):
     cur_group = get_group_by_id(group_id)
     check_group(cur_group)
 
-    today = datetime.strftime(datetime.today(), "%Y-%m-%d")
+    today = datetime.today().date()
     start_date, end_date = req.get("start"), req.get("end", today)
 
     return get_happiness_by_group_timestamp(list(map(lambda x: x.id, cur_group.users)), start_date, end_date)

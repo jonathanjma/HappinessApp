@@ -9,6 +9,7 @@ from flask import Blueprint
 from flask import current_app
 
 from api.app import db
+from api.authentication.auth import token_current_user
 from api.util.jwt_methods import verify_token
 from api.dao import users_dao
 from api.dao.groups_dao import get_group_by_id
@@ -61,7 +62,7 @@ def get_user_by_id(user_id):
     User must share a group with the user they are viewing. \n
     Returns: JSON of User object containing user information
     """
-    current_user = token_auth.current_user()
+    current_user = token_current_user()
 
     friend_user = users_dao.get_user_by_id(user_id)
     if friend_user is None:
@@ -97,8 +98,8 @@ def user_groups():
     Returns: a list of happiness groups that the user is in as well as any they have been invited to join.
     """
     return {
-        'groups': token_auth.current_user().groups,
-        'group_invites': token_auth.current_user().invites
+        'groups': token_current_user().groups,
+        'group_invites': token_current_user().invites
     }
 
 
@@ -113,8 +114,8 @@ def accept_group_invite(group_id):
     Requires: group ID is valid and corresponds to a group that has invited the user
     """
     group = get_group_by_id(group_id)
-    if group is not None and group in token_auth.current_user().invites:
-        group.add_user(token_auth.current_user())
+    if group is not None and group in token_current_user().invites:
+        group.add_user(token_current_user())
         return '', 204
     return failure_response('Group Invite Not Found', 404)
 
@@ -130,8 +131,8 @@ def reject_group_invite(group_id):
     Requires: group ID is valid and corresponds to a group that has invited the user
     """
     group = get_group_by_id(group_id)
-    if group is not None and group in token_auth.current_user().invites:
-        group.remove_users([token_auth.current_user().username])
+    if group is not None and group in token_current_user().invites:
+        group.remove_users([token_current_user().username])
         return '', 204
     return failure_response('Group Invite Not Found', 404)
 
@@ -143,7 +144,7 @@ def delete_user():
     Delete User
     Deletes the user that is currently logged in, including all user data.
     """
-    current_user = token_auth.current_user()
+    current_user = token_current_user()
     db.session.delete(current_user)
     db.session.commit()
 
@@ -162,7 +163,7 @@ def add_user_setting(req):
     If the setting already exists in the property bag, it can enable or disable the setting. \n
     Returns: A JSON success response that contains the added setting, or a failure response.
     """
-    current_user = token_auth.current_user()
+    current_user = token_current_user()
     key, enabled, value = req.get("key"), req.get("enabled"), req.get("value")
     old_setting = Setting.query.filter(
         Setting.user_id == current_user.id, Setting.key == key).first()
@@ -193,7 +194,7 @@ def get_user_settings():
     Gets the settings of the current user by authorization token. \n
     Returns: A JSON response of a list of keys, booleans, and values that contain setting keys, whether they are enabled/disabled, and specific values for the user.
     """
-    current_user = token_auth.current_user()
+    current_user = token_current_user()
     settings = Setting.query.filter(Setting.user_id == current_user.id).all()
     return settings
 
@@ -217,7 +218,7 @@ def change_user_info(req):
     and the recovery phrase in the `data2` field.
     """
     data_type = req.get("data_type")
-    current_user = token_auth.current_user()
+    current_user = token_current_user()
 
     if len(req.get("data")) == 0:
         return failure_response('Data is empty.', 400)
@@ -316,7 +317,7 @@ def get_self():
     Get Self
     Returns: the user object corresponding to the currently logged-in user.
     """
-    return token_auth.current_user()
+    return token_current_user()
 
 
 @user.post('/pfp/')
@@ -335,7 +336,7 @@ def add_pfp(req):
     # Check valid user and valid image file
 
     data = req["file"].read()
-    current_user = token_auth.current_user()
+    current_user = token_current_user()
     # Check that data exists
     if not data:
         return failure_response("Invalid request", 400)

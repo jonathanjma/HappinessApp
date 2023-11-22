@@ -2,8 +2,9 @@ from apifairy import authenticate, body, response, other_responses, arguments
 from flask import Blueprint
 
 from api.app import db
-from api.authentication.auth import token_auth
+from api.authentication.auth import token_auth, token_current_user
 from api.dao import journal_dao
+from api.dao.journal_dao import get_entry_by_id_or_date
 from api.models.models import Journal
 from api.models.schema import JournalSchema, JournalGetSchema, DecryptedJournalSchema, \
     PasswordKeyJWTSchema, JournalEditSchema, EmptySchema, GetPasswordKeySchema, DateIdGetSchema
@@ -13,21 +14,11 @@ from api.util.jwt_methods import verify_token
 journal = Blueprint('journal', __name__)
 
 
-def get_verify_key_token(token):
+def get_verify_key_token(token: str) -> str:
     payload = verify_token(token)
     if not payload:
         return failure_response('Invalid password key token.', 400)
     return payload['Password-Key']
-
-
-def get_by_id_or_date(args):
-    id, date = args.get("id"), args.get("date")
-    if id is not None:
-        return journal_dao.get_journal_by_id(id)
-    elif date is not None:
-        return journal_dao.get_journal_by_date(date)
-    else:
-        return failure_response('Insufficient Information', 400)
 
 
 @journal.get('/key')
@@ -43,13 +34,11 @@ def get_password_key_jwt(req):
     Must be re-requested once the token has expired.
     """
     # should we require a recovery phrase to be setup prior to using journal?
-    user = token_auth.current_user()
-
-    if not user.verify_password(req.get("password")):
+    if not token_current_user().verify_password(req.get("password")):
         return failure_response("Incorrect Password", 401)
 
     return ({}, {
-        'Password-Key': user.generate_password_key_token(req.get("password"))
+        'Password-Key': token_current_user().generate_password_key_token(req.get("password"))
     })
 
 
@@ -66,14 +55,13 @@ def create_entry(req, headers):
     Requires: the user's password key token for data encryption (provided by the `Get Password Key` endpoint)
     """
     password_key = get_verify_key_token(headers.get('key_token'))
-    potential_journal = journal_dao.get_journal_by_date(req.get('timestamp'))
+    potential_journal = journal_dao.get_journal_by_date(token_current_user().id, req.get('timestamp'))
     if potential_journal:
         return failure_response("Journal entry already exists for this day.", 400)
 
     try:
-        user = token_auth.current_user()
-        encrypted_data = user.encrypt_data(password_key, req.get('data'))
-        entry = Journal(user_id=user.id, encrypted_data=encrypted_data,
+        encrypted_data = token_current_user().encrypt_data(password_key, req.get('data'))
+        entry = Journal(user_id=token_current_user().id, encrypted_data=encrypted_data,
                         timestamp=req.get('timestamp'))
         db.session.add(entry)
         db.session.commit()
@@ -97,11 +85,11 @@ def get_entries(args, headers):
     Requires: the user's password key token for data decryption (provided by the `Get Password Key` endpoint)
     """
     password_key = get_verify_key_token(headers.get('key_token'))
-    user = token_auth.current_user()
     page, count = args.get("page", 1), args.get("count", 10)
+
     # add password key to schema context so entries can be decrypted
     DecryptedJournalSchema.context['password_key'] = password_key
-    return journal_dao.get_entries_by_count(user.id, page, count)
+    return journal_dao.get_entries_by_count(token_current_user().id, page, count)
 
 
 @journal.put('/')
@@ -118,11 +106,11 @@ def edit_entry(args, headers, req):
     Requires: the user's password key token for data en/decryption (provided by the `Get Password Key` endpoint)
     """
     password_key = get_verify_key_token(headers.get('key_token'))
-    entry = get_by_id_or_date(args)
+    entry = get_entry_by_id_or_date(args)
     if not entry:
         return failure_response("Entry Not Found.", 404)
     try:
-        entry.data = token_auth.current_user().encrypt_data(password_key, req.get('data'))
+        entry.data = token_current_user().encrypt_data(password_key, req.get('data'))
         db.session.commit()
         return entry
     except Exception as e:
@@ -139,7 +127,7 @@ def delete_entry(args):
     Delete Journal Entry by ID
     Deletes the journal entry corresponding to a specific ID.
     """
-    entry = get_by_id_or_date(args)
+    entry = get_entry_by_id_or_date(args)
     if not entry:
         return failure_response("Entry Not Found.", 404)
     db.session.delete(entry)

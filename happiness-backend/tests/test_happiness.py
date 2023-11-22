@@ -1,6 +1,5 @@
 import base64
 import json
-from datetime import datetime
 
 import pytest
 
@@ -8,7 +7,7 @@ from api import create_app
 from api.app import db
 from api.dao.groups_dao import get_group_by_id
 from api.dao.happiness_dao import *
-from api.dao.users_dao import get_user_by_id
+from api.dao.users_dao import get_user_by_id, get_user_by_username
 from api.models.models import User
 from config import TestConfig
 
@@ -163,7 +162,6 @@ def test_edit_delete_happiness(init_client):
     assert happiness_delete_response.status_code == 204
 
 
-@pytest.mark.skip(reason="group invites have not been merged")
 def test_get_happiness(init_client):
     client, tokens = init_client
     client.post('/api/user/', json={
@@ -390,10 +388,12 @@ def test_discussion_comments(init_client):
     }, headers=auth_header(tokens[1]))
     assert unauthorized_comment.status_code == 403
 
-    # get_group_by_id(1).invite_users(['user2'])
-    get_group_by_id(1).add_users(['user2'])
-    # get_group_by_id(2).invite_users(['user3'])
-    get_group_by_id(2).add_users(['user3'])
+    get_group_by_id(1).invite_users(['user2'])
+    get_group_by_id(1).add_user(get_user_by_username('user2'))
+    get_group_by_id(2).invite_users(['user3'])
+    get_group_by_id(2).add_user(get_user_by_username('user3'))
+
+    print(get_group_by_id(1).users)
 
     create_comment = client.post('/api/happiness/1/comment', json={
         'text': 'oh no what happened?'
@@ -404,8 +404,9 @@ def test_discussion_comments(init_client):
     create_comment3 = client.post('/api/happiness/1/comment', json={
         'text': 'is it related to your mom?'
     }, headers=auth_header(tokens[2]))
-    assert create_comment.status_code == 201 and create_comment2.status_code == 201 \
-           and create_comment3.status_code == 201
+    assert create_comment.status_code == 201
+    assert create_comment2.status_code == 201
+    assert create_comment3.status_code == 201
 
     happiness_get = client.get('/api/happiness/1/comments', query_string={
         'start': '2023-06-19'

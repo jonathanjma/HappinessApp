@@ -2,7 +2,7 @@ from apifairy.fields import FileField
 from marshmallow import post_dump
 
 from api.app import ma
-from api.authentication.auth import token_auth
+from api.authentication.auth import token_current_user
 from api.models.models import User, Group, Happiness, Setting, Comment, Journal
 from api.util.errors import failure_response
 
@@ -182,7 +182,7 @@ class JournalSchema(ma.SQLAlchemySchema):
     def decrypt_entry(self, data, **kwargs):
         try:
             if self.context.get('password_key'):
-                decrypted = token_auth.current_user().decrypt_data(self.context['password_key'], data['data'])
+                decrypted = token_current_user().decrypt_data(self.context['password_key'], data['data'])
                 data['data'] = decrypted.decode('utf-8')
         except Exception as e:
             print(e)

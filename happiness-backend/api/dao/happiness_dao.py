@@ -1,33 +1,47 @@
 from datetime import timedelta, datetime
 
+from sqlalchemy import select
+
+from api.app import db
+from api.authentication.auth import token_current_user
 from api.models.models import Happiness
+from api.util.errors import failure_response
 
 
-def get_happiness_by_id(id):
+def get_happiness_by_id(happiness_id: int) -> Happiness:
     """
     Returns a Happiness object by ID.
-    :param id: ID of the Happiness object being searched for.
-    :return: A Happiness object with the same ID as the one provided.
     """
-    return Happiness.query.filter_by(id=id).first()
+    return db.session.execute(select(Happiness).where(Happiness.id == happiness_id)).scalar()
 
 
-def get_happiness_by_date(user_id, date):
+def get_happiness_by_date(user_id: int, date: datetime):
     """
     Returns a Happiness object, given a User ID and a Datetime object.
     :param user_id: ID of the User whose Happiness object is being searched for.
     :param date: Date object representing the day the happiness value was recorded.
     :return: A Happiness object of the given User ID corresponding to the given date.
     """
-    date = datetime.strftime(date, "%Y-%m-%d 00:00:00.000000")
-    return Happiness.query.filter_by(user_id=user_id, timestamp=date).first()
+    db_date = datetime.strftime(date, "%Y-%m-%d 00:00:00.000000")
+    return db.session.execute(
+        select(Happiness).where(Happiness.user_id == user_id, Happiness.timestamp == db_date)
+    ).scalar()
+
+def get_happiness_by_id_or_date(args: dict) -> Happiness:
+    id, date = args.get("id"), args.get("date")
+    if id is not None:
+        return get_happiness_by_id(id)
+    elif date is not None:
+        return get_happiness_by_date(token_current_user().id, date)
+    else:
+        return failure_response('Insufficient Information', 400)
 
 
-def get_user_happiness(user_id):
+def get_user_happiness(user_id: int):
     """
     Returns a list of all Happiness objects corresponding to the given User ID.
     """
-    return Happiness.query.filter_by(user_id=user_id).all()
+    return db.session.execute(select(Happiness).where(Happiness.user_id == user_id)).all()
 
 
 def get_happiness_by_timestamp(user_id, start, end):

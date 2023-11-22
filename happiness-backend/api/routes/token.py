@@ -32,7 +32,7 @@ def new_token():
     Token.clean()
     db.session.commit()
 
-    return {'session_token': token.session_token}
+    return {'session_token': token}
 
 
 @token.delete('/')
