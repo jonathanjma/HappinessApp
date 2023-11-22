@@ -1,3 +1,5 @@
+import hashlib
+
 from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 
 from api.dao.users_dao import get_user_by_username, get_token, get_user_by_id, get_user_by_email
@@ -29,7 +31,8 @@ def basic_auth_error(status):
 @token_auth.verify_token
 def verify_token(session_token):
     if session_token:
-        token = get_token(session_token)
+        # hash session token (since only hashed tokens are stored)
+        token = get_token(hashlib.sha256(session_token.encode()).hexdigest())
         if token and token.verify():
             return get_user_by_id(token.user_id)
 
