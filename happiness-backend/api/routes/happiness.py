@@ -14,8 +14,6 @@ from api.models.schema import HappinessSchema, HappinessEditSchema, HappinessGet
 from api.routes.token import token_auth
 from api.util.errors import failure_response
 
-from typing import List, Any
-
 happiness = Blueprint('happiness', __name__)
 
 
@@ -218,7 +216,7 @@ def export_happiness():
 @authenticate(token_auth)
 @arguments(HappinessMultiFilterSchema)
 @response(HappinessSchema(many=True))
-def multi_filter_search_happiness(req) -> List[Any]:
+def multi_filter_search_happiness(req):
     """
     Gets all happiness objects for a user that match the given constraints in the arguments including
     Date filter: entries are between [start] and [end] dates (inclusive)
