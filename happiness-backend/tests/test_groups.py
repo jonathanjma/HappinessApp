@@ -24,11 +24,11 @@ def init_client():
         user3 = User(email='test3@example.app', username='user3', password='test')
         db.session.add_all([user1, user2, user3])
         db.session.commit()
-        tokens = [user1.create_token(), user2.create_token(), user3.create_token()]
-        db.session.add_all(tokens)
+        token_objs, tokens = zip(*[user1.create_token(), user2.create_token(), user3.create_token()])
+        db.session.add_all(token_objs)
         db.session.commit()
 
-        yield client, [tokens[0].session_token, tokens[1].session_token, tokens[2].session_token]
+        yield client, tokens
 
 
 def auth_header(token):
@@ -66,7 +66,6 @@ def test_create_group(init_client):
     assert user_in_group_json_model('user1', group_create.json, new_group)
 
 
-@pytest.mark.skip(reason="group invites have not been merged")
 def test_edit_group_name(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': 'test'}, headers=auth_header(tokens[0]))
@@ -84,7 +83,6 @@ def test_edit_group_name(init_client):
     assert name_edit.json['name'] == get_group_by_id(1).name == 'successful'
 
 
-@pytest.mark.skip(reason="group invites have not been merged")
 def test_edit_group_users(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': 'test'}, headers=auth_header(tokens[0]))
@@ -134,7 +132,6 @@ def test_edit_group_users(init_client):
     assert not group_in_user_modal(1, get_user_by_id(3))
 
 
-@pytest.mark.skip(reason="group invites have not been merged")
 def test_group_info(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': ':-)'}, headers=auth_header(tokens[0]))
@@ -150,7 +147,6 @@ def test_group_info(init_client):
     assert invite_in_group_json_model('user2', view.json, get_group_by_id(1))
 
 
-@pytest.mark.skip(reason="group invites have not been merged")
 def test_mutual_groups(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': ':-)'}, headers=auth_header(tokens[0]))
@@ -164,7 +160,6 @@ def test_mutual_groups(init_client):
     assert get_user_by_id(2).has_mutual_group(get_user_by_id(1))
 
 
-@pytest.mark.skip(reason="group invites have not been merged")
 def test_group_delete(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': ':-)'}, headers=auth_header(tokens[0]))
@@ -185,7 +180,6 @@ def test_group_delete(init_client):
            and not invite_in_user_modal(1, get_user_by_id(3))
 
 
-@pytest.mark.skip(reason="group invites have not been merged")
 def test_group_happiness(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': ':-)'}, headers=auth_header(tokens[0]))

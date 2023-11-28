@@ -3,15 +3,17 @@ DAO (Data Access Object) file
 
 Helper file containing functions for accessing data in our database
 """
+from sqlalchemy import select
 
+from api.app import db
 from api.models.models import User, Token
 
 
-def get_user_by_id(id):
+def get_user_by_id(user_id: int) -> User:
     """
     Returns a User object by ID.
     """
-    return User.query.filter_by(id=id).first()
+    return db.session.execute(select(User).where(User.id == user_id)).scalar()
 
 
 def get_user_by_username(username):
@@ -32,8 +34,8 @@ def get_user_by_email(email):
     return User.query.filter(User.email.ilike(email)).first()
 
 
-def get_token(token):
+def get_token(token: str) -> Token:
     """
     Return a user object from the database given a session token
     """
-    return Token.query.filter_by(session_token=token).first()
+    return db.session.execute(select(Token).where(Token.session_token == token)).scalar()
