@@ -1,0 +1,1 @@
+web: gunicorn happiness_backend:app --preload

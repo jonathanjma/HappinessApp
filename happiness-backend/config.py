@@ -18,7 +18,6 @@ class Config:
 
     # Security measures
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    SERVER_NAME = os.environ.get("SERVER_NAME")
 
     # Email sending
     MAIL_SERVER = "smtp.gmail.com"
