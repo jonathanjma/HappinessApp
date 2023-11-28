@@ -186,8 +186,8 @@ def get_comments(id):
     Get Discussion Comments
     Gets all the discussion comments for a happiness entry. \n
     Requires: User must share a group with the user who created the happiness entry. \n
-    Returns: List of discussion comments, only including the comments where
-    the commenter shares a group with the current user
+    Returns: List of discussion comments in ascending timestamp order, only including the
+    comments where the commenter shares a group with the current user
     """
     happiness_obj = happiness_dao.get_happiness_by_id(id)
     if happiness_obj:
@@ -207,7 +207,6 @@ def get_comments(id):
 @response(CommentSchema)
 @other_responses({404: 'Invalid Comment', 403: 'Not Allowed'})
 def edit_comment(req, id):
-    print(type(req))
     """
     Edit Discussion Comment
     Updates the text of a happiness discussion comment. \n
