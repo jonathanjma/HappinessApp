@@ -266,8 +266,8 @@ def import_happiness():
 def multi_filter_search_happiness(req) -> List[Any]:
     """
     Gets all happiness objects for a user that match the given constraints in the arguments including
-    Date filter: entries are between [start] and [end] dates
-    Value filter: entries are between [low] value and [high] value
+    Date filter: entries are between [start] and [end] dates (inclusive)
+    Value filter: entries are between [low] value and [high] value (inclusive)
     Text filter: entries contain [text]
     Each of these filters are optional to apply, but if no filters are applied, then the empty list is returned.
     Is paginated
@@ -280,14 +280,8 @@ def multi_filter_search_happiness(req) -> List[Any]:
     text = req.get("text")
     page = req.get("page", 1)
     count = req.get("count", 10)
-    if start is not None and end is not None:
-        start_datetime = datetime.strptime(start, "%Y-%m-%d")
-        end_datetime = datetime.strptime(end, "%Y-%m-%d")
-    else:
-        start_datetime = None
-        end_datetime = None
     if not (user_id == token_auth.current_user().id or
             token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
         return failure_response("Not Allowed.", 403)
-    return happiness_dao.get_happiness_by_filter(user_id, page, count, start_datetime, end_datetime, low, high, text)
+    return happiness_dao.get_happiness_by_filter(user_id, page, count, start, end, low, high, text)
 

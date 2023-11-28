@@ -1,6 +1,9 @@
+from datetime import timedelta
+
 from api.models.models import Happiness
 from sqlalchemy import select
 from api.app import db
+from api.util.errors import failure_response
 
 
 def get_happiness_by_id(id):
@@ -66,74 +69,41 @@ def get_happiness_by_group_count(user_ids, page, n):
         Happiness.timestamp.desc()) \
         .paginate(page=page, per_page=n, error_out=False)
 
+
 def get_happiness_by_filter(user_id, page, per_page, start, end, low, high, query):
     """
-    Filters according to the provided arguments. Checks to see what filters to apply. Will not apply the following
-    filters with the following arguments
-     low/high = 11
-     start/end = None
-     text = "".
+    Filters according to the provided arguments. Checks to see what filters to apply. Will not apply the filters if they
+    have the value [None]. For example, if start = end = None, then the happiness will NONE be filtered by timestamp.
+    Also, if low > high, or start is a later date than end, will raise an exception.
     """
-    if start is not None and low != 11 and query != "":
-        return db.paginate(
-            select=
-            (select(Happiness).where(Happiness.timestamp.between(start, end),
-                                     Happiness.user_id == user_id).where(
-                    Happiness.value >= low, Happiness.value <= high,
-                    Happiness.user_id ==
-                    user_id).where(Happiness.comment.like(f"%{query}%")).order_by(Happiness.timestamp.asc())),
-            per_page=per_page,
-            page=page
-        )
-    elif start is not None and low != 11:
-        return db.paginate(
-            select=
-            (select(Happiness).where(Happiness.timestamp.between(start, end), Happiness.user_id ==
-                                     user_id).where(Happiness.value >= low, Happiness.value <= high,
-                                                    Happiness.user_id == user_id).order_by(Happiness.timestamp.asc())),
-            per_page=per_page,
-            page=page
-        )
-    elif start is not None and query != "":
-        return db.paginate(
-            select=
-            (select(Happiness).where(Happiness.timestamp.between(start, end), Happiness.user_id == user_id)
-             .where(Happiness.comment.like(f"%{query}%")).order_by(Happiness.timestamp.asc())),
-            per_page=per_page,
-            page=page
-        )
-    elif start is not None:
-        return db.paginate(
-            select=
-            (select(Happiness).where(Happiness.timestamp.between(start, end), Happiness.user_id == user_id)
-             .order_by(Happiness.timestamp.asc())),
-            per_page=per_page,
-            page=page
-        )
-    elif low != 11 and query != "":
-        return db.paginate(
-            select=(select(Happiness).where(
-                Happiness.value >= low, Happiness.value <= high,
-                Happiness.user_id ==
-                user_id).where(Happiness.comment.like(f"%{query}%")).order_by(Happiness.timestamp.asc())),
-            per_page=per_page,
-            page=page
-        )
-    elif low != 11:
-        return db.paginate(
-            select=(select(Happiness).where(
-                Happiness.value >= low, Happiness.value <= high, Happiness.user_id == user_id).order_by(Happiness.timestamp.asc())),
-            per_page=per_page,
-            page=page
-        )
-    elif query != "":
-        return db.paginate(
-            select=
-            (select(Happiness).where(Happiness.comment.like(f"%{query}%")).order_by(Happiness.timestamp.asc())),
-            per_page=per_page,
-            page=page
-        )
-    else:
+    if low is not None and high is not None:
+        if low > high:
+            return failure_response("Low is greater than high.",400)
+    if start is not None and end is not None:
+        if start > end:
+    #         # start.year > end.year or start.year == end.year and (start.month > end.month or (start.month == end.month and
+    #         #                                                                                 start.day > end.day)):
+            return failure_response("Start is an earlier date than end.", 400)
+    acc = 0
+    obj = select(Happiness)
+    obj = obj.where(Happiness.user_id == user_id)
+    if start is not None and end is not None:
+        obj = obj.where(Happiness.timestamp.between(start, end + timedelta(days=1)))
+        acc = acc + 1
+    if low is not None and high is not None:
+        obj = obj.where(Happiness.value >= low, Happiness.value <= high)
+        acc = acc + 1
+    if query is not None:
+        obj = obj.where(Happiness.comment.like(f"%{query}%"))
+        acc = acc + 1
+    obj = obj.order_by(Happiness.timestamp.asc())
+    if acc == 0:
         return []
+    return db.paginate(
+        select=obj,
+        per_page=per_page,
+        page=page
+    )
+
 
 
