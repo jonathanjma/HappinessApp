@@ -452,75 +452,86 @@ def test_happiness_search(init_client):
         'timestamp': '2023-01-15'
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
 
-    happiness_range_34 = client.get('api/happiness/search', query_string={
+    happiness_number_range_3_4 = client.get('api/happiness/search', query_string={
         'low': 3,
         'high': 4,
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
-    assert happiness_range_34.status_code == 200
-    assert (list(map(lambda d: d.get("comment"), happiness_range_34.json)) == ['great day','very happy','no'] )
-    # happiness_date_12_14 = client.get('api/happiness/search', query_string={
-    #     'start': '2023-01-12',
-    #     'end': '2023-01-14',
-    # }, headers={"Authorization": f"Bearer {tokens[0]}"})
-    # assert happiness_date_12_14.status_code == 200
-    # assert (list(map(lambda d: d.get("comment"), happiness_date_12_14.json)) == ['bad day', 'very happy', 'hmmm'])
+    assert happiness_number_range_3_4.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_number_range_3_4.json)) == ['great day', 'very happy', 'no'])
+
+    happiness_date_range_12_14 = client.get('api/happiness/search', query_string={
+        'start': '2023-01-12',
+        'end': '2023-01-14',
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_date_range_12_14.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_date_range_12_14.json)) == ['bad day', 'very happy', 'hmmm'])
+
     happiness_text_day = client.get('api/happiness/search', query_string={
         'text': 'day',
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_text_day.status_code == 200
     assert (list(map(lambda d: d.get("comment"), happiness_text_day.json)) == ['great day', 'bad day'])
-    happiness_34_12_14_very = client.get('api/happiness/search', query_string={
+
+    happiness_number_range_3_4_date_range_12_14_very = client.get('api/happiness/search', query_string={
         'low': 3,
         'high': 7,
         'start': '2023-01-12',
         'end': '2023-01-14',
         'text': 'very',
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
-    assert happiness_34_12_14_very.status_code == 200
-    assert (list(map(lambda d: d.get("comment"), happiness_34_12_14_very.json)) == ['very happy'])
-    happiness_16_29_810 = client.get('api/happiness/search', query_string={
+    assert happiness_number_range_3_4_date_range_12_14_very.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_number_range_3_4_date_range_12_14_very.json)) ==
+            ['very happy'])
+
+    happiness_date_range_16_29_number_range_8_10 = client.get('api/happiness/search', query_string={
         'low': 8,
         'high': 10,
         'start': '2023-01-16',
         'end': '2023-01-29',
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
-    assert happiness_16_29_810.status_code == 200
-    assert (list(map(lambda d: d.get("comment"), happiness_16_29_810.json)) == ['happiest'])
-    happiness_11_14_day = client.get('api/happiness/search', query_string={
+    assert happiness_date_range_16_29_number_range_8_10.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_date_range_16_29_number_range_8_10.json)) == ['happiest'])
+
+    happiness_date_range_11_14_day = client.get('api/happiness/search', query_string={
         'start': '2023-01-11',
         'end': '2023-01-14',
         'text': 'day',
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
-    assert happiness_11_14_day.status_code == 200
-    assert (list(map(lambda d: d.get("comment"), happiness_11_14_day.json)) == ['great day', 'bad day'])
-    happiness_510_hmmm = client.get('api/happiness/search', query_string={
+    assert happiness_date_range_11_14_day.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_date_range_11_14_day.json)) == ['great day', 'bad day'])
+
+    happiness_number_range_5_10_hmmm = client.get('api/happiness/search', query_string={
         'low': 5,
         'high': 10,
         'text': "hmmm",
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
-    assert happiness_510_hmmm.status_code == 200
-    assert (list(map(lambda d: d.get("comment"), happiness_510_hmmm.json)) == ['hmmm'])
+    assert happiness_number_range_5_10_hmmm.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_number_range_5_10_hmmm.json)) == ['hmmm'])
+
     happiness_empty = client.get('api/happiness/search', query_string={
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_empty.status_code == 200
     assert (list(map(lambda d: d.get("comment"), happiness_empty.json)) == [])
-    happiness_range_9 = client.get('api/happiness/search', query_string={
+
+    happiness_number_range_9_9 = client.get('api/happiness/search', query_string={
             'low': 9,
             'high': 9,
         }, headers={"Authorization": f"Bearer {tokens[0]}"})
-    assert happiness_range_9.status_code == 200
-    assert (list(map(lambda d: d.get("comment"), happiness_range_9.json)) == ['bad day'])
-    happiness_105_hmmm = client.get('api/happiness/search', query_string={
+    assert happiness_number_range_9_9.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_number_range_9_9.json)) == ['bad day'])
+
+    happiness_number_range_10_5_hmmm = client.get('api/happiness/search', query_string={
         'low': 10,
         'high': 5,
         'text': "hmmm",
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
-    assert happiness_105_hmmm.status_code == 400
-    happiness_14_11_day = client.get('api/happiness/search', query_string={
+    assert happiness_number_range_10_5_hmmm.status_code == 400
+
+    happiness_date_range_14_11_day = client.get('api/happiness/search', query_string={
         'start': '2023-01-14',
         'end': '2023-01-11',
         'text': 'day',
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
-    assert happiness_14_11_day.status_code == 400
+    assert happiness_date_range_14_11_day.status_code == 400
 
 
