@@ -7,14 +7,22 @@ app = "happiness-backend-dev"
 primary_region = "ewr"
 
 [build]
-  builder = "paketobuildpacks/builder:base"
+  builtin = "python"
 
 [env]
   PORT = "8080"
 
-[http_service]
+[services]
+  processes = ["web"]
   internal_port = 8080
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+[processes]
+  web = "gunicorn happiness_backend:app --preload"
