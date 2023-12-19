@@ -10,7 +10,7 @@ from api.dao.happiness_dao import get_happiness_by_id_or_date
 from api.dao.users_dao import get_user_by_id
 from api.models.models import Happiness, Comment
 from api.models.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, \
-    HappinessGetCountSchema, CommentSchema, DateIdGetSchema, HappinessMultiFilterSchema
+    HappinessGetCountSchema, CommentSchema, DateIdGetSchema, HappinessMultiFilterSchema, CommentEditSchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
 
@@ -200,6 +200,7 @@ def get_comments(id):
         return failure_response("Not Allowed.", 403)
     return failure_response("Happiness Not Found.", 404)
 
+
 @happiness.put('/comments/<int:id>')
 @authenticate(token_auth)
 @body(CommentEditSchema)
@@ -222,6 +223,7 @@ def edit_comment(req, id):
 
     return comment_obj
 
+
 @happiness.delete('/comments/<int:id>')
 @authenticate(token_auth)
 @other_responses({404: 'Invalid Comment', 403: 'Not Allowed'})
@@ -241,6 +243,7 @@ def delete_comment(id):
     db.session.commit()
 
     return '', 204
+
 
 @happiness.get('/export')
 @authenticate(token_auth)
@@ -279,4 +282,3 @@ def multi_filter_search_happiness(req):
             token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
         return failure_response("Not Allowed.", 403)
     return happiness_dao.get_happiness_by_filter(user_id, page, count, start, end, low, high, text)
-
