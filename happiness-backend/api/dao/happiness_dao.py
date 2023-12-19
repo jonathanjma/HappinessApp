@@ -82,6 +82,41 @@ def get_happiness_by_group_count(user_ids, page, n):
         .paginate(page=page, per_page=n, error_out=False)
 
 
+def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datetime, end: datetime,
+                            low: int, high: int, text: str):
+    """
+    Filters according to the provided arguments. Checks to see what filters to apply. Will not apply the filters if they
+    have the value [None]. For example, if start = end = None, then the happiness will NONE be filtered by timestamp.
+    Also, if low > high, or start is a later date than end, will raise an exception.
+    """
+    if low is not None and high is not None:
+        if low > high:
+            return failure_response("Low is greater than high.",400)
+    if start is not None and end is not None:
+        if start > end:
+            return failure_response("Start is an earlier date than end.", 400)
+
+    acc = 0
+    query = select(Happiness).where(Happiness.user_id == user_id)
+    if start is not None and end is not None:
+        query = query.where(Happiness.timestamp.between(start, end + timedelta(days=1)))
+        acc = acc + 1
+    if low is not None and high is not None:
+        query = query.where(Happiness.value >= low, Happiness.value <= high)
+        acc = acc + 1
+    if text is not None:
+        query = query.where(Happiness.comment.like(f"%{text}%"))
+        acc = acc + 1
+    query = query.order_by(Happiness.timestamp.asc())
+
+    if acc == 0: return []
+
+    return db.paginate(
+        select=query,
+        per_page=per_page,
+        page=page
+    )
+
 def get_paginated_happiness_by_query(user_id, query, page, n):
     return Happiness.query.filter_by(user_id=user_id) \
         .filter(Happiness.comment.like(f"%{query}%")).paginate(page=page, per_page=n, error_out=False)
