@@ -21,7 +21,7 @@ def get_verify_key_token(token: str) -> str:
     return payload['Password-Key']
 
 
-@journal.get('/key')
+@journal.post('/key')
 @authenticate(token_auth)
 @body(GetPasswordKeySchema)
 @response(EmptySchema, headers=PasswordKeyJWTSchema)
@@ -38,7 +38,8 @@ def get_password_key_jwt(req):
         return failure_response("Incorrect Password", 401)
 
     return ({}, {
-        'Password-Key': token_current_user().generate_password_key_token(req.get("password"))
+        'Password-Key': token_current_user().generate_password_key_token(req.get("password")),
+        'Access-Control-Expose-Headers': 'Password-Key'
     })
 
 

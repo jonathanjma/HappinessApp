@@ -2,7 +2,6 @@ import pytest
 from cryptography.fernet import InvalidToken
 
 from api import create_app
-from api.app import db
 from api.dao.users_dao import *
 from api.models.models import Journal
 from config import TestConfig
@@ -81,11 +80,12 @@ def test_e2e_recovery_internals(init_client):
     password_key = user.derive_password_key('test3').decode()
     assert user.decrypt_data(password_key, encrypted).decode() == 'super secret data'
 
+
 def test_jwt(init_client):
     client, token, user = init_client
 
-    bad_get = client.get('/api/journal/key', json={'password': 'wrong'},
-                         headers=auth_key_header(token))
+    bad_get = client.post('/api/journal/key', json={'password': 'wrong'},
+                          headers=auth_key_header(token))
     assert bad_get.status_code == 401
 
     get_no_token = client.get('/api/journal/', headers=auth_key_header(token))
@@ -98,8 +98,8 @@ def test_jwt(init_client):
     get_exp_token = client.get('/api/journal/', headers=auth_key_header(token, expired_token))
     assert get_exp_token.status_code == 400
 
-    get_key = client.get('/api/journal/key', json={'password': 'test'},
-                         headers=auth_key_header(token))
+    get_key = client.post('/api/journal/key', json={'password': 'test'},
+                          headers=auth_key_header(token))
     assert get_key.status_code == 200
 
     get_valid = client.get('/api/journal/',
@@ -128,11 +128,13 @@ def test_create_get(init_client):
     assert get1.status_code == 200 and get2.status_code == 200
     assert get1.json[0]['data'] == 'secret' and get2.json[0]['data'] == 'secret2'
 
+
 def create_test_entries(client, token, key_token):
     client.post('/api/journal/', json={'data': 'secret', 'timestamp': '2023-10-20'},
                 headers=auth_key_header(token, key_token))
     client.post('/api/journal/', json={'data': 'secret2', 'timestamp': '2023-10-21'},
                 headers=auth_key_header(token, key_token))
+
 
 def test_change_password_get(init_client):
     client, token, user = init_client
@@ -204,11 +206,11 @@ def test_edit(init_client):
     assert bad_id_edit.status_code == 404
 
     bad_date_edit = client.put('/api/journal/?date=2023-10-01', json={'data': 'happiness app'},
-                             headers=auth_key_header(token, key_token))
+                               headers=auth_key_header(token, key_token))
     assert bad_date_edit.status_code == 404
 
     edit1 = client.put('/api/journal/?id=1', json={'data': 'happiness app'},
-                      headers=auth_key_header(token, key_token))
+                       headers=auth_key_header(token, key_token))
     edit2 = client.put('/api/journal/?date=2023-10-21', json={'data': 'happiness app2'},
                        headers=auth_key_header(token, key_token))
     assert edit1.status_code == 200 and edit2.status_code == 200
