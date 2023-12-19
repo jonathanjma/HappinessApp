@@ -21,3 +21,7 @@ jobs:
         run: |
           pip install pytest
           pytest
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ENCRYPT_SALT: ${{ secrets.ENCRYPT_SALT }}
+          REDISCLOUD_URL: ${{ secrets.REDISCLOUD_URL }}
