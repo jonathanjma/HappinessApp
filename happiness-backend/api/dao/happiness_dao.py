@@ -1,11 +1,11 @@
 from datetime import timedelta, datetime
 
+from api.authentication.auth import token_current_user
+from api.util.errors import failure_response
 from sqlalchemy import select
 
 from api.app import db
-from api.authentication.auth import token_current_user
-from api.models.models import Happiness
-from api.util.errors import failure_response
+from api.models.models import Happiness, Comment
 
 
 def get_happiness_by_id(happiness_id: int) -> Happiness:
@@ -116,3 +116,10 @@ def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datet
         per_page=per_page,
         page=page
     )
+
+def get_paginated_happiness_by_query(user_id, query, page, n):
+    return Happiness.query.filter_by(user_id=user_id) \
+        .filter(Happiness.comment.like(f"%{query}%")).paginate(page=page, per_page=n, error_out=False)
+
+def get_comment_by_id(id: int) -> Comment:
+    return db.session.execute(select(Comment).where(Comment.id == id)).scalar()

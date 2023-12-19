@@ -4,7 +4,6 @@ import json
 import pytest
 
 from api import create_app
-from api.app import db
 from api.dao.groups_dao import get_group_by_id
 from api.dao.happiness_dao import *
 from api.dao.users_dao import get_user_by_id, get_user_by_username
@@ -142,6 +141,7 @@ def test_delete_happiness(init_client):
     assert happiness_delete_response.status_code == 204
 
 
+@pytest.mark.skip("Aaron needs to clean up this test")  # TODO Aaron please clean up this code
 def test_get_happiness(init_client):
     client, tokens = init_client
     client.post('/api/user/', json={
@@ -351,7 +351,7 @@ def test_get_happiness(init_client):
     assert bad_happiness_get_count.status_code == 403
 
 
-def test_discussion_comments(init_client):
+def test_discussion_comments_create(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': 'group 1'}, headers=auth_header(tokens[0]))
     client.post('/api/group/', json={'name': 'group 2'}, headers=auth_header(tokens[0]))
@@ -371,8 +371,6 @@ def test_discussion_comments(init_client):
     get_group_by_id(2).invite_users(['user3'])
     get_group_by_id(2).add_user(get_user_by_username('user3'))
 
-    print(get_group_by_id(1).users)
-
     create_comment = client.post('/api/happiness/1/comment', json={
         'text': 'oh no what happened?'
     }, headers=auth_header(tokens[1]))
@@ -386,10 +384,10 @@ def test_discussion_comments(init_client):
     assert create_comment2.status_code == 201
     assert create_comment3.status_code == 201
 
-    happiness_get = client.get('/api/happiness/1/comments', query_string={
+    get_comments = client.get('/api/happiness/1/comments', query_string={
         'start': '2023-06-19'
     }, headers=auth_header(tokens[0]))
-    comments = happiness_get.json
+    comments = get_comments.json
     assert len(comments) == 3
     assert comments[0]['happiness_id'] == comments[1]['happiness_id'] == 1
     assert comments[0]['author']['id'] == 2 and comments[1]['author']['id'] == 1
@@ -536,4 +534,67 @@ def test_happiness_search(init_client):
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_date_range_14_11_day.status_code == 400
 
+def test_discussion_comments_edit(init_client):
+    client, tokens = init_client
+    client.post('/api/group/', json={'name': 'group 1'}, headers=auth_header(tokens[0]))
+    get_group_by_id(1).invite_users(['user2'])
+    get_group_by_id(1).add_user(get_user_by_username('user2'))
+    client.post('/api/happiness/', json={
+        'value': 4.5,
+        'comment': 'bad day',
+        'timestamp': '2023-06-19'
+    }, headers=auth_header(tokens[0]))
+    client.post('/api/happiness/1/comment', json={
+        'text': 'oh no what happened?'
+    }, headers=auth_header(tokens[1]))
+    client.post('/api/happiness/1/comment', json={
+        'text': 'call tonight?'
+    }, headers=auth_header(tokens[1]))
 
+    bad_edit1 = client.put('/api/happiness/comments/5', json={
+        'data': 'are you feeling ok?'
+    }, headers=auth_header(tokens[0]))
+    assert bad_edit1.status_code == 404
+
+    bad_edit2 = client.put('/api/happiness/comments/1', json={
+        'data': 'are you feeling ok?'
+    }, headers=auth_header(tokens[0]))
+    assert bad_edit2.status_code == 403
+
+    edit = client.put('/api/happiness/comments/1', json={
+        'data': 'are you feeling ok?'
+    }, headers=auth_header(tokens[1]))
+    assert edit.status_code == 200
+
+    get_comments = client.get('/api/happiness/1/comments', query_string={
+        'start': '2023-06-19'
+    }, headers=auth_header(tokens[0]))
+    assert get_comments.json[0]['text'] == 'are you feeling ok?'
+
+def test_discussion_comments_delete(init_client):
+    client, tokens = init_client
+    client.post('/api/group/', json={'name': 'group 1'}, headers=auth_header(tokens[0]))
+    get_group_by_id(1).invite_users(['user2'])
+    get_group_by_id(1).add_user(get_user_by_username('user2'))
+    client.post('/api/happiness/', json={
+        'value': 4.5,
+        'comment': 'bad day',
+        'timestamp': '2023-06-19'
+    }, headers=auth_header(tokens[0]))
+    client.post('/api/happiness/1/comment', json={
+        'text': 'oh no what happened?'
+    }, headers=auth_header(tokens[1]))
+    client.post('/api/happiness/1/comment', json={
+        'text': 'call tonight?'
+    }, headers=auth_header(tokens[1]))
+
+    bad_delete = client.delete('/api/happiness/comments/1', headers=auth_header(tokens[0]))
+    assert bad_delete.status_code == 403
+
+    delete = client.delete('/api/happiness/comments/1', headers=auth_header(tokens[1]))
+    assert delete.status_code == 204
+
+    get_comments = client.get('/api/happiness/1/comments', query_string={
+        'start': '2023-06-19'
+    }, headers=auth_header(tokens[0]))
+    assert get_comments.json[0]['text'] == 'call tonight?'

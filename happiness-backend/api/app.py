@@ -6,6 +6,7 @@ from flask_cors import CORS
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 import api.util.email_methods as email_methods
 from config import Config
@@ -22,6 +23,8 @@ cors = CORS()
 def create_app(config=Config):
     app = Flask(__name__)
     app.config.from_object(config)
+    app.wsgi_app = ProxyFix(app.wsgi_app)
+
     app.redis = redis.from_url(app.config['REDISCLOUD_URL'])
     app.job_queue = rq.Queue('happiness-backend-jobs', connection=app.redis)
     # Do not remove!

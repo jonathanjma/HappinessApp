@@ -114,6 +114,10 @@ class CommentSchema(ma.SQLAlchemySchema):
     timestamp = ma.Str(dump_only=True)
 
 
+class CommentEditSchema(ma.Schema):
+    data = ma.Str(required=True)
+
+
 class HappinessSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Happiness
