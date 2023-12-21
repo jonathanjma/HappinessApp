@@ -141,7 +141,6 @@ def test_delete_happiness(init_client):
     assert happiness_delete_response.status_code == 204
 
 
-@pytest.mark.skip("Aaron needs to clean up this test")  # TODO Aaron please clean up this code
 def test_get_happiness(init_client):
     client, tokens = init_client
     client.post('/api/user/', json={

@@ -15,7 +15,7 @@ def get_happiness_by_id(happiness_id: int) -> Happiness:
     return db.session.execute(select(Happiness).where(Happiness.id == happiness_id)).scalar()
 
 
-def get_happiness_by_date(user_id: int, date: datetime):
+def get_happiness_by_date(user_id: int, date: datetime) -> Happiness:
     """
     Returns a Happiness object, given a User ID and a Datetime object.
     :param user_id: ID of the User whose Happiness object is being searched for.
@@ -27,6 +27,7 @@ def get_happiness_by_date(user_id: int, date: datetime):
         select(Happiness).where(Happiness.user_id == user_id, Happiness.timestamp == db_date)
     ).scalar()
 
+
 def get_happiness_by_id_or_date(args: dict) -> Happiness:
     id, date = args.get("id"), args.get("date")
     if id is not None:
@@ -37,29 +38,36 @@ def get_happiness_by_id_or_date(args: dict) -> Happiness:
         return failure_response('Insufficient Information', 400)
 
 
-def get_user_happiness(user_id: int):
+def get_all_happiness(user_id: int) -> list[Happiness]:
     """
     Returns a list of all Happiness objects corresponding to the given User ID.
     """
-    return db.session.execute(select(Happiness).where(Happiness.user_id == user_id)).all()
+    return list(db.session.execute(select(Happiness).where(Happiness.user_id == user_id)).scalars())
 
 
-def get_happiness_by_timestamp(user_id, start, end):
+def get_happiness_by_date_range(user_id: int, start: datetime, end: datetime) -> list[Happiness]:
     """
-    Returns a list of all Happiness objects corresponding to a given User ID between 2 Datetime objects.
+    Returns all Happiness objects with the given User ID between 2 Datetime objects (inclusive).
     """
-    return Happiness.query.filter(
-        Happiness.user_id == user_id, Happiness.timestamp.between(start, end + timedelta(days=1))
-    ).order_by(Happiness.timestamp.asc()).all()
+    db_start = datetime.strftime(start, "%Y-%m-%d 00:00:00.000000")
+    db_end = datetime.strftime(end, "%Y-%m-%d 00:00:00.000000")
+    return list(db.session.execute(select(Happiness).where(
+        Happiness.user_id == user_id, Happiness.timestamp.between(db_start, db_end)
+    ).order_by(Happiness.timestamp.asc())).scalars())
 
 
-def get_happiness_by_count(user_id, page, n):
+def get_happiness_by_count(user_id: int, page: int, n: int):
     """
     Returns a list of n Happiness objects given a User ID (sorted from newest to oldest).
     Page variable can be changed to show the next n objects for pagination.
     """
-    return Happiness.query.filter_by(user_id=user_id).order_by(Happiness.timestamp.desc()) \
-        .paginate(page=page, per_page=n, error_out=False)
+    return db.paginate(
+        select=(
+            select(Happiness).where(Happiness.user_id == user_id).order_by(Happiness.timestamp.desc())
+        ),
+        per_page=n,
+        page=page
+    )
 
 
 def get_happiness_by_group_timestamp(user_ids, start, end):
@@ -91,7 +99,7 @@ def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datet
     """
     if low is not None and high is not None:
         if low > high:
-            return failure_response("Low is greater than high.",400)
+            return failure_response("Low is greater than high.", 400)
     if start is not None and end is not None:
         if start > end:
             return failure_response("Start is an earlier date than end.", 400)
@@ -117,9 +125,12 @@ def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datet
         page=page
     )
 
+
 def get_paginated_happiness_by_query(user_id, query, page, n):
     return Happiness.query.filter_by(user_id=user_id) \
-        .filter(Happiness.comment.like(f"%{query}%")).paginate(page=page, per_page=n, error_out=False)
+        .filter(Happiness.comment.like(f"%{query}%")).paginate(page=page, per_page=n,
+                                                               error_out=False)
+
 
 def get_comment_by_id(id: int) -> Comment:
     return db.session.execute(select(Comment).where(Comment.id == id)).scalar()

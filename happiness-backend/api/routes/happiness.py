@@ -113,13 +113,13 @@ def delete_happiness(args):
 @arguments(HappinessGetTimeSchema)
 @response(HappinessSchema(many=True))
 @other_responses({403: "Not Allowed."})
-def get_happiness_time(req):
+def get_happiness_date_range(req):
     """
-    Get Happiness by Time Range
+    Get Happiness by Date Range
     Gets the happiness of values of a given user between a specified start and end date (inclusive).
     User must share a group with the user they are viewing. \n
     Requires: Start date is provided and comes before the end date.
-    Dates must be given in the YYY-MM-DD format. \n
+    Dates must be given in the YYYY-MM-DD format. \n
     Returns: List of all happiness entries between start and end date in sequential order
     """
     user_id = token_current_user().id
@@ -127,7 +127,7 @@ def get_happiness_time(req):
     start, end, id = req.get("start"), req.get("end", today), req.get("id", user_id)
 
     if user_id == id or token_current_user().has_mutual_group(users_dao.get_user_by_id(id)):
-        return happiness_dao.get_happiness_by_timestamp(id, start, end)
+        return happiness_dao.get_happiness_by_date_range(id, start, end)
     return failure_response("Not Allowed.", 403)
 
 
@@ -263,6 +263,7 @@ def export_happiness():
 @response(HappinessSchema(many=True))
 def multi_filter_search_happiness(req):
     """
+    Search Happiness
     Gets all happiness objects for a user that match the given constraints in the arguments including
     Date filter: entries are between [start] and [end] dates (inclusive)
     Value filter: entries are between [low] value and [high] value (inclusive)
