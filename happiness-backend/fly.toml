@@ -9,8 +9,8 @@ primary_region = "ewr"
 [build]
   builtin = "python"
 
-[env]
-  PORT = "8080"
+[build.settings]
+  pythonbase = "3.9-slim-buster"
 
 [services]
   processes = ["web"]
