@@ -21,13 +21,13 @@ def upgrade():
     op.create_table('journal',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
-    sa.Column('data', sa.String(), nullable=False),
+    sa.Column('data', sa.LargeBinary(), nullable=False),
     sa.Column('timestamp', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('user', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('encrypted_key', sa.String(), nullable=True))
+        batch_op.add_column(sa.Column('encrypted_key', sa.LargeBinary(), nullable=True))
 
     # ### end Alembic commands ###
 
