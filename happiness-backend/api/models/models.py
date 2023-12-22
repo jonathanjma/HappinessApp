@@ -57,8 +57,8 @@ class User(db.Model):
     password = db.Column(db.String, nullable=False)
     created = db.Column(db.DateTime)
     profile_picture = db.Column(db.String, nullable=False)
-    encrypted_key = db.Column(db.String)
-    encrypted_key_recovery = db.Column(db.String)
+    encrypted_key = db.Column(db.LargeBinary)
+    encrypted_key_recovery = db.Column(db.LargeBinary)
 
     settings = db.relationship("Setting", cascade="delete")
     groups = db.relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
@@ -307,7 +307,7 @@ class Journal(db.Model):
     __tablename__ = "journal"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    data = db.Column(db.String, nullable=False)
+    data = db.Column(db.LargeBinary, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False)
 
     def __init__(self, **kwargs):
