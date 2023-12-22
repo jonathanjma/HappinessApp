@@ -10,7 +10,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from flask import current_app
 from flask_sqlalchemy.model import DefaultMeta
-from sqlalchemy import delete, Integer, String, DateTime, ForeignKey, Column, Boolean, Float
+from sqlalchemy import delete, Integer, String, DateTime, ForeignKey, Column, Boolean, Float, \
+    LargeBinary
 from sqlalchemy.orm import mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -58,16 +59,14 @@ class User(BaseModel):
     password = mapped_column(String, nullable=False)
     created = mapped_column(DateTime)
     profile_picture = mapped_column(String, nullable=False)
-    encrypted_key = mapped_column(String)
-    encrypted_key_recovery = mapped_column(String)
+    encrypted_key = mapped_column(LargeBinary)
+    encrypted_key_recovery = mapped_column(LargeBinary)
 
     settings = relationship("Setting", cascade="delete")
     groups = relationship("Group", secondary=group_users, back_populates="users", lazy='dynamic')
     invites = relationship("Group", secondary=group_invites, back_populates="invited_users")
-    posts_read = relationship("Happiness",
-                                 secondary=readers_happiness,
-                                 back_populates="readers",
-                                 lazy="dynamic")
+    posts_read = relationship("Happiness", secondary=readers_happiness, back_populates="readers",
+                              lazy="dynamic")
 
     def __init__(self, **kwargs):
         """
@@ -145,7 +144,7 @@ class User(BaseModel):
     def generate_password_reset_token(self, expiration=10) -> str:
         return generate_jwt({'reset_email': self.email}, expiration)
 
-    def reset_password(self, new_password: str, recovery_phrase: str=None):
+    def reset_password(self, new_password: str, recovery_phrase: str = None):
         """
         Resets a user's password
         *** !!! Will cause encrypted data to be lost if recovery phrase not provided !!! ***
@@ -276,10 +275,8 @@ class Happiness(BaseModel):
 
     author = relationship("User")
     discussion_comments = relationship("Comment", cascade='delete', lazy='dynamic')
-    readers = relationship("User",
-                              secondary=readers_happiness,
-                              back_populates="posts_read",
-                              lazy="dynamic")
+    readers = relationship("User", secondary=readers_happiness, back_populates="posts_read",
+                           lazy="dynamic")
 
     def __init__(self, **kwargs):
         """
@@ -323,7 +320,7 @@ class Journal(BaseModel):
     __tablename__ = "journal"
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id = mapped_column(Integer, ForeignKey("user.id"))
-    data = mapped_column(String, nullable=False)
+    data = mapped_column(LargeBinary, nullable=False)
     timestamp = mapped_column(DateTime, nullable=False)
 
     def __init__(self, **kwargs):
@@ -378,4 +375,3 @@ class Token(BaseModel):
         """Remove any tokens that have been expired for more than a day."""
         yesterday = datetime.utcnow() - timedelta(days=1)
         db.session.execute(delete(Token).where(Token.session_expiration < yesterday))
-
