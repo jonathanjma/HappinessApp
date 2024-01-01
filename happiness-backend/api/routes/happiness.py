@@ -117,7 +117,7 @@ def get_happiness_date_range(req):
     """
     Get Happiness by Date Range
     Gets the happiness of values of a given user between a specified start and end date (inclusive).
-    User must share a group with the user they are viewing. \n
+    End date defaults to today. User must share a group with the user they are viewing. \n
     Requires: Start date is provided and comes before the end date.
     Dates must be given in the YYYY-MM-DD format. \n
     Returns: List of all happiness entries between start and end date in sequential order
@@ -127,7 +127,7 @@ def get_happiness_date_range(req):
     start, end, id = req.get("start"), req.get("end", today), req.get("id", user_id)
 
     if user_id == id or token_current_user().has_mutual_group(users_dao.get_user_by_id(id)):
-        return happiness_dao.get_happiness_by_date_range(id, start, end)
+        return happiness_dao.get_happiness_by_date_range([id], start, end)
     return failure_response("Not Allowed.", 403)
 
 
@@ -139,7 +139,7 @@ def get_happiness_date_range(req):
 def get_paginated_happiness(req):
     """
     Get Happiness by Count
-    Gets a specified number of happiness values in reverse order.
+    Gets the specified number of happiness values in reverse chronological order.
     Requires: User must share a group with the user they are viewing. \n
     Paginated based on page number and happiness entries per page. Defaults to page=1 and count=10. \n
     Returns: Specified happiness entries in reverse order.
@@ -147,7 +147,7 @@ def get_paginated_happiness(req):
     user_id = token_current_user().id
     page, count, id = req.get("page", 1), req.get("count", 10), req.get("id", user_id)
     if user_id == id or token_current_user().has_mutual_group(users_dao.get_user_by_id(id)):
-        return happiness_dao.get_happiness_by_count(id, page, count)
+        return happiness_dao.get_happiness_by_count([id], page, count)
     return failure_response("Not Allowed.", 403)
 
 

@@ -6,10 +6,10 @@ from flask import Blueprint
 from api.app import db
 from api.authentication.auth import token_current_user
 from api.dao.groups_dao import get_group_by_id
-from api.dao.happiness_dao import get_happiness_by_group_timestamp
+from api.dao.happiness_dao import get_happiness_by_date_range, get_happiness_by_count
 from api.models.models import Group
 from api.models.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
-    HappinessGetTimeSchema
+    HappinessGetPaginatedSchema, HappinessGetDateRangeSchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
 
@@ -69,15 +69,15 @@ def group_info(group_id):
 
 @group.get('/<int:group_id>/happiness')
 @authenticate(token_auth)
-@arguments(HappinessGetTimeSchema)
+@arguments(HappinessGetDateRangeSchema)
 @response(HappinessSchema(many=True))
 @other_responses({404: 'Invalid Group', 403: 'Not Allowed'})
-def group_happiness(req, group_id):
+def group_happiness_range(req, group_id):
     """
-    Get Group Happiness
+    Get Group Happiness By Date Range
     Gets the happiness of values of a group between a specified start and end date (inclusive).
     User must be a full member of the group they are viewing. \n
-    Requires: valid group ID, the time represented by start date comes before the end date (which defaults to today) \n
+    See "Get Happiness by Date Range" for more details. \n
     Returns: List of all happiness entries from users in the group between start and end date in sequential order
     """
 
@@ -88,7 +88,29 @@ def group_happiness(req, group_id):
     today = datetime.today().date()
     start_date, end_date = req.get("start"), req.get("end", today)
 
-    return get_happiness_by_group_timestamp(list(map(lambda x: x.id, cur_group.users)), start_date, end_date)
+    return get_happiness_by_date_range(list(map(lambda x: x.id, cur_group.users)), start_date, end_date)
+
+
+@group.get('/<int:group_id>/happiness/count')
+@authenticate(token_auth)
+@arguments(HappinessGetPaginatedSchema)
+@response(HappinessSchema(many=True))
+@other_responses({404: 'Invalid Group', 403: 'Not Allowed'})
+def group_happiness_count(req, group_id):
+    """
+    Get Group Happiness By Count
+    Gets the specified number of happiness values of a group in reverse chronological order (paginated).
+    User must be a full member of the group they are viewing. \n
+    See "Get Happiness by Count" for more details. \n
+    Returns: List of all the specified happiness entries from users in the group in reverse order
+    """
+
+    # Return 404 if invalid group or 403 if user is not in group
+    cur_group = get_group_by_id(group_id)
+    check_group(cur_group)
+
+    page, count = req.get("page", 1), req.get("count", 10)
+    return get_happiness_by_count(list(map(lambda x: x.id, cur_group.users)), page, count)
 
 
 @group.put('/<int:group_id>')

@@ -156,13 +156,9 @@ class HappinessGetPaginatedSchema(ma.Schema):
     page = ma.Int()
     count = ma.Int()
 
-
-class HappinessGetQuery(ma.Schema):
-    query = ma.Str(required=True)
-    page = ma.Int()
-    id = ma.Int()
-    count = ma.Int()
-
+class HappinessGetDateRangeSchema(ma.Schema):
+    start = ma.Date(required=True)
+    end = ma.Date()
 
 class FileUploadSchema(ma.Schema):
     file = FileField()

@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import datetime
 
 from api.authentication.auth import token_current_user
 from api.util.errors import failure_response
@@ -45,53 +45,35 @@ def get_all_happiness(user_id: int) -> list[Happiness]:
     return list(db.session.execute(select(Happiness).where(Happiness.user_id == user_id)).scalars())
 
 
-def get_happiness_by_date_range(user_id: int, start: datetime, end: datetime) -> list[Happiness]:
+def get_happiness_by_date_range(user_ids: list[int], start: datetime, end: datetime) -> list[Happiness]:
     """
-    Returns all Happiness objects with the given User ID between 2 Datetime objects (inclusive).
+    Returns all Happiness objects (sorted from oldest to newest) between 2 Datetime objects (inclusive)
+    given a list of User IDs.
     """
     db_start = datetime.strftime(start, "%Y-%m-%d 00:00:00.000000")
     db_end = datetime.strftime(end, "%Y-%m-%d 00:00:00.000000")
     return list(db.session.execute(select(Happiness).where(
-        Happiness.user_id == user_id, Happiness.timestamp.between(db_start, db_end)
+        Happiness.user_id.in_(user_ids), Happiness.timestamp.between(db_start, db_end)
     ).order_by(Happiness.timestamp.asc())).scalars())
 
 
-def get_happiness_by_count(user_id: int, page: int, n: int):
-    """
-    Returns a list of n Happiness objects given a User ID (sorted from newest to oldest).
-    Page variable can be changed to show the next n objects for pagination.
-    """
-    return db.paginate(
-        select=(
-            select(Happiness).where(Happiness.user_id == user_id).order_by(Happiness.timestamp.desc())
-        ),
-        per_page=n,
-        page=page
-    )
-
-
-def get_happiness_by_group_timestamp(user_ids, start, end):
-    """
-    Returns a list of all Happiness objects (sorted from oldest to newest) between 2 Datetime objects
-    given a list of User IDs.
-    """
-    return Happiness.query.filter(
-        Happiness.user_id.in_(user_ids), Happiness.timestamp.between(start, end + timedelta(days=1))
-    ).order_by(Happiness.timestamp.asc()).all()
-
-
-def get_happiness_by_group_count(user_ids, page, n):
+def get_happiness_by_count(user_ids: list[int], page: int, n: int) -> list[Happiness]:
     """
     Returns a list of n Happiness objects (sorted from newest to oldest) given a list of User IDs.
     Page variable can be changed to show the next n objects for pagination.
     """
-    return Happiness.query.filter(Happiness.user_id.in_(user_ids)).order_by(
-        Happiness.timestamp.desc()) \
-        .paginate(page=page, per_page=n, error_out=False)
+    return list(db.paginate(
+        select=(
+            select(Happiness).where(Happiness.user_id.in_(user_ids)).order_by(Happiness.timestamp.desc())
+        ),
+        per_page=n,
+        page=page,
+        error_out=False
+    ))
 
 
 def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datetime, end: datetime,
-                            low: int, high: int, text: str):
+                            low: int, high: int, text: str) -> list[Happiness]:
     """
     Filters according to the provided arguments. Checks to see what filters to apply. Will not apply the filters if they
     have the value [None]. For example, if start = end = None, then the happiness will NONE be filtered by timestamp.
@@ -107,7 +89,9 @@ def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datet
     acc = 0
     query = select(Happiness).where(Happiness.user_id == user_id)
     if start is not None and end is not None:
-        query = query.where(Happiness.timestamp.between(start, end + timedelta(days=1)))
+        db_start = datetime.strftime(start, "%Y-%m-%d 00:00:00.000000")
+        db_end = datetime.strftime(end, "%Y-%m-%d 00:00:00.000000")
+        query = query.where(Happiness.timestamp.between(db_start, db_end))
         acc = acc + 1
     if low is not None and high is not None:
         query = query.where(Happiness.value >= low, Happiness.value <= high)
@@ -119,18 +103,12 @@ def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datet
 
     if acc == 0: return []
 
-    return db.paginate(
+    return list(db.paginate(
         select=query,
         per_page=per_page,
         page=page
-    )
+    ))
 
 
-def get_paginated_happiness_by_query(user_id, query, page, n):
-    return Happiness.query.filter_by(user_id=user_id) \
-        .filter(Happiness.comment.like(f"%{query}%")).paginate(page=page, per_page=n,
-                                                               error_out=False)
-
-
-def get_comment_by_id(id: int) -> Comment:
-    return db.session.execute(select(Comment).where(Comment.id == id)).scalar()
+def get_comment_by_id(comment_id: int) -> Comment:
+    return db.session.execute(select(Comment).where(Comment.id == comment_id)).scalar()

@@ -1,3 +1,5 @@
+import hashlib
+
 from apifairy import authenticate, response, other_responses
 from flask import Blueprint, request
 
@@ -42,7 +44,7 @@ def revoke_token():
     Revoke Token
     Expires a user's API access token. Equivalent to "logging out".
     """
-    token = get_token(request.authorization.token)
+    token = get_token(hashlib.sha256(request.authorization.token.encode()).hexdigest())
     if token and token.user_id == token_auth.current_user().id:
         token.revoke()
         db.session.commit()

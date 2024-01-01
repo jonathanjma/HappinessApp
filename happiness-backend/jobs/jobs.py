@@ -105,7 +105,7 @@ def send_notification_email(user_id):
 
     yesterday = now - timedelta(days=1)
     last_week = now - timedelta(days=6)
-    entries = happiness_dao.get_happiness_by_date_range(start=last_week, end=yesterday, user_id=user_id)
+    entries = happiness_dao.get_happiness_by_date_range(start=last_week, end=yesterday, user_ids=[user_id])
     entries = list(filter(lambda x: x is not None, entries))
     entries = [x.timestamp.strftime("%Y-%m-%d") for x in entries]
 
@@ -152,7 +152,7 @@ def queue_send_notification_emails():
         # https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.between
         # BETWEEN is inclusive: https://www.w3schools.com/sql/sql_between.asp
         # But it works so for now I will keep it
-        entries = happiness_dao.get_happiness_by_date_range(start=last_week, end=now, user_id=setting.user_id)
+        entries = happiness_dao.get_happiness_by_date_range(start=last_week, end=now, user_ids=[setting.user_id])
         entries = list(filter(lambda x: x is not None, entries))
         if len(entries) < 6:
             # They are missing an entry, and we are guaranteed to send an email which is expensive
