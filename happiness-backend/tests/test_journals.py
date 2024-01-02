@@ -117,8 +117,7 @@ def test_create_get(init_client):
                           headers=auth_key_header(token, key_token))
     create_dup = client.post('/api/journal/', json={'data': 'secret3', 'timestamp': '2023-10-21'},
                              headers=auth_key_header(token, key_token))
-    assert create1.status_code == 201 and create2.status_code == 201
-    assert create_dup.status_code == 400
+    assert create1.status_code == 201 and create2.status_code == 201 and create_dup.status_code == 201
     assert Journal.query.first().data.decode() != 'secret'
 
     get1 = client.get('/api/journal/', query_string={'count': 1, 'page': 2},
@@ -126,7 +125,7 @@ def test_create_get(init_client):
     get2 = client.get('/api/journal/', query_string={'count': 1, 'page': 1},
                       headers=auth_key_header(token, key_token))
     assert get1.status_code == 200 and get2.status_code == 200
-    assert get1.json[0]['data'] == 'secret' and get2.json[0]['data'] == 'secret2'
+    assert get1.json[0]['data'] == 'secret' and get2.json[0]['data'] == 'secret3'
 
 
 def create_test_entries(client, token, key_token):
