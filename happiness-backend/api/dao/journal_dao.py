@@ -32,10 +32,13 @@ def get_journal_by_date_range(user_id: int, start: datetime, end: datetime) -> l
     """
     db_start = datetime.strftime(start, "%Y-%m-%d 00:00:00.000000")
     db_end = datetime.strftime(end, "%Y-%m-%d 00:00:00.000000")
-    return list(db.session.execute(select(Journal).where(
-        Journal.user_id == user_id,
-        Journal.timestamp.between(db_start, db_end)
-    ).order_by(Journal.timestamp.asc())).scalars())
+
+    return list(
+        db.session.execute(
+            select(Journal).where(
+                Journal.user_id == user_id,
+                Journal.timestamp.between(db_start, db_end)
+            )).scalars())
 
 
 def get_entry_by_id_or_date(args: dict) -> Journal:
