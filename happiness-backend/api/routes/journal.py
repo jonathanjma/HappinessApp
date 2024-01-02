@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from apifairy import authenticate, body, response, other_responses, arguments
 from flask import Blueprint
 
@@ -7,7 +9,7 @@ from api.dao import journal_dao
 from api.dao.journal_dao import get_entry_by_id_or_date
 from api.models.models import Journal
 from api.models.schema import JournalSchema, JournalGetSchema, DecryptedJournalSchema, \
-    PasswordKeyJWTSchema, JournalEditSchema, EmptySchema, GetPasswordKeySchema, DateIdGetSchema
+    PasswordKeyJWTSchema, JournalEditSchema, EmptySchema, GetPasswordKeySchema, DateIdGetSchema, GetByDateRangeSchema
 from api.util.errors import failure_response
 from api.util.jwt_methods import verify_token
 
@@ -53,12 +55,15 @@ def create_entry(req, headers):
     """
     Create Journal Entry
     Creates a new private journal entry, which is stored using end-to-end encryption. \n
+    If a journal already exists for that date, the data in the journal is overridden. \n
     Requires: the user's password key token for data encryption (provided by the `Get Password Key` endpoint)
     """
     password_key = get_verify_key_token(headers.get('key_token'))
     potential_journal = journal_dao.get_journal_by_date(token_current_user().id, req.get('timestamp'))
     if potential_journal:
-        return failure_response("Journal entry already exists for this day.", 400)
+        potential_journal.data = token_current_user().encrypt_data(password_key, req.get('data'))
+        db.session.commit()
+        return potential_journal
 
     try:
         encrypted_data = token_current_user().encrypt_data(password_key, req.get('data'))
@@ -91,6 +96,21 @@ def get_entries(args, headers):
     # add password key to schema context so entries can be decrypted
     DecryptedJournalSchema.context['password_key'] = password_key
     return journal_dao.get_entries_by_count(token_current_user().id, page, count)
+
+
+@journal.get('/dates/')
+@authenticate(token_auth)
+@arguments(GetByDateRangeSchema)
+@arguments(PasswordKeyJWTSchema, location='headers')
+@response(DecryptedJournalSchema)
+@other_responses({400: "Invalid password key or date range"})
+def get_entries_by_date_range(args, headers):
+    start, end = args.get("start"), args.get("end", datetime.today().date())
+    user_id = token_current_user().id
+    password_key = get_verify_key_token(headers.get('key_token'))
+
+    DecryptedJournalSchema.context['password_key'] = password_key
+    return journal_dao.get_journal_by_date_range(user_id, start, end)
 
 
 @journal.put('/')

@@ -9,7 +9,7 @@ from api.dao.groups_dao import get_group_by_id
 from api.dao.happiness_dao import get_happiness_by_date_range, get_happiness_by_count
 from api.models.models import Group
 from api.models.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
-    HappinessGetPaginatedSchema, HappinessGetDateRangeSchema
+    HappinessGetPaginatedSchema, GetByDateRangeSchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
 
@@ -69,7 +69,7 @@ def group_info(group_id):
 
 @group.get('/<int:group_id>/happiness')
 @authenticate(token_auth)
-@arguments(HappinessGetDateRangeSchema)
+@arguments(GetByDateRangeSchema)
 @response(HappinessSchema(many=True))
 @other_responses({404: 'Invalid Group', 403: 'Not Allowed'})
 def group_happiness_range(req, group_id):
@@ -126,7 +126,7 @@ def edit_group(req, group_id):
     Requires: valid group ID, at least one of: name, users to invite, or users to remove \n
     Returns: JSON representation for the updated group
     """
-    
+
     new_name, add_users, remove_users = req.get('name'), req.get('invite_users'), \
         req.get('remove_users')
     if new_name is None and add_users is None and remove_users is None:

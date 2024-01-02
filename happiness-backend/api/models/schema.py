@@ -6,8 +6,6 @@ from api.authentication.auth import token_current_user
 from api.models.models import User, Group, Happiness, Setting, Comment, Journal
 from api.util.errors import failure_response
 
-from datetime import datetime
-
 
 class EmptySchema(ma.Schema):
     pass
@@ -88,9 +86,11 @@ class GroupSchema(ma.SQLAlchemySchema):
     users = ma.Nested(SimpleUserSchema, many=True, required=True)
     invited_users = ma.Nested(SimpleUserSchema, many=True, required=True)
 
+
 class UserGroupsSchema(ma.Schema):
     groups = ma.Nested(GroupSchema, many=True, required=True)
     group_invites = ma.Nested(GroupSchema, many=True, required=True)
+
 
 class CreateGroupSchema(ma.Schema):
     name = ma.Str(required=True)
@@ -156,9 +156,11 @@ class HappinessGetPaginatedSchema(ma.Schema):
     page = ma.Int()
     count = ma.Int()
 
-class HappinessGetDateRangeSchema(ma.Schema):
+
+class GetByDateRangeSchema(ma.Schema):
     start = ma.Date(required=True)
     end = ma.Date()
+
 
 class FileUploadSchema(ma.Schema):
     file = FileField()
@@ -203,8 +205,10 @@ class JournalGetSchema(ma.Schema):
 class JournalEditSchema(ma.Schema):
     data = ma.Str(required=True)
 
+
 class GetPasswordKeySchema(ma.Schema):
     password = ma.Str(required=True)
+
 
 class PasswordKeyJWTSchema(ma.Schema):
     key_token = ma.Str(data_key='Password-Key', required=True)
