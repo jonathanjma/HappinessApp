@@ -2,7 +2,7 @@ from datetime import datetime
 
 from api.authentication.auth import token_current_user
 from api.util.errors import failure_response
-from sqlalchemy import select
+from sqlalchemy import select, desc
 
 from api.app import db
 from api.models.models import Happiness, Comment
@@ -99,7 +99,7 @@ def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datet
     if text is not None:
         query = query.where(Happiness.comment.like(f"%{text}%"))
         acc = acc + 1
-    query = query.order_by(Happiness.timestamp.asc())
+    query = query.order_by(desc(Happiness.timestamp))
 
     if acc == 0: return []
 
