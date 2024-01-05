@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from apifairy import authenticate, response, body, other_responses
+from apifairy import authenticate, response, body, other_responses, arguments
 from flask import Blueprint
 from sqlalchemy import select
 
@@ -59,7 +59,7 @@ def mark_unread(req):
 
 
 @reads.get('/')
-@body(HappinessGetPaginatedSchema)
+@arguments(HappinessGetPaginatedSchema)
 @authenticate(token_auth)
 @response(HappinessSchema(many=True))
 def get_read_happiness(req):
@@ -74,7 +74,7 @@ def get_read_happiness(req):
 
 
 @reads.get("/unread/")
-@body(HappinessGetPaginatedSchema)
+@arguments(HappinessGetPaginatedSchema)
 @authenticate(token_auth)
 @response(HappinessSchema(many=True))
 def get_unread_happiness(req):
