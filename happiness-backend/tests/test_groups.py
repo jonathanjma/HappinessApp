@@ -101,16 +101,16 @@ def test_edit_group_users(init_client):
                                    headers=auth_header(tokens[1]))
     assert unauthorized_edit.status_code == 403
 
-    bad_accept_invite = client.post('/api/user/accept_invite/5', headers=auth_header(tokens[1]))
+    bad_accept_invite = client.post('/api/group/accept_invite/5', headers=auth_header(tokens[1]))
     assert bad_accept_invite.status_code == 404
 
-    accept_invite = client.post('/api/user/accept_invite/1', headers=auth_header(tokens[1]))
+    accept_invite = client.post('/api/group/accept_invite/1', headers=auth_header(tokens[1]))
     assert accept_invite.status_code == 204
     get_group = client.get('/api/group/1', headers=auth_header(tokens[1]))
     assert user_in_group_json_model('user2', get_group.json, get_group_by_id(1))
     assert group_in_user_modal(1, get_user_by_id(2))
 
-    reject_invite = client.post('/api/user/reject_invite/1', headers=auth_header(tokens[2]))
+    reject_invite = client.post('/api/group/reject_invite/1', headers=auth_header(tokens[2]))
     assert reject_invite.status_code == 204
     assert not invite_in_user_modal(1, get_user_by_id(3))
 
@@ -155,7 +155,7 @@ def test_mutual_groups(init_client):
     client.put('/api/group/1', json={'invite_users': ['user2']}, headers=auth_header(tokens[0]))
     assert not get_user_by_id(1).has_mutual_group(get_user_by_id(2))
 
-    client.post('/api/user/accept_invite/1', headers=auth_header(tokens[1]))
+    client.post('/api/group/accept_invite/1', headers=auth_header(tokens[1]))
     assert get_user_by_id(1).has_mutual_group(get_user_by_id(2))
     assert get_user_by_id(2).has_mutual_group(get_user_by_id(1))
 
@@ -166,7 +166,7 @@ def test_group_delete(init_client):
     client.put('/api/group/1', json={
         'invite_users': ['user2', 'user3']
     }, headers=auth_header(tokens[0]))
-    client.post('/api/user/accept_invite/1', headers=auth_header(tokens[1]))
+    client.post('/api/group/accept_invite/1', headers=auth_header(tokens[1]))
     assert group_in_user_modal(1, get_user_by_id(1)) and group_in_user_modal(1, get_user_by_id(2)) \
            and invite_in_user_modal(1, get_user_by_id(3))
 
@@ -184,8 +184,7 @@ def test_group_happiness(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': ':-)'}, headers=auth_header(tokens[0]))
     get_group_by_id(1).invite_users(['user2', 'user3'])
-    get_group_by_id(1).add_user(get_user_by_id(2))
-    get_group_by_id(1).add_user(get_user_by_id(3))
+    get_group_by_id(1).add_users([get_user_by_id(2), get_user_by_id(3)])
 
     happiness_in = []
     for user_id in range(1, 4):  # 1-3

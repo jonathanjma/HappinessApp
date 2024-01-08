@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 import json
 
 import pytest
@@ -123,8 +123,7 @@ def test_get_unread_happiness_2(init_client):
     group2 = Group(name="super special test")
     db.session.add(group2)
     group2.invite_users(["user2", "user4"])
-    group2.add_user(get_user_by_username("user2"))
-    group2.add_user(get_user_by_username("user4"))
+    group2.add_users([get_user_by_username("user2"), get_user_by_username("user4")])
     db.session.commit()
 
     # Perform test: we should now see 3 unread happiness entries, one of them should be the new entry
@@ -194,9 +193,9 @@ def add_group():
     group = Group(name="special test")
     db.session.add(group)
     group.invite_users(["user1", "user2", "user3"])
-    group.add_user(get_user_by_username("user1"))
-    group.add_user(get_user_by_username("user2"))
-    group.add_user(get_user_by_username("user3"))
+    group.add_users(
+        [get_user_by_username("user1"), get_user_by_username("user2"), get_user_by_username("user3")]
+    )
     db.session.commit()
 
 

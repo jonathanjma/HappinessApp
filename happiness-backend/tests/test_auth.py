@@ -427,7 +427,7 @@ def test_get_user_by_id(client):
                                 headers={
                                     "Authorization": f"Bearer {bearer_token2}"},
                                 )
-    user1_accept_res = client.post('/api/user/accept_invite/1', headers={
+    user1_accept_res = client.post('/api/group/accept_invite/1', headers={
         "Authorization": f"Bearer {bearer_token}"})
     assert make_group_res.status_code == 201
     assert add_member_res.status_code == 200

@@ -6,10 +6,11 @@ from flask import Blueprint
 from api.app import db
 from api.authentication.auth import token_current_user
 from api.dao.groups_dao import get_group_by_id
-from api.dao.happiness_dao import get_happiness_by_date_range, get_happiness_by_count
+from api.dao.happiness_dao import get_happiness_by_date_range, get_happiness_by_count, \
+    get_happiness_by_unread
 from api.models.models import Group
 from api.models.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
-    HappinessGetPaginatedSchema, GetByDateRangeSchema
+    HappinessGetPaginatedSchema, GetByDateRangeSchema, UserGroupsSchema, EmptySchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
 
@@ -67,50 +68,18 @@ def group_info(group_id):
     return cur_group
 
 
-@group.get('/<int:group_id>/happiness')
+@group.get('/user')
 @authenticate(token_auth)
-@arguments(GetByDateRangeSchema)
-@response(HappinessSchema(many=True))
-@other_responses({404: 'Invalid Group', 403: 'Not Allowed'})
-def group_happiness_range(req, group_id):
+@response(UserGroupsSchema)
+def user_groups():
     """
-    Get Group Happiness By Date Range
-    Gets the happiness of values of a group between a specified start and end date (inclusive).
-    User must be a full member of the group they are viewing. \n
-    See "Get Happiness by Date Range" for more details. \n
-    Returns: List of all happiness entries from users in the group between start and end date in sequential order
+    Get Groups
+    Returns: a list of happiness groups that the user is in as well as any they have been invited to join.
     """
-
-    # Return 404 if invalid group or 403 if user is not in group
-    cur_group = get_group_by_id(group_id)
-    check_group(cur_group)
-
-    today = datetime.today().date()
-    start_date, end_date = req.get("start"), req.get("end", today)
-
-    return get_happiness_by_date_range(list(map(lambda x: x.id, cur_group.users)), start_date, end_date)
-
-
-@group.get('/<int:group_id>/happiness/count')
-@authenticate(token_auth)
-@arguments(HappinessGetPaginatedSchema)
-@response(HappinessSchema(many=True))
-@other_responses({404: 'Invalid Group', 403: 'Not Allowed'})
-def group_happiness_count(req, group_id):
-    """
-    Get Group Happiness By Count
-    Gets the specified number of happiness values of a group in reverse chronological order (paginated).
-    User must be a full member of the group they are viewing. \n
-    See "Get Happiness by Count" for more details. \n
-    Returns: List of all the specified happiness entries from users in the group in reverse order
-    """
-
-    # Return 404 if invalid group or 403 if user is not in group
-    cur_group = get_group_by_id(group_id)
-    check_group(cur_group)
-
-    page, count = req.get("page", 1), req.get("count", 10)
-    return get_happiness_by_count(list(map(lambda x: x.id, cur_group.users)), page, count)
+    return {
+        'groups': token_current_user().groups,
+        'group_invites': token_current_user().invites
+    }
 
 
 @group.put('/<int:group_id>')
@@ -173,3 +142,102 @@ def delete_group(group_id):
     db.session.commit()
 
     return '', 204
+
+
+@group.get('/<int:group_id>/happiness')
+@authenticate(token_auth)
+@arguments(GetByDateRangeSchema)
+@response(HappinessSchema(many=True))
+@other_responses({404: 'Invalid Group', 403: 'Not Allowed'})
+def group_happiness_range(req, group_id):
+    """
+    Get Group Happiness By Date Range
+    Gets the happiness of values of a group between a specified start and end date (inclusive).
+    User must be a full member of the group they are viewing. \n
+    See "Get Happiness by Date Range" for more details. \n
+    Returns: List of all happiness entries from users in the group between start and end date in sequential order
+    """
+
+    cur_group = get_group_by_id(group_id)
+    check_group(cur_group)
+
+    today = datetime.today().date()
+    start_date, end_date = req.get("start"), req.get("end", today)
+
+    return get_happiness_by_date_range(list(map(lambda x: x.id, cur_group.users)), start_date, end_date)
+
+
+@group.get('/<int:group_id>/happiness/count')
+@authenticate(token_auth)
+@arguments(HappinessGetPaginatedSchema)
+@response(HappinessSchema(many=True))
+@other_responses({404: 'Invalid Group', 403: 'Not Allowed'})
+def group_happiness_count(req, group_id):
+    """
+    Get Group Happiness By Count
+    Gets the specified number of happiness values of a group in reverse chronological order (paginated).
+    User must be a full member of the group they are viewing. \n
+    See "Get Happiness by Count" for more details. \n
+    Returns: List of all the specified happiness entries from users in the group in reverse order
+    """
+
+    cur_group = get_group_by_id(group_id)
+    check_group(cur_group)
+
+    page, count = req.get("page", 1), req.get("count", 10)
+    return get_happiness_by_count(list(map(lambda x: x.id, cur_group.users)), page, count)
+
+
+@group.get('/<int:group_id>/happiness/unread')
+@authenticate(token_auth)
+@arguments(HappinessGetPaginatedSchema)
+@response(HappinessSchema(many=True))
+@other_responses({404: 'Invalid Group', 403: 'Not Allowed'})
+def group_happiness_unread(req, group_id):
+    """
+    Get Group Happiness By Unread
+    Gets paginated list of all happiness entries in the specified group that the user
+    has not read in the past week. User must be a full member of the group they are viewing. \n
+    Optionally takes "page" and "count" in request body, which default to 1 and 10 respectively.
+    """
+
+    cur_group = get_group_by_id(group_id)
+    check_group(cur_group)
+
+    page, count = req.get("page", 1), req.get("count", 10)
+    user_ids = list(map(lambda x: x.id, cur_group.users))
+    user_ids.remove(token_current_user().id)
+    return get_happiness_by_unread(token_current_user().id, user_ids, count, page)
+
+@group.post('/accept_invite/<int:group_id>')
+@authenticate(token_auth)
+@response(EmptySchema, 204, 'Group invite accepted')
+@other_responses({404: 'Invalid Group Invite'})
+def accept_group_invite(group_id):
+    """
+    Accept Group Invite
+    Accepts an invite to join a happiness group \n
+    Requires: group ID is valid and corresponds to a group that has invited the user
+    """
+    group = get_group_by_id(group_id)
+    if group is not None and group in token_current_user().invites:
+        group.add_users([token_current_user()])
+        return '', 204
+    return failure_response('Group Invite Not Found', 404)
+
+
+@group.post('/reject_invite/<int:group_id>')
+@authenticate(token_auth)
+@response(EmptySchema, 204, 'Group invite rejected')
+@other_responses({404: 'Invalid Group Invite'})
+def reject_group_invite(group_id):
+    """
+    Reject Group Invite
+    Rejects an invite to join a happiness group \n
+    Requires: group ID is valid and corresponds to a group that has invited the user
+    """
+    group = get_group_by_id(group_id)
+    if group is not None and group in token_current_user().invites:
+        group.remove_users([token_current_user().username])
+        return '', 204
+    return failure_response('Group Invite Not Found', 404)

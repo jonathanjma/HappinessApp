@@ -368,9 +368,9 @@ def test_discussion_comments_create(init_client):
     assert unauthorized_comment.status_code == 403
 
     get_group_by_id(1).invite_users(['user2'])
-    get_group_by_id(1).add_user(get_user_by_username('user2'))
+    get_group_by_id(1).add_users([get_user_by_username('user2')])
     get_group_by_id(2).invite_users(['user3'])
-    get_group_by_id(2).add_user(get_user_by_username('user3'))
+    get_group_by_id(2).add_users([get_user_by_username('user3')])
 
     create_comment = client.post('/api/happiness/1/comment', json={
         'text': 'oh no what happened?'
@@ -540,7 +540,7 @@ def test_discussion_comments_edit(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': 'group 1'}, headers=auth_header(tokens[0]))
     get_group_by_id(1).invite_users(['user2'])
-    get_group_by_id(1).add_user(get_user_by_username('user2'))
+    get_group_by_id(1).add_users([get_user_by_username('user2')])
     client.post('/api/happiness/', json={
         'value': 4.5,
         'comment': 'bad day',
@@ -578,7 +578,7 @@ def test_discussion_comments_delete(init_client):
     client, tokens = init_client
     client.post('/api/group/', json={'name': 'group 1'}, headers=auth_header(tokens[0]))
     get_group_by_id(1).invite_users(['user2'])
-    get_group_by_id(1).add_user(get_user_by_username('user2'))
+    get_group_by_id(1).add_users([get_user_by_username('user2')])
     client.post('/api/happiness/', json={
         'value': 4.5,
         'comment': 'bad day',
