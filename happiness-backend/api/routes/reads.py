@@ -1,13 +1,10 @@
-from datetime import datetime, timedelta
-
 from apifairy import authenticate, response, body, other_responses, arguments
 from flask import Blueprint
-from sqlalchemy import select
 
 from api.app import db
 from api.authentication.auth import token_auth, token_current_user
 from api.dao import happiness_dao
-from api.models.models import Happiness, User
+from api.models.models import Happiness
 from api.models.schema import CreateReadsSchema, HappinessSchema, HappinessGetPaginatedSchema
 from api.util.errors import failure_response
 
@@ -30,9 +27,7 @@ def create_read(req):
         return {400: "No corresponding Happiness entry found"}
     user.read_happiness(happiness)
     db.session.commit()
-    return ({
-                "happiness_id": happiness.id
-            }, 201)
+    return { "happiness_id": happiness.id }, 201
 
 
 @reads.delete('/')
@@ -53,9 +48,7 @@ def mark_unread(req):
         return failure_response("No corresponding read Happiness entry found", code=400)
     user.unread_happiness(happiness)
     db.session.commit()
-    return ({
-                "happiness_id": happiness.id
-            }, 200)
+    return {"happiness_id": happiness.id}, 200
 
 
 @reads.get('/')
@@ -90,13 +83,17 @@ def get_unread_happiness(req):
 
     # use a set to avoid duplicates
     friend_users = set()
+    user_groups = current_user.groups.all()
 
     # For each group, get all happiness entries for that group in the past week
     # Yes this is O(n^2), but even at full scale this should be at most 100 iterations
-    for g in current_user.groups.all():
+    for g in user_groups:
         for u in g.users:
             friend_users.add(u.id)
-    friend_users.remove(current_user.id) # remove self
+
+    # don't fetch posts made by current user
+    if len(user_groups) > 0:
+        friend_users.remove(current_user.id)
 
     # Find unread entries by selecting happiness with some criteria
     return happiness_dao.get_happiness_by_unread(current_user.id, list(friend_users), per_page, page)

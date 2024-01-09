@@ -1,11 +1,9 @@
-from datetime import timedelta
 import json
 
 import pytest
 
 from api import create_app
 from api.app import db
-from api.dao.groups_dao import get_group_by_id
 from api.dao.happiness_dao import *
 from api.dao.users_dao import get_user_by_username
 from api.models.models import User, Group
@@ -29,24 +27,17 @@ def init_client():
         token_objs, tokens = zip(*[user1.create_token(), user2.create_token(), user3.create_token()])
         db.session.add_all(token_objs)
         db.session.commit()
-        minus1hr = datetime.utcnow() - timedelta(hours=1)
 
+        minus1hr = datetime.utcnow() - timedelta(hours=1)
         add_happiness(minus1hr)
 
         yield client, tokens
 
 
-def auth_header(token):
-    return {'Authorization': f'Bearer {token}'}
-
-
 url = "api/reads/"
 
-
 def auth_header(token):
-    return {
-        'Authorization': f'Bearer {token}'
-    }
+    return {'Authorization': f'Bearer {token}'}
 
 
 def test_create_read(init_client):
@@ -100,20 +91,19 @@ def test_get_empty_read_happiness(init_client):
 
 def test_get_unread_happiness(init_client):
     add_group()
-    print(get_group_by_id(1).users)
 
     client, tokens = test_create_read(init_client)
     get1 = client.get(url + "unread/", headers=auth_header(tokens[0]))
     assert get1.status_code == 200
     happiness_list = json.loads(get1.get_data())
-    assert len(happiness_list) == 2
-    assert all([h.get("id") != 2 for h in happiness_list])
+    assert len(happiness_list) == 1
+    assert happiness_list[0]['comment'] == 'test3'
 
 
 def test_get_unread_happiness_2(init_client):
     client, tokens = test_create_read(init_client)
-    # Set up test by adding new user and new group, give new user happiness entry
 
+    # Set up test by adding new user and new group, give new user happiness entry
     add_group()
     user4 = User(email='test4@example.app', username='user4', password='test')
     happiness4 = Happiness(user_id=4, value=8, comment="test4", timestamp=datetime.utcnow())
@@ -131,24 +121,26 @@ def test_get_unread_happiness_2(init_client):
     get1 = client.get(url + "unread/", headers=auth_header(tokens[1]))
     assert get1.status_code == 200
     happiness_list = json.loads(get1.get_data())
-    assert len(happiness_list) == 4
+    assert len(happiness_list) == 3
+    print(happiness_list)
     assert any([h.get("comment") == "test4" for h in happiness_list])
+
     # For the first user, since they don't share a group with user 4 they should not see their happiness.
-    # They have also read user 2's happiness, so they should only get 2 entries
+    # They have also read user 2's happiness, so they should only get 1 entry
     get2 = client.get(url + "unread/", headers=auth_header(tokens[0]))
     assert get2.status_code == 200
     happiness_list2 = json.loads(get2.get_data())
-    assert len(happiness_list2) == 2
-    assert all([h.get("comment") != "test4" for h in happiness_list2])
+    assert len(happiness_list2) == 1
+    assert happiness_list2[0]['comment'] == 'test3'
 
     # Finally, try reading a Happiness entry with user 2 and ensure that there is 1 less unread entry
-    read1 = client.post(url, json={
+    client.post(url, json={
         "happiness_id": 3,
     }, headers=auth_header(tokens[1]))
     get3 = client.get(url + "unread/", headers=auth_header(tokens[1]))
     happiness_list3 = json.loads(get3.get_data())
-    assert all([h.get("id") != 3 for h in happiness_list3])
-    assert len(happiness_list3) == 3
+    assert len(happiness_list3) == 2
+    assert list(map(lambda x: x['comment'], happiness_list3)) == ['test4', 'test1']
 
 
 def test_get_empty_unread_happiness_1(init_client):
@@ -187,6 +179,28 @@ def test_get_empty_unread_happiness_3(init_client):
     assert get.status_code == 200
     happiness_list = json.loads(get.get_data())
     assert len(happiness_list) == 0
+
+
+def test_group_unread(init_client):
+    client, tokens = init_client
+    add_group()
+    user4 = User(email='test4@example.app', username='user4', password='test')
+    happiness4 = Happiness(user_id=4, value=8, comment="test4", timestamp=datetime.utcnow())
+    db.session.add_all([user4, happiness4])
+    db.session.commit()
+    group2 = Group(name="super special test")
+    db.session.add(group2)
+    group2.invite_users(["user1", "user4"])
+    group2.add_users([get_user_by_username("user1"), get_user_by_username("user4")])
+    db.session.commit()
+
+    get_reg = client.get(url + 'unread/', headers=auth_header(tokens[0]))
+    assert len(get_reg.json) == 3
+    assert list(map(lambda x: x['comment'], get_reg.json)) == ['test4', 'test2', 'test3']
+
+    get_group = client.get('api/group/1/happiness/unread', headers=auth_header(tokens[0]))
+    assert len(get_group.json) == 2
+    assert list(map(lambda x: x['comment'], get_group.json)) == ['test2', 'test3']
 
 
 def add_group():

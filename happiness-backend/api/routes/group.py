@@ -206,8 +206,9 @@ def group_happiness_unread(req, group_id):
 
     page, count = req.get("page", 1), req.get("count", 10)
     user_ids = list(map(lambda x: x.id, cur_group.users))
-    user_ids.remove(token_current_user().id)
+    user_ids.remove(token_current_user().id) # remove current user
     return get_happiness_by_unread(token_current_user().id, user_ids, count, page)
+
 
 @group.post('/accept_invite/<int:group_id>')
 @authenticate(token_auth)
