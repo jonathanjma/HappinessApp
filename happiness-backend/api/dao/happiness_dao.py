@@ -76,7 +76,7 @@ def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datet
                             low: float, high: float, text: str) -> list[Happiness]:
     """
     Filters according to the provided arguments. Checks to see what filters to apply. Will not apply the filters if they
-    have the value [None]. For example, if start = end = None, then the happiness will NONE be filtered by timestamp.
+    have the value [None]. For example, if start = end = None, then the happiness will not be filtered by timestamp.
     Also, if low > high, or start is a later date than end, will raise an exception.
     """
     if low is not None and high is not None:
@@ -87,6 +87,7 @@ def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datet
             return failure_response("Start is an earlier date than end.", 400)
 
     query, has_filtered = get_filter_by_params(user_id, start, end, low, high, text, select(Happiness))
+    query = query.order_by(desc(Happiness.timestamp))
 
     if not has_filtered:
         return []
@@ -110,6 +111,10 @@ def get_num_happiness_by_filter(user_id: int, page: int, per_page: int, start: d
 
 def get_filter_by_params(user_id: int, start: datetime, end: datetime, low: float, high: float, text: str,
                          query: Select[tuple[Happiness]]) -> tuple[Select[tuple[Happiness]], bool]:
+    """
+    Applies filters to a query object and returns the resulting object, along with a boolean value to indicate whether
+    the object was modified.
+    """
     query = query.where(Happiness.user_id == user_id)
     has_filtered = False
     if start is not None and end is not None:
@@ -123,7 +128,6 @@ def get_filter_by_params(user_id: int, start: datetime, end: datetime, low: floa
     if text is not None:
         query = query.where(Happiness.comment.like(f"%{text}%"))
         has_filtered = True
-    query = query.order_by(desc(Happiness.timestamp))
     return query, has_filtered
 
 
