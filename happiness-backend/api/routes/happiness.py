@@ -288,7 +288,7 @@ def multi_filter_search_happiness(req):
 @response(NumberSchema)
 def count_multi_filter_search_happiness(req):
     """
-    Count searched happiness
+    Count Searched Happiness
     Returns the number of happiness objects that match the filter of a given search request
     Date filter: entries are between [start] and [end] dates (inclusive)
     Value filter: entries are between [low] value and [high] value (inclusive)
