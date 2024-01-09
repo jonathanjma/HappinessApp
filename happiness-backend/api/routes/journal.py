@@ -111,7 +111,7 @@ def get_entries(args, headers):
 def get_entries_by_date_range(args, headers):
     """
     Get Journals by Date Range
-    Gets journal entries between start and end inclusive. \n
+    Gets the journal entries between the start and end date (inclusive). \n
     Requires that start date is passed in, end date will default to today if not specified. \n
     Requires the user's password key for data decryption (provided by the `Get Password Key` endpoint) 
     """
@@ -131,9 +131,8 @@ def get_entries_by_date_range(args, headers):
 def get_num_entries_by_date_range(args):
     """
     Get Number of Journals by Date Range
-    Gets journal entries between start and end inclusive. \n
-    Requires that start date is passed in, end date will default to today if not specified. \n
-    Requires the user's password key for data decryption (provided by the `Get Password Key` endpoint)
+    Gets the number of journal entries between the start and end date (inclusive). \n
+    Requires that start date is passed in, end date will default to today if not specified.
     """
     start, end = args.get("start"), args.get("end", datetime.today().date())
     user_id = token_current_user().id
