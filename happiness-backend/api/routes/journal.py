@@ -9,7 +9,8 @@ from api.dao import journal_dao
 from api.dao.journal_dao import get_entry_by_id_or_date
 from api.models.models import Journal
 from api.models.schema import JournalSchema, JournalGetSchema, DecryptedJournalSchema, \
-    PasswordKeyJWTSchema, JournalEditSchema, EmptySchema, GetPasswordKeySchema, DateIdGetSchema, GetByDateRangeSchema
+    PasswordKeyJWTSchema, JournalEditSchema, EmptySchema, GetPasswordKeySchema, DateIdGetSchema, GetByDateRangeSchema, \
+    NumberSchema
 from api.util.errors import failure_response
 from api.util.jwt_methods import verify_token
 
@@ -117,6 +118,25 @@ def get_entries_by_date_range(args, headers):
 
     DecryptedJournalSchema.context['password_key'] = password_key
     return journal_dao.get_journal_by_date_range(user_id, start, end)
+
+
+@journal.get('/dates/count/')
+@authenticate(token_auth)
+@arguments(GetByDateRangeSchema)
+@response(NumberSchema)
+@other_responses({400: "Invalid date range"})
+def get_num_entries_by_date_range(args):
+    """
+    Get Number of Journals by Date Range
+    Gets journal entries between start and end inclusive. \n
+    Requires that start date is passed in, end date will default to today if not specified. \n
+    Requires the user's password key for data decryption (provided by the `Get Password Key` endpoint)
+    """
+    start, end = args.get("start"), args.get("end", datetime.today().date())
+    user_id = token_current_user().id
+    print(journal_dao.get_num_journals_by_date_range(user_id, start, end))
+
+    return {"number": journal_dao.get_num_journals_by_date_range(user_id, start, end)}
 
 
 @journal.put('/')
