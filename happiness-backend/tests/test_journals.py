@@ -154,6 +154,34 @@ def test_get_journals_by_date_range(init_client):
     assert get_all.json[1]['data'] == 'secret2'
 
 
+def test_get_num_journals_by_date_range(init_client):
+    client, token, user = init_client
+    key_token = user.generate_password_key_token('test'),
+    client.post('/api/journal/', json={'data': 'secret', 'timestamp': '2023-10-18'},
+                headers=auth_key_header(token, key_token))
+    client.post('/api/journal/', json={'data': 'secret2', 'timestamp': '2023-10-21'},
+                headers=auth_key_header(token, key_token))
+    get_0 = client.get('/api/journal/dates/count/', query_string={'start': '2023-10-19', 'end': '2023-10-20'},
+                       headers=auth_header(token))
+    assert get_0.status_code == 200
+
+    get_all = client.get('/api/journal/dates/count/', query_string={'start': '2023-10-18', 'end': '2023-10-21'},
+                         headers=auth_header(token))
+    assert get_all.status_code == 200
+
+    get_all_2 = client.get('/api/journal/dates/count/', query_string={'start': '2021-01-01', 'end': '2025-01-01'},
+                           headers=auth_header(token))
+    assert get_all_2.status_code == 200
+
+    get_1 = client.get('/api/journal/dates/count/', query_string={'start': '2023-10-18', 'end': '2023-10-18'},
+                       headers=auth_header(token))
+
+    assert get_0.json['number'] == 0
+    assert get_all.json['number'] == 2
+    assert get_all_2.json['number'] == 2
+    assert get_1.json['number'] == 1
+
+
 def test_change_password_get(init_client):
     client, token, user = init_client
     key_token = user.generate_password_key_token('test')
@@ -251,3 +279,7 @@ def test_delete(init_client):
     get = client.get('/api/journal/', headers=auth_key_header(token, key_token))
     assert len(get.json) == 1
     assert get.json[0]['data'] == 'secret3'
+
+
+def auth_header(token):
+    return {'Authorization': f'Bearer {token}'}

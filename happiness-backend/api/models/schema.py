@@ -233,3 +233,7 @@ class HappinessMultiFilterSchema(ma.Schema):
     start = ma.Date()
     end = ma.Date()
     text = ma.Str()
+
+
+class NumberSchema(ma.Schema):
+    number = ma.Int(required=True)
