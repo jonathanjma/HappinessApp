@@ -10,7 +10,7 @@ from api.dao.happiness_dao import get_happiness_by_id_or_date
 from api.dao.users_dao import get_user_by_id
 from api.models.models import Happiness, Comment
 from api.models.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, \
-    HappinessGetCountSchema, CommentSchema, DateIdGetSchema, HappinessMultiFilterSchema, CommentEditSchema
+    HappinessGetCountSchema, CommentSchema, DateIdGetSchema, HappinessMultiFilterSchema, CommentEditSchema, NumberSchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
 
@@ -272,14 +272,35 @@ def multi_filter_search_happiness(req):
     Is paginated
     """
     user_id = req.get("user_id", token_auth.current_user().id)
-    start = req.get("start")
-    end = req.get("end")
-    low = req.get("low")
-    high = req.get("high")
+    start, end = req.get("start"), req.get("end")
+    low, high = req.get("low"), req.get("high")
     text = req.get("text")
-    page = req.get("page", 1)
-    count = req.get("count", 10)
+    page, count = req.get("page", 1), req.get("count", 10)
     if not (user_id == token_auth.current_user().id or
             token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
         return failure_response("Not Allowed.", 403)
     return happiness_dao.get_happiness_by_filter(user_id, page, count, start, end, low, high, text)
+
+
+@happiness.get('/search/count')
+@authenticate(token_auth)
+@arguments(HappinessMultiFilterSchema)
+@response(NumberSchema)
+def count_multi_filter_search_happiness(req):
+    """
+    Count Searched Happiness
+    Returns the number of happiness objects that match the filter of a given search request
+    Date filter: entries are between [start] and [end] dates (inclusive)
+    Value filter: entries are between [low] value and [high] value (inclusive)
+    Text filter: entries contain [text]
+    Each of these filters are optional to apply, but if no filters are applied, then 0 is returned 
+    """
+    user_id = req.get("user_id", token_auth.current_user().id)
+    start, end = req.get("start"), req.get("end")
+    low, high = req.get("low"), req.get("high")
+    text = req.get("text")
+    page, count = req.get("page", 1), req.get("count", 10)
+    if not (user_id == token_auth.current_user().id or
+            token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
+        return failure_response("Not Allowed.", 403)
+    return {"number": happiness_dao.get_num_happiness_by_filter(user_id, page, count, start, end, low, high, text)}

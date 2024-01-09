@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from flask_sqlalchemy.pagination import Pagination
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from api.app import db
 from api.authentication.auth import token_current_user
@@ -22,7 +22,8 @@ def get_journal_by_date(user_id: int, date: datetime) -> Journal:
     """
     db_date = datetime.strftime(date, "%Y-%m-%d 00:00:00.000000")
     return db.session.execute(
-        select(Journal).where(Journal.user_id == user_id, Journal.timestamp == db_date)
+        select(Journal).where(Journal.user_id ==
+                              user_id, Journal.timestamp == db_date)
     ).scalar()
 
 
@@ -39,6 +40,21 @@ def get_journal_by_date_range(user_id: int, start: datetime, end: datetime) -> l
                 Journal.user_id == user_id,
                 Journal.timestamp.between(db_start, db_end)
             )).scalars())
+
+
+def get_num_journals_by_date_range(user_id: int, start: datetime, end: datetime) -> int:
+    """
+    Returns the number of journal entries between start date and end date, inclusive
+    """
+    db_start = datetime.strftime(start, "%Y-%m-%d 00:00:00.000000")
+    db_end = datetime.strftime(end, "%Y-%m-%d 00:00:00.000000")
+
+    return db.session.scalar(
+        select(func.count(Journal.id)).where(
+            Journal.user_id == user_id,
+            Journal.timestamp.between(db_start, db_end)
+        )
+    )
 
 
 def get_entry_by_id_or_date(args: dict) -> Journal:

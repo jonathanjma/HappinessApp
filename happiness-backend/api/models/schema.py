@@ -228,8 +228,12 @@ class HappinessMultiFilterSchema(ma.Schema):
     user_id = ma.Int()
     page = ma.Int()
     count = ma.Int()
-    low = ma.Int()
-    high = ma.Int()
+    low = ma.Float()
+    high = ma.Float()
     start = ma.Date()
     end = ma.Date()
     text = ma.Str()
+
+
+class NumberSchema(ma.Schema):
+    number = ma.Int(required=True)

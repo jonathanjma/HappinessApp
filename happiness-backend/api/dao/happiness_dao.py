@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 
-from api.authentication.auth import token_current_user
-from api.util.errors import failure_response
-from sqlalchemy import select
+from sqlalchemy import select, desc, Select, func
 
 from api.app import db
 from api.models.models import Happiness, Comment, User
+from api.authentication.auth import token_current_user
+from api.util.errors import failure_response
 
 
 def get_happiness_by_id(happiness_id: int) -> Happiness:
@@ -95,10 +95,10 @@ def get_happiness_by_unread(user_id: int, user_ids: list[int], per_page: int, pa
 
 
 def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datetime, end: datetime,
-                            low: int, high: int, text: str) -> list[Happiness]:
+                            low: float, high: float, text: str) -> list[Happiness]:
     """
     Filters according to the provided arguments. Checks to see what filters to apply. Will not apply the filters if they
-    have the value [None]. For example, if start = end = None, then the happiness will NONE be filtered by timestamp.
+    have the value [None]. For example, if start = end = None, then the happiness will not be filtered by timestamp.
     Also, if low > high, or start is a later date than end, will raise an exception.
     """
     if low is not None and high is not None:
@@ -108,28 +108,49 @@ def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datet
         if start > end:
             return failure_response("Start is an earlier date than end.", 400)
 
-    acc = 0
-    query = select(Happiness).where(Happiness.user_id == user_id)
-    if start is not None and end is not None:
-        db_start = datetime.strftime(start, "%Y-%m-%d 00:00:00.000000")
-        db_end = datetime.strftime(end, "%Y-%m-%d 00:00:00.000000")
-        query = query.where(Happiness.timestamp.between(db_start, db_end))
-        acc = acc + 1
-    if low is not None and high is not None:
-        query = query.where(Happiness.value >= low, Happiness.value <= high)
-        acc = acc + 1
-    if text is not None:
-        query = query.where(Happiness.comment.like(f"%{text}%"))
-        acc = acc + 1
-    query = query.order_by(Happiness.timestamp.asc())
+    query, has_filtered = get_filter_by_params(user_id, start, end, low, high, text, select(Happiness))
+    query = query.order_by(desc(Happiness.timestamp))
 
-    if acc == 0: return []
+    if not has_filtered:
+        return []
 
     return list(db.paginate(
         select=query,
         per_page=per_page,
         page=page
     ))
+
+
+def get_num_happiness_by_filter(user_id: int, page: int, per_page: int, start: datetime, end: datetime,
+                                low: float, high: float, text: str) -> int:
+    query, has_filtered = get_filter_by_params(user_id, start, end, low, high, text, select(func.count(Happiness.id)))
+    if not has_filtered:
+        return 0
+    return db.session.scalar(
+        query
+    )
+
+
+def get_filter_by_params(user_id: int, start: datetime, end: datetime, low: float, high: float, text: str,
+                         query: Select[tuple[Happiness]]) -> tuple[Select[tuple[Happiness]], bool]:
+    """
+    Applies filters to a query object and returns the resulting object, along with a boolean value to indicate whether
+    the object was modified.
+    """
+    query = query.where(Happiness.user_id == user_id)
+    has_filtered = False
+    if start is not None and end is not None:
+        db_start = datetime.strftime(start, "%Y-%m-%d 00:00:00.000000")
+        db_end = datetime.strftime(end, "%Y-%m-%d 00:00:00.000000")
+        query = query.where(Happiness.timestamp.between(db_start, db_end))
+        has_filtered = True
+    if low is not None and high is not None:
+        query = query.where(Happiness.value >= low, Happiness.value <= high)
+        has_filtered = True
+    if text is not None:
+        query = query.where(Happiness.comment.like(f"%{text}%"))
+        has_filtered = True
+    return query, has_filtered
 
 
 def get_comment_by_id(comment_id: int) -> Comment:

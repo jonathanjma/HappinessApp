@@ -1,17 +1,19 @@
 from datetime import datetime
 
-from apifairy import authenticate, body, response, other_responses, arguments
-from flask import Blueprint
-
 from api.app import db
 from api.authentication.auth import token_auth, token_current_user
 from api.dao import journal_dao
 from api.dao.journal_dao import get_entry_by_id_or_date
 from api.models.models import Journal
-from api.models.schema import JournalSchema, JournalGetSchema, DecryptedJournalSchema, \
-    PasswordKeyJWTSchema, JournalEditSchema, EmptySchema, GetPasswordKeySchema, DateIdGetSchema, GetByDateRangeSchema
+from api.models.schema import (DateIdGetSchema, DecryptedJournalSchema,
+                               EmptySchema, GetByDateRangeSchema,
+                               GetPasswordKeySchema, JournalEditSchema,
+                               JournalGetSchema, JournalSchema, NumberSchema,
+                               PasswordKeyJWTSchema)
 from api.util.errors import failure_response
 from api.util.jwt_methods import verify_token
+from apifairy import arguments, authenticate, body, other_responses, response
+from flask import Blueprint
 
 journal = Blueprint('journal', __name__)
 
@@ -59,9 +61,11 @@ def create_entry(req, headers):
     Requires: the user's password key token for data encryption (provided by the `Get Password Key` endpoint)
     """
     password_key = get_verify_key_token(headers.get('key_token'))
-    potential_journal = journal_dao.get_journal_by_date(token_current_user().id, req.get('timestamp'))
+    potential_journal = journal_dao.get_journal_by_date(
+        token_current_user().id, req.get('timestamp'))
     if potential_journal:
-        potential_journal.data = token_current_user().encrypt_data(password_key, req.get('data'))
+        potential_journal.data = token_current_user(
+        ).encrypt_data(password_key, req.get('data'))
         db.session.commit()
         return potential_journal
 
@@ -107,7 +111,7 @@ def get_entries(args, headers):
 def get_entries_by_date_range(args, headers):
     """
     Get Journals by Date Range
-    Gets journal entries between start and end inclusive. \n
+    Gets the journal entries between the start and end date (inclusive). \n
     Requires that start date is passed in, end date will default to today if not specified. \n
     Requires the user's password key for data decryption (provided by the `Get Password Key` endpoint) 
     """
@@ -117,6 +121,23 @@ def get_entries_by_date_range(args, headers):
 
     DecryptedJournalSchema.context['password_key'] = password_key
     return journal_dao.get_journal_by_date_range(user_id, start, end)
+
+
+@journal.get('/dates/count/')
+@authenticate(token_auth)
+@arguments(GetByDateRangeSchema)
+@response(NumberSchema)
+@other_responses({400: "Invalid date range"})
+def get_num_entries_by_date_range(args):
+    """
+    Get Number of Journals by Date Range
+    Gets the number of journal entries between the start and end date (inclusive). \n
+    Requires that start date is passed in, end date will default to today if not specified.
+    """
+    start, end = args.get("start"), args.get("end", datetime.today().date())
+    user_id = token_current_user().id
+
+    return {"number": journal_dao.get_num_journals_by_date_range(user_id, start, end)}
 
 
 @journal.put('/')
