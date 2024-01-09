@@ -458,20 +458,34 @@ def test_happiness_search(init_client):
         'high': 4,
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_number_range_3_4.status_code == 200
-    assert (list(map(lambda d: d.get("comment"), happiness_number_range_3_4.json)) == ['great day', 'very happy', 'no'])
+    assert (list(map(lambda d: d.get("comment"), happiness_number_range_3_4.json)) == ['no', 'very happy', 'great day'])
+
+    happiness_number_range_6pt5_9pt5 = client.get('api/happiness/search', query_string={
+        'low': 6.5,
+        'high': 9.5,
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_number_range_6pt5_9pt5.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_number_range_6pt5_9pt5.json)) == ['happiest', 'oopsies',
+                                                                                             'hmmm', 'bad day'])
 
     happiness_date_range_12_14 = client.get('api/happiness/search', query_string={
         'start': '2023-01-12',
         'end': '2023-01-14',
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_date_range_12_14.status_code == 200
-    assert (list(map(lambda d: d.get("comment"), happiness_date_range_12_14.json)) == ['bad day', 'very happy', 'hmmm'])
+    assert (list(map(lambda d: d.get("comment"), happiness_date_range_12_14.json)) == ['hmmm', 'very happy', 'bad day'])
 
     happiness_text_day = client.get('api/happiness/search', query_string={
         'text': 'day',
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_text_day.status_code == 200
-    assert (list(map(lambda d: d.get("comment"), happiness_text_day.json)) == ['great day', 'bad day'])
+    assert (list(map(lambda d: d.get("comment"), happiness_text_day.json)) == ['bad day', 'great day'])
+
+    happiness_text_casesensitivity_happiest = client.get('api/happiness/search', query_string={
+        'text': 'haPpIEsT',
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_text_casesensitivity_happiest.status_code == 200
+    assert (list(map(lambda d: d.get("comment"), happiness_text_casesensitivity_happiest.json)) == ['happiest'])
 
     happiness_number_range_3_4_date_range_12_14_very = client.get('api/happiness/search', query_string={
         'low': 3,
@@ -499,7 +513,7 @@ def test_happiness_search(init_client):
         'text': 'day',
     }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert happiness_date_range_11_14_day.status_code == 200
-    assert (list(map(lambda d: d.get("comment"), happiness_date_range_11_14_day.json)) == ['great day', 'bad day'])
+    assert (list(map(lambda d: d.get("comment"), happiness_date_range_11_14_day.json)) == ['bad day', 'great day'])
 
     happiness_number_range_5_10_hmmm = client.get('api/happiness/search', query_string={
         'low': 5,
