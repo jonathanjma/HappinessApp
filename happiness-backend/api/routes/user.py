@@ -4,7 +4,7 @@ from datetime import datetime
 
 import boto3
 import filetype
-from apifairy import authenticate, response, body, other_responses, arguments
+from apifairy import authenticate, response, body, other_responses
 from flask import Blueprint
 from flask import current_app
 
@@ -12,11 +12,10 @@ from api.app import db
 from api.authentication.auth import token_current_user
 from api.util.jwt_methods import verify_token
 from api.dao import users_dao
-from api.dao.groups_dao import get_group_by_id
 from api.models.models import User, Setting
 from api.models.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     UserInfoSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
-    FileUploadSchema, UserGroupsSchema
+    FileUploadSchema
 from api.routes.token import token_auth
 from api.util import email_methods
 from api.util.errors import failure_response
@@ -87,54 +86,6 @@ def get_user_by_username(username):
     if user_lookup is None:
         return failure_response("User not found", 404)
     return user_lookup
-
-
-@user.get('/groups')
-@authenticate(token_auth)
-@response(UserGroupsSchema)
-def user_groups():
-    """
-    Get Groups
-    Returns: a list of happiness groups that the user is in as well as any they have been invited to join.
-    """
-    return {
-        'groups': token_current_user().groups,
-        'group_invites': token_current_user().invites
-    }
-
-
-@user.post('/accept_invite/<int:group_id>')
-@authenticate(token_auth)
-@response(EmptySchema, 204, 'Group invite accepted')
-@other_responses({404: 'Invalid Group Invite'})
-def accept_group_invite(group_id):
-    """
-    Accept Group Invite
-    Accepts an invite to join a happiness group \n
-    Requires: group ID is valid and corresponds to a group that has invited the user
-    """
-    group = get_group_by_id(group_id)
-    if group is not None and group in token_current_user().invites:
-        group.add_user(token_current_user())
-        return '', 204
-    return failure_response('Group Invite Not Found', 404)
-
-
-@user.post('/reject_invite/<int:group_id>')
-@authenticate(token_auth)
-@response(EmptySchema, 204, 'Group invite rejected')
-@other_responses({404: 'Invalid Group Invite'})
-def reject_group_invite(group_id):
-    """
-    Reject Group Invite
-    Rejects an invite to join a happiness group \n
-    Requires: group ID is valid and corresponds to a group that has invited the user
-    """
-    group = get_group_by_id(group_id)
-    if group is not None and group in token_current_user().invites:
-        group.remove_users([token_current_user().username])
-        return '', 204
-    return failure_response('Group Invite Not Found', 404)
 
 
 @user.delete('/')

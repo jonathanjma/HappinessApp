@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from flask import current_app
 from flask_sqlalchemy.model import DefaultMeta
 from sqlalchemy import delete, Integer, String, DateTime, ForeignKey, Column, Boolean, Float, \
-    LargeBinary
+    LargeBinary, select
 from sqlalchemy.orm import mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -235,18 +235,19 @@ class Group(BaseModel):
         Requires: Users to be invited must exist and not already be in the group
         """
         for username in users_to_invite:
-            user = User.query.filter(User.username.ilike(username)).first()
+            user = db.session.execute(select(User).where(User.username.ilike(username))).scalar()
             if user is not None and user not in self.users and user not in self.invited_users:
                 self.invited_users.append(user)
 
-    def add_user(self, user_to_add: User):
+    def add_users(self, users_to_add: list[User]):
         """
-        Adds a user object to a group
-        Requires: User must already have been invited to the group
+        Adds a list of user objects to a group
+        Requires: Users must already have been invited to the group
         """
-        if user_to_add in self.invited_users:
-            self.invited_users.remove(user_to_add)
-            self.users.append(user_to_add)
+        for user in users_to_add:
+            if user in self.invited_users:
+                self.invited_users.remove(user)
+                self.users.append(user)
 
     def remove_users(self, users_to_remove: list[str]):
         """
@@ -254,7 +255,7 @@ class Group(BaseModel):
         Requires: Users to be removed must exist and already be in or invited to the group
         """
         for username in users_to_remove:
-            user = User.query.filter(User.username.ilike(username)).first()
+            user = db.session.execute(select(User).where(User.username.ilike(username))).scalar()
             if user is not None:
                 if user in self.users:
                     self.users.remove(user)

@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import select, desc, Select, func
 
 from api.app import db
+from api.models.models import Happiness, Comment, User
 from api.authentication.auth import token_current_user
-from api.models.models import Happiness, Comment
 from api.util.errors import failure_response
 
 
@@ -59,14 +59,36 @@ def get_happiness_by_date_range(user_ids: list[int], start: datetime, end: datet
 
 def get_happiness_by_count(user_ids: list[int], page: int, n: int) -> list[Happiness]:
     """
-    Returns a list of n Happiness objects (sorted from newest to oldest) given a list of User IDs.
+    Returns a paginated list of Happiness objects (sorted from newest to oldest) given a list of User IDs.
     Page variable can be changed to show the next n objects for pagination.
     """
     return list(db.paginate(
         select=(
-            select(Happiness).where(Happiness.user_id.in_(user_ids)).order_by(Happiness.timestamp.desc())
+            select(Happiness).where(Happiness.user_id.in_(user_ids))
+            .order_by(Happiness.timestamp.desc(), Happiness.user_id.asc())
         ),
         per_page=n,
+        page=page,
+        error_out=False
+    ))
+
+
+def get_happiness_by_unread(user_id: int, user_ids: list[int], per_page: int, page: int) -> list[Happiness]:
+    """
+    Returns a paginated list of Happiness objects (sorted from newest to oldest) from all the users
+    in the user_ids list in the last week for which the given user has not read.
+    """
+    return list(db.paginate(
+        select=(select(Happiness).where(
+            # Happiness falls in the last week
+            Happiness.timestamp.between(str(datetime.utcnow() - timedelta(weeks=1)), str(datetime.utcnow())),
+            # User shares a group with this user
+            Happiness.user_id.in_(user_ids),
+            # We want Happiness objects that where the user's id doesn't exist in its readers
+            # https://docs.sqlalchemy.org/en/20/orm/queryguide/select.html#exists-forms-has-any
+            ~Happiness.readers.any(User.id == user_id)
+        ).order_by(Happiness.timestamp.desc(), Happiness.user_id.asc())),
+        per_page=per_page,
         page=page,
         error_out=False
     ))
