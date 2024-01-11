@@ -67,19 +67,16 @@ def get_read_happiness(req):
 
 
 @reads.get("/unread/")
-@arguments(HappinessGetPaginatedSchema)
 @authenticate(token_auth)
 @response(HappinessSchema(many=True))
-def get_unread_happiness(req):
+def get_unread_happiness():
     """
     Get Unread Happiness
-    Gets paginated list of all happiness entries that the user has not read in the past week.
-    Optionally takes "page" and "count" in request body, which default to 1 and 10 respectively.
+    Gets a list of all happiness entries that the user has not read in the past week.
     """
-    page, per_page = req.get("page", 1), req.get("count", 10)
-    current_user = token_current_user()
     # Also I am aware that has_mutual_group exists, but we can't use that as a SQLAlchemy query,
     # and we don't want to for loop through all happiness entries on the db.
+    current_user = token_current_user()
 
     # use a set to avoid duplicates
     friend_users = set()
@@ -96,4 +93,4 @@ def get_unread_happiness(req):
         friend_users.remove(current_user.id)
 
     # Find unread entries by selecting happiness with some criteria
-    return happiness_dao.get_happiness_by_unread(current_user.id, list(friend_users), per_page, page)
+    return happiness_dao.get_happiness_by_unread(current_user.id, list(friend_users))

@@ -299,8 +299,7 @@ def count_multi_filter_search_happiness(req):
     start, end = req.get("start"), req.get("end")
     low, high = req.get("low"), req.get("high")
     text = req.get("text")
-    page, count = req.get("page", 1), req.get("count", 10)
     if not (user_id == token_auth.current_user().id or
             token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
         return failure_response("Not Allowed.", 403)
-    return {"number": happiness_dao.get_num_happiness_by_filter(user_id, page, count, start, end, low, high, text)}
+    return {"number": happiness_dao.get_num_happiness_by_filter(user_id, start, end, low, high, text)}

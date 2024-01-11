@@ -73,25 +73,22 @@ def get_happiness_by_count(user_ids: list[int], page: int, n: int) -> list[Happi
     ))
 
 
-def get_happiness_by_unread(user_id: int, user_ids: list[int], per_page: int, page: int) -> list[Happiness]:
+def get_happiness_by_unread(user_id: int, user_ids: list[int]) -> list[Happiness]:
     """
-    Returns a paginated list of Happiness objects (sorted from newest to oldest) from all the users
+    Returns a list of all Happiness objects (sorted from newest to oldest) from all the users
     in the user_ids list in the last week for which the given user has not read.
     """
-    return list(db.paginate(
-        select=(select(Happiness).where(
-            # Happiness falls in the last week
-            Happiness.timestamp.between(str(datetime.utcnow() - timedelta(weeks=1)), str(datetime.utcnow())),
-            # User shares a group with this user
-            Happiness.user_id.in_(user_ids),
-            # We want Happiness objects that where the user's id doesn't exist in its readers
-            # https://docs.sqlalchemy.org/en/20/orm/queryguide/select.html#exists-forms-has-any
-            ~Happiness.readers.any(User.id == user_id)
-        ).order_by(Happiness.timestamp.desc(), Happiness.user_id.asc())),
-        per_page=per_page,
-        page=page,
-        error_out=False
-    ))
+    return list(db.session.execute(select(Happiness).where(
+        # Happiness falls in the last week
+        Happiness.timestamp.between(
+            str(datetime.utcnow() - timedelta(weeks=1)), str(datetime.utcnow())
+        ),
+        # User shares a group with this user
+        Happiness.user_id.in_(user_ids),
+        # We want Happiness objects that where the user's id doesn't exist in its readers
+        # https://docs.sqlalchemy.org/en/20/orm/queryguide/select.html#exists-forms-has-any
+        ~Happiness.readers.any(User.id == user_id)
+    ).order_by(Happiness.timestamp.desc(), Happiness.user_id.asc())).scalars())
 
 
 def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datetime, end: datetime,
@@ -121,14 +118,12 @@ def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datet
     ))
 
 
-def get_num_happiness_by_filter(user_id: int, page: int, per_page: int, start: datetime, end: datetime,
+def get_num_happiness_by_filter(user_id: int, start: datetime, end: datetime,
                                 low: float, high: float, text: str) -> int:
     query, has_filtered = get_filter_by_params(user_id, start, end, low, high, text, select(func.count(Happiness.id)))
     if not has_filtered:
         return 0
-    return db.session.scalar(
-        query
-    )
+    return db.session.scalar(query)
 
 
 def get_filter_by_params(user_id: int, start: datetime, end: datetime, low: float, high: float, text: str,

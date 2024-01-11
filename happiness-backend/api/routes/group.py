@@ -190,24 +190,21 @@ def group_happiness_count(req, group_id):
 
 @group.get('/<int:group_id>/happiness/unread')
 @authenticate(token_auth)
-@arguments(HappinessGetPaginatedSchema)
 @response(HappinessSchema(many=True))
 @other_responses({404: 'Invalid Group', 403: 'Not Allowed'})
-def group_happiness_unread(req, group_id):
+def group_happiness_unread(group_id):
     """
     Get Group Happiness By Unread
-    Gets paginated list of all happiness entries in the specified group that the user
-    has not read in the past week. User must be a full member of the group they are viewing. \n
-    Optionally takes "page" and "count" in request body, which default to 1 and 10 respectively.
+    Gets a list of all happiness entries in the specified group that the user
+    has not read in the past week. User must be a full member of the group they are viewing.
     """
 
     cur_group = get_group_by_id(group_id)
     check_group(cur_group)
 
-    page, count = req.get("page", 1), req.get("count", 10)
     user_ids = list(map(lambda x: x.id, cur_group.users))
     user_ids.remove(token_current_user().id) # remove current user
-    return get_happiness_by_unread(token_current_user().id, user_ids, count, page)
+    return get_happiness_by_unread(token_current_user().id, user_ids)
 
 
 @group.post('/accept_invite/<int:group_id>')
