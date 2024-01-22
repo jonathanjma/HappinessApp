@@ -114,7 +114,8 @@ def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datet
     return list(db.paginate(
         select=query,
         per_page=per_page,
-        page=page
+        page=page,
+        error_out=False
     ))
 
 
