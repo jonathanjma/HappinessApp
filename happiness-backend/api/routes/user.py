@@ -39,10 +39,10 @@ def create_user(req):
 
     similar_user = users_dao.get_user_by_email(email)
     if similar_user is not None:
-        return failure_response("Provided data already exists", 400)
+        return failure_response("Provided email is already taken. Please try a different email.", 400)
     similar_user2 = users_dao.get_user_by_username(username)
     if similar_user2 is not None:
-        return failure_response("Provide data already exists", 400)
+        return failure_response("Provided username is already taken. Please try a different username.", 400)
     current_user = User(email=email, password=password, username=username)
     db.session.add(current_user)
     db.session.commit()
