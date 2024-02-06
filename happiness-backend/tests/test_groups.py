@@ -206,3 +206,26 @@ def test_group_happiness(init_client):
         'start': '2023-02-01'
     }, headers=auth_header(tokens[0]))
     assert len(get_happiness_week.json) == 21
+
+
+def test_count_groups(init_client):
+    client, tokens = init_client
+
+    count_group1 = client.get('/api/group/user/count', query_string={
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert count_group1.status_code == 200
+    assert count_group1.json.get("number") == 0
+
+    group_create = client.post('/api/group/', json={'name': 'test'}, headers=auth_header(tokens[0]))
+    assert group_create.status_code == 201
+
+    count_group11 = client.get('/api/group/user/count', query_string={
+    }, headers=auth_header(tokens[0]))
+    assert count_group11.status_code == 200
+    assert count_group11.json.get("number") == 1
+
+    count_group2 = client.get('/api/group/user/count', query_string={
+    }, headers=auth_header(tokens[1]))
+    assert count_group2.status_code == 200
+    assert count_group2.json.get("number") == 0
+

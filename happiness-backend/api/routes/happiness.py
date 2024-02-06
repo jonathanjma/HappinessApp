@@ -10,7 +10,8 @@ from api.dao.happiness_dao import get_happiness_by_id_or_date
 from api.dao.users_dao import get_user_by_id
 from api.models.models import Happiness, Comment
 from api.models.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, \
-    HappinessGetCountSchema, CommentSchema, DateIdGetSchema, HappinessMultiFilterSchema, CommentEditSchema, NumberSchema
+    HappinessGetCountSchema, CommentSchema, DateIdGetSchema, HappinessMultiFilterSchema, CommentEditSchema, \
+    NumberSchema, AmountSchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
 
@@ -303,3 +304,20 @@ def count_multi_filter_search_happiness(req):
             token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
         return failure_response("Not Allowed.", 403)
     return {"number": happiness_dao.get_num_happiness_by_filter(user_id, start, end, low, high, text)}
+
+
+@happiness.get('/search/count/entries')
+@authenticate(token_auth)
+@arguments(AmountSchema)
+@response(NumberSchema)
+def count_entries(req):
+    """
+    Returns the number of happiness entries that the user has made on happiness app.
+    """
+    user_id = req.get("user_id", token_auth.current_user().id)
+    if not (user_id == token_auth.current_user().id or
+            token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
+        return failure_response("Not Allowed.", 403)
+    return {"number": happiness_dao.get_num_of_entries(user_id, low=0, high=10)}
+
+

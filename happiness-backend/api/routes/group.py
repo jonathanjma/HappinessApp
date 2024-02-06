@@ -10,7 +10,7 @@ from api.dao.happiness_dao import get_happiness_by_date_range, get_happiness_by_
     get_happiness_by_unread
 from api.models.models import Group
 from api.models.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
-    HappinessGetPaginatedSchema, GetByDateRangeSchema, UserGroupsSchema, EmptySchema
+    HappinessGetPaginatedSchema, GetByDateRangeSchema, UserGroupsSchema, EmptySchema, NumberSchema, AmountSchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
 
@@ -239,3 +239,15 @@ def reject_group_invite(group_id):
         group.remove_users([token_current_user().username])
         return '', 204
     return failure_response('Group Invite Not Found', 404)
+
+
+@group.get('/user/count')
+@authenticate(token_auth)
+@response(NumberSchema)
+def count_groups():
+    """
+        Returns the number of groups that a user is in.
+        """
+    q = token_current_user().groups
+    n = q.count()
+    return {"number": n}

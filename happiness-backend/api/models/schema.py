@@ -237,3 +237,7 @@ class HappinessMultiFilterSchema(ma.Schema):
 
 class NumberSchema(ma.Schema):
     number = ma.Int(required=True)
+
+
+class AmountSchema(ma.Schema):
+    user_id = ma.Int()

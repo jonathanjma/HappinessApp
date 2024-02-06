@@ -127,6 +127,12 @@ def get_num_happiness_by_filter(user_id: int, start: datetime, end: datetime,
     return db.session.scalar(query)
 
 
+def get_num_of_entries(user_id: int, low: int, high: int) -> int:
+    query = select(func.count(Happiness.id))
+    query = query.where(Happiness.user_id == user_id)
+    query = query.where(Happiness.value >= low, Happiness.value <= high)
+    return db.session.scalar(query)
+
 def get_filter_by_params(user_id: int, start: datetime, end: datetime, low: float, high: float, text: str,
                          query: Select[tuple[Happiness]]) -> tuple[Select[tuple[Happiness]], bool]:
     """
