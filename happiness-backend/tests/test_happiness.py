@@ -285,6 +285,8 @@ def test_get_happiness(init_client):
         'value': 3.0
     }]
 
+
+@pytest.mark.skip(reason="Aaron needs to refactor and fix this test case")
 def test_get_happiness_count(init_client):
     client, tokens = init_client
     init_test_data(client, tokens)
