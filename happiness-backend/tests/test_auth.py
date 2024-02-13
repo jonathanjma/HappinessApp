@@ -9,6 +9,7 @@ from api import create_app
 from api.app import db
 from api.dao.users_dao import *
 from config import TestConfig
+from tests.test_groups import auth_header
 
 
 @pytest.fixture
@@ -19,6 +20,26 @@ def client():
     with app.app_context():
         db.create_all()
         yield client
+
+
+@pytest.fixture
+def init_client():
+    app = create_app(TestConfig)
+
+    client = app.test_client()
+    with app.app_context():
+        db.create_all()
+
+        user1 = User(email='test1@example.app', username='user1', password='test')
+        user2 = User(email='test2@example.app', username='user2', password='test')
+        user3 = User(email='test3@example.app', username='user3', password='test')
+        db.session.add_all([user1, user2, user3])
+        db.session.commit()
+        token_objs, tokens = zip(*[user1.create_token(), user2.create_token(), user3.create_token()])
+        db.session.add_all(token_objs)
+        db.session.commit()
+
+        yield client, tokens
 
 
 def test_create_user(client):
@@ -526,3 +547,106 @@ def register_and_login_demo_user(client, email=None, uname_and_password=None):
     bearer_token = json.loads(login_response.get_data()).get("session_token")
     assert bearer_token is not None
     return client, bearer_token
+
+def init_test_data(client, tokens):
+    client.post('/api/happiness/', json={
+        'value': 4,
+        'comment': 'great day',
+        'timestamp': '2023-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 9,
+        'comment': 'bad day',
+        'timestamp': '2023-01-12'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 3,
+        'comment': 'very happy',
+        'timestamp': '2023-01-13'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 6.5,
+        'comment': 'hmmm',
+        'timestamp': '2023-01-14'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 7.5,
+        'comment': 'oopsies',
+        'timestamp': '2023-01-16'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 9.5,
+        'comment': 'happiest',
+        'timestamp': '2023-01-29'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 3,
+        'comment': 'no',
+        'timestamp': '2023-01-15'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+
+def test_user_count(init_client):
+    client, tokens = init_client
+    init_test_data(client, tokens)
+
+    count_group1 = client.get('/api/user/count/', query_string={
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert count_group1.status_code == 200
+    assert count_group1.json.get("groups") == 0
+
+    group_create = client.post('/api/group/', json={'name': 'test'}, headers=auth_header(tokens[0]))
+    assert group_create.status_code == 201
+
+    count_group11 = client.get('/api/user/count/', query_string={
+    }, headers=auth_header(tokens[0]))
+    assert count_group11.status_code == 200
+    assert count_group11.json.get("groups") == 1
+
+    count_group2 = client.get('/api/user/count/', query_string={
+    }, headers=auth_header(tokens[1]))
+    assert count_group2.status_code == 200
+    assert count_group2.json.get("groups") == 0
+
+    happiness_token_0 = client.get('api/user/count/', query_string={
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_token_0.status_code == 200
+    assert happiness_token_0.json.get("entries") == 7
+
+    happiness_create_response0 = client.post('/api/happiness/', json={
+        'value': 2,
+        'comment': 'not great day',
+        'timestamp': '2024-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_create_response0.status_code == 201
+
+    happiness_token_01 = client.get('api/user/count/', query_string={
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_token_01.status_code == 200
+    assert happiness_token_01.json.get("entries") == 8
+
+    happiness_token_1 = client.get('api/user/count/', query_string={
+    }, headers={"Authorization": f"Bearer {tokens[1]}"})
+    assert happiness_token_1.status_code == 200
+    assert happiness_token_1.json.get("entries") == 0
+
+    happiness_create_response1 = client.post('/api/happiness/', json={
+        'value': 2.5,
+        'comment': 'not great day',
+        'timestamp': '2024-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[1]}"})
+    assert happiness_create_response1.status_code == 201
+
+    happiness_token_11 = client.get('api/user/count/', query_string={
+    }, headers={"Authorization": f"Bearer {tokens[1]}"})
+    assert happiness_token_11.status_code == 200
+    assert happiness_token_11.json.get("entries") == 1
+
+
+

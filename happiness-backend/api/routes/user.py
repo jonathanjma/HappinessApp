@@ -4,18 +4,18 @@ from datetime import datetime
 
 import boto3
 import filetype
-from apifairy import authenticate, response, body, other_responses
+from apifairy import authenticate, response, body, other_responses, arguments
 from flask import Blueprint
 from flask import current_app
 
 from api.app import db
 from api.authentication.auth import token_current_user
 from api.util.jwt_methods import verify_token
-from api.dao import users_dao
+from api.dao import users_dao, happiness_dao
 from api.models.models import User, Setting
 from api.models.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     UserInfoSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
-    FileUploadSchema
+    FileUploadSchema, NumberSchema, AmountSchema, CountSchema
 from api.routes.token import token_auth
 from api.util import email_methods
 from api.util.errors import failure_response
@@ -321,3 +321,20 @@ def add_pfp(req):
     db.session.commit()
 
     return current_user
+
+
+@user.get('/count/')
+@authenticate(token_auth)
+@arguments(AmountSchema)
+@response(CountSchema)
+def user_count(req):
+    """
+    Returns the number of happiness entries that the user has made on happiness app and the number of groups that
+    the user is in.
+    """
+    user_id = req.get("user_id", token_current_user().id)
+    if not (user_id == token_current_user().id or
+            token_current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
+        return failure_response("Not Allowed.", 403)
+    num_groups = token_current_user().groups.count()
+    return {"entries": happiness_dao.get_num_of_entries(user_id, low=0, high=10), "groups": num_groups}
