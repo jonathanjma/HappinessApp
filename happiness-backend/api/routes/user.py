@@ -332,10 +332,9 @@ def user_count(req):
     Returns the number of happiness entries that the user has made on happiness app and the number of groups that
     the user is in.
     """
-    user_id = req.get("user_id", token_auth.current_user().id)
-    if not (user_id == token_auth.current_user().id or
-            token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
+    user_id = req.get("user_id", token_current_user().id)
+    if not (user_id == token_current_user().id or
+            token_current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
         return failure_response("Not Allowed.", 403)
-    q = token_current_user().groups
-    n = q.count()
-    return {"entries": happiness_dao.get_num_of_entries(user_id, low=0, high=10), "groups": n}
+    num_groups = token_current_user().groups.count()
+    return {"entries": happiness_dao.get_num_of_entries(user_id, low=0, high=10), "groups": num_groups}
