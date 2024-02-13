@@ -98,7 +98,7 @@ def delete_user():
     current_user = token_current_user()
     db.session.delete(current_user)
     db.session.commit()
-
+    print("gooofy")
     return '', 204
 
 

@@ -232,6 +232,28 @@ def test_delete_user(client):
             and get_user_by_id(1) is None)
 
 
+    user_create_response2 = client.post('/api/user/', json={
+        'email': 'test@example.com',
+        'username': 'test2',
+        'password': 'test2',
+    })
+    user_credentials2 = base64.b64encode(b"test2:test2").decode('utf-8')
+    assert user_create_response2.status_code == 201
+
+    login_response2 = client.post(
+        '/api/token/', headers={"Authorization": f"Basic {user_credentials2}"})
+    assert login_response2.status_code == 201
+    bearer_token2 = json.loads(login_response2.get_data()).get("session_token")
+    assert bearer_token2 is not None
+
+    delete_res2 = client.delete(
+        '/api/user/', headers={"Authorization": f"Bearer {bearer_token}"})
+    assert delete_res2.status_code == 204
+    assert (get_user_by_email("text2@example.com") is None and get_user_by_username("test2") is None
+            and get_user_by_id(1) is None)
+
+
+
 def test_add_user_setting(client):
     """
     Tests adding two settings to a single user in an instance of the backend.
