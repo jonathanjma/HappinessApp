@@ -45,3 +45,17 @@ def send_password_reset_email(user):
                           recipients=[user.email],
                           text_body=render_template('reset_password.txt', user=user, token=token),
                           html_body=render_template('reset_password.html', user=user, token=token))
+
+
+def send_group_invite_email(user):
+    """
+    Sends a group invite email to specified user.
+    :param user: The user to send the group invite email to.
+    """
+    with my_app.app_context():
+        token = user.generate_password_reset_token()
+        send_email_helper('Happiness App Group Invite',
+                          sender="noreply@happinessapp.org",
+                          recipients=[user.email],
+                          text_body=render_template('group_invite.txt', user=user, token=token),
+                          html_body=render_template('group_invite.html', user=user, token=token))
