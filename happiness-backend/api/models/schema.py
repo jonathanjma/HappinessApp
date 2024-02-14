@@ -60,8 +60,7 @@ class UsernameSchema(ma.Schema):
     username = ma.Str(required=True)
 
 
-class PasswordResetReqSchema(ma.Schema):
-    # This is probably bad practice (I am still learning)
+class EmailSchema(ma.Schema):
     email = ma.Email(required=True)
 
 

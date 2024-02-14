@@ -2,7 +2,7 @@ Dear {{ user.username }},
 
 You have been invited to join the group "{{ group.name }}" on Happiness App! To accept/reject your invite, click this link:
 
-{{ "https://www.happinessapp.me/groups/invites" }}
+https://www.happinessapp.me/groups/invites
 
 Sincerely,
 

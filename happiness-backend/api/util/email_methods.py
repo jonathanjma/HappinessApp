@@ -49,7 +49,7 @@ def send_password_reset_email(user):
 
 def send_group_invite_email(user, group):
     """
-    Sends a email telling a user they have been invited to a group.
+    Sends an email telling a user they have been invited to a group.
     """
     with my_app.app_context():
         send_email_helper('Happiness App Group Invite',
@@ -57,3 +57,16 @@ def send_group_invite_email(user, group):
                           recipients=[user.email],
                           text_body=render_template('group_invite.txt', user=user, group=group),
                           html_body=render_template('group_invite.html', user=user, group=group))
+
+def send_nudge_email(email, user):
+    """
+    Sends an email inviting a non-registered user to create an account.
+    """
+    print(email, user)
+    with my_app.app_context():
+        send_email_helper("You've Been Invited to Join Happiness App!",
+                          sender="noreply@happinessapp.org",
+                          recipients=[email],
+                          text_body=render_template('nudge_user.txt', user=user, email=email),
+                          html_body=render_template('nudge_user.html', user=user, email=email))
+

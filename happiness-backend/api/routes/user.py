@@ -7,16 +7,16 @@ import filetype
 from apifairy import authenticate, response, body, other_responses, arguments
 from flask import Blueprint
 from flask import current_app
-from pip._internal import req
 
 from api.app import db
 from api.authentication.auth import token_current_user
+from api.dao.users_dao import get_user_by_email
 from api.util.jwt_methods import verify_token
 from api.dao import users_dao, happiness_dao
 from api.models.models import User, Setting, Happiness, Journal
 from api.models.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
-    UserInfoSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
-    FileUploadSchema, NumberSchema, AmountSchema, CountSchema, UserDeleteSchema
+    UserInfoSchema, EmailSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
+    FileUploadSchema, AmountSchema, CountSchema, UserDeleteSchema
 from api.routes.token import token_auth
 from api.util import email_methods
 from api.util.errors import failure_response
@@ -257,7 +257,7 @@ def reset_password(req, token):
 
 
 @user.post('/initiate_password_reset/')
-@body(PasswordResetReqSchema)
+@body(EmailSchema)
 @response(EmptySchema, 204, 'Password reset email sent')
 @other_responses({400: "User associated with email address not found"})
 def send_reset_password_email(req):
@@ -341,8 +341,9 @@ def add_pfp(req):
 @authenticate(token_auth)
 @arguments(AmountSchema)
 @response(CountSchema)
-def user_count(req):
+def profile_stats(req):
     """
+    Profile Stats
     Returns the number of happiness entries that the user has made on happiness app and the number of groups that
     the user is in.
     """
@@ -352,3 +353,18 @@ def user_count(req):
         return failure_response("Not Allowed.", 403)
     num_groups = token_current_user().groups.count()
     return {"entries": happiness_dao.get_num_of_entries(user_id, low=0, high=10), "groups": num_groups}
+
+
+@user.post('/nudge/')
+@authenticate(token_auth)
+@body(EmailSchema)
+def nudge_user(req):
+    """
+    Nudge User
+    Send an email to invite a non-registered user to create an account
+    """
+    if not get_user_by_email(req.get("email")):
+        threading.Thread(target=email_methods.send_nudge_email,
+                         args=(req.get("email"), token_current_user())).start()
+        return "", 204
+    return failure_response("User already exists.", 400)

@@ -1,4 +1,3 @@
-import threading
 from datetime import datetime
 
 from apifairy import authenticate, body, arguments, response, other_responses
@@ -6,7 +5,6 @@ from flask import Blueprint
 
 from api.app import db
 from api.authentication.auth import token_current_user
-from api.dao import users_dao
 from api.dao.groups_dao import get_group_by_id
 from api.dao.happiness_dao import get_happiness_by_date_range, get_happiness_by_count, \
     get_happiness_by_unread
@@ -14,7 +12,6 @@ from api.models.models import Group
 from api.models.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
     HappinessGetPaginatedSchema, GetByDateRangeSchema, UserGroupsSchema, EmptySchema
 from api.routes.token import token_auth
-from api.util import email_methods
 from api.util.errors import failure_response
 
 group = Blueprint('group', __name__)
