@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import os
+import threading
 from datetime import datetime, timedelta
 
 from cryptography.fernet import Fernet
@@ -16,6 +17,7 @@ from sqlalchemy.orm import mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from api.app import db
+from api.util import email_methods
 from api.util.jwt_methods import generate_jwt
 
 BaseModel: DefaultMeta = db.Model
@@ -229,7 +231,7 @@ class Group(BaseModel):
         """
         self.name = kwargs.get("name")
 
-    def invite_users(self, users_to_invite: list[str]):
+    def invite_users(self, users_to_invite: list[str], send_emails=False, group=None):
         """
         Invites a list of usernames to join a group
         Requires: Users to be invited must exist and not already be in the group
@@ -238,6 +240,9 @@ class Group(BaseModel):
             user = db.session.execute(select(User).where(User.username.ilike(username))).scalar()
             if user is not None and user not in self.users and user not in self.invited_users:
                 self.invited_users.append(user)
+                if send_emails and group:
+                    threading.Thread(target=email_methods.send_group_invite_email,
+                                     args=(user,group)).start()
 
     def add_users(self, users_to_add: list[User]):
         """

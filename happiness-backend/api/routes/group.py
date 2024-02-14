@@ -1,3 +1,4 @@
+import threading
 from datetime import datetime
 
 from apifairy import authenticate, body, arguments, response, other_responses
@@ -5,6 +6,7 @@ from flask import Blueprint
 
 from api.app import db
 from api.authentication.auth import token_current_user
+from api.dao import users_dao
 from api.dao.groups_dao import get_group_by_id
 from api.dao.happiness_dao import get_happiness_by_date_range, get_happiness_by_count, \
     get_happiness_by_unread
@@ -12,6 +14,7 @@ from api.models.models import Group
 from api.models.schema import CreateGroupSchema, EditGroupSchema, GroupSchema, HappinessSchema, \
     HappinessGetPaginatedSchema, GetByDateRangeSchema, UserGroupsSchema, EmptySchema
 from api.routes.token import token_auth
+from api.util import email_methods
 from api.util.errors import failure_response
 
 group = Blueprint('group', __name__)
@@ -91,6 +94,7 @@ def edit_group(req, group_id):
     """
     Edit Group
     Edit a happiness group by changing its name, inviting users, or removing users.
+    If a user is invited to a group, they are sent an email informing them wether or not to accept the invite.
     User must be a full member of the group they are editing. \n
     Requires: valid group ID, at least one of: name, users to invite, or users to remove \n
     Returns: JSON representation for the updated group
@@ -109,7 +113,7 @@ def edit_group(req, group_id):
     if new_name is not None and new_name != cur_group.name:
         cur_group.name = new_name
     if add_users is not None:
-        cur_group.invite_users(add_users)
+        cur_group.invite_users(add_users, send_emails=True, group=cur_group)
     if remove_users is not None:
         cur_group.remove_users(remove_users)
 
