@@ -12,7 +12,7 @@ from api.app import db
 from api.authentication.auth import token_current_user
 from api.util.jwt_methods import verify_token
 from api.dao import users_dao, happiness_dao
-from api.models.models import User, Setting, Happiness
+from api.models.models import User, Setting, Happiness, Journal
 from api.models.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     UserInfoSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
     FileUploadSchema, NumberSchema, AmountSchema, CountSchema
@@ -100,6 +100,10 @@ def delete_user():
     happiness_records = db.session.query(Happiness).filter_by(user_id=current_user.id).all()
     for happiness_record in happiness_records:
         db.session.delete(happiness_record)
+
+    journal_records = db.session.query(Journal).filter_by(user_id=current_user.id).all()
+    for journal_record in journal_records:
+        db.session.delete(journal_record)
 
     db.session.delete(current_user)
     db.session.commit()
