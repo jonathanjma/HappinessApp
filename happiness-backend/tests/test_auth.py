@@ -250,8 +250,9 @@ def test_delete_user(client):
     bearer_token = json.loads(login_response.get_data()).get("session_token")
     assert bearer_token is not None
 
-    delete_res = client.delete(
-        '/api/user/', headers={"Authorization": f"Bearer {bearer_token}"})
+    delete_res = client.delete('/api/user/', json={
+            'password': 'test',
+        }, headers={"Authorization": f"Bearer {bearer_token}"})
     assert delete_res.status_code == 204
     assert (get_user_by_email("text@example.com") is None and get_user_by_username("test") is None
             and get_user_by_id(1) is None)
@@ -305,7 +306,9 @@ def test_delete_user_2(init_client):
             and get_user_by_id(3) is not None)
 
     delete_res = client.delete(
-        '/api/user/', headers={"Authorization": f"Bearer {tokens[2]}"})
+        '/api/user/', json={
+            'password': 'test',
+        }, headers={"Authorization": f"Bearer {tokens[2]}"})
     assert delete_res.status_code == 204
     assert (get_user_by_email("test3@example.app") is None and get_user_by_username("user3") is None
             and get_user_by_id(3) is None)
@@ -313,7 +316,9 @@ def test_delete_user_2(init_client):
     # deleting creator of group
 
     delete_res = client.delete(
-        '/api/user/', headers={"Authorization": f"Bearer {tokens[0]}"})
+        '/api/user/', json={
+            'password': 'test',
+        }, headers={"Authorization": f"Bearer {tokens[0]}"})
     assert delete_res.status_code == 204
     assert (get_user_by_email("test1@example.app") is None and get_user_by_username("user1") is None
                 and get_user_by_id(1) is None)
@@ -360,7 +365,9 @@ def test_delete_user_2(init_client):
     assert len(happiness_records2) == 1
 
     delete_res = client.delete(
-        '/api/user/', headers={"Authorization": f"Bearer {tokens[1]}"})
+        '/api/user/', json={
+            'password': 'test',
+        }, headers={"Authorization": f"Bearer {tokens[1]}"})
     assert delete_res.status_code == 204
     assert (get_user_by_email("test2@example.app") is None and get_user_by_username("user2") is None
             and get_user_by_id(2) is None)

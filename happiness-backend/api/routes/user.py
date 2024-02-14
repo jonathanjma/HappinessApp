@@ -7,6 +7,7 @@ import filetype
 from apifairy import authenticate, response, body, other_responses, arguments
 from flask import Blueprint
 from flask import current_app
+from pip._internal import req
 
 from api.app import db
 from api.authentication.auth import token_current_user
@@ -15,7 +16,7 @@ from api.dao import users_dao, happiness_dao
 from api.models.models import User, Setting, Happiness, Journal
 from api.models.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     UserInfoSchema, PasswordResetReqSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
-    FileUploadSchema, NumberSchema, AmountSchema, CountSchema
+    FileUploadSchema, NumberSchema, AmountSchema, CountSchema, UserDeleteSchema
 from api.routes.token import token_auth
 from api.util import email_methods
 from api.util.errors import failure_response
@@ -89,12 +90,17 @@ def get_user_by_username(username):
 
 
 @user.delete('/')
+@body(UserDeleteSchema)
 @authenticate(token_auth)
-def delete_user():
+def delete_user(req):
     """
     Delete User
     Deletes the user that is currently logged in, including all user data.
+    Requires that the user inputs their password before deleting their account.
     """
+    if not token_current_user().verify_password(req.get("password")):
+        return failure_response("Incorrect Password", 401)
+
     current_user = token_current_user()
 
     happiness_records = db.session.query(Happiness).filter_by(user_id=current_user.id).all()
