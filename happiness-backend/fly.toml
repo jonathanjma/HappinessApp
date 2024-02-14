@@ -1,0 +1,28 @@
+# fly.toml app configuration file generated for happiness-backend-dev on 2023-11-27T10:22:58-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "happiness-backend-dev"
+primary_region = "ewr"
+
+[build]
+  builtin = "python"
+
+[build.settings]
+  pythonbase = "3.9-slim-buster"
+
+[services]
+  processes = ["web"]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+[processes]
+  web = "gunicorn happiness_backend:app --preload"

@@ -1,0 +1,9 @@
+Dear {{ email }},
+
+{{ user.name }} has invited you to create an account on Happiness App! To create your account and get started, click on the following link:
+
+https://www.happinessapp.me/
+
+Sincerely,
+
+Happiness App

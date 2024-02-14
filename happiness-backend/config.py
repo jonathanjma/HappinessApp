@@ -17,9 +17,7 @@ class Config:
     APIFAIRY_UI = os.environ.get('DOCS_UI', 'elements')
 
     # Security measures
-    SECURITY_PASSWORD_SALT = os.environ.get("SECURITY_PASSWORD_SALT")
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    SERVER_NAME = os.environ.get("SERVER_NAME")
 
     # Email sending
     MAIL_SERVER = "smtp.gmail.com"
@@ -48,7 +46,6 @@ class TestConfig:
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///'
 
-    SECURITY_PASSWORD_SALT = Config.SECURITY_PASSWORD_SALT
     SECRET_KEY = Config.SECRET_KEY
     ENCRYPT_SALT = Config.ENCRYPT_SALT
     REDISCLOUD_URL = Config.REDISCLOUD_URL

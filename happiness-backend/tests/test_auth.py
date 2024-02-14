@@ -4,12 +4,16 @@ import string
 
 import pytest
 from flask import json
+from sqlalchemy.sql.functions import current_user
 
 from api import create_app
 from api.app import db
-from api.authentication.email_token_methods import generate_confirmation_token
+from api.dao.groups_dao import get_group_by_id
 from api.dao.users_dao import *
+from api.models.models import Happiness
 from config import TestConfig
+from tests.test_groups import auth_header, invite_in_group_json_model, group_in_user_modal, invite_in_user_modal, \
+    user_in_group_json_model
 
 
 @pytest.fixture
@@ -20,6 +24,26 @@ def client():
     with app.app_context():
         db.create_all()
         yield client
+
+
+@pytest.fixture
+def init_client():
+    app = create_app(TestConfig)
+
+    client = app.test_client()
+    with app.app_context():
+        db.create_all()
+
+        user1 = User(email='test1@example.app', username='user1', password='test')
+        user2 = User(email='test2@example.app', username='user2', password='test')
+        user3 = User(email='test3@example.app', username='user3', password='test')
+        db.session.add_all([user1, user2, user3])
+        db.session.commit()
+        token_objs, tokens = zip(*[user1.create_token(), user2.create_token(), user3.create_token()])
+        db.session.add_all(token_objs)
+        db.session.commit()
+
+        yield client, tokens
 
 
 def test_create_user(client):
@@ -113,8 +137,7 @@ def test_send_invalid_password_reset_email(client):
     r3 = client.post('/api/user/initiate_password_reset/', json={
         'email': 'test0@example.com'
     })
-    assert r2.status_code == 400
-    assert r3.status_code == 404
+    assert r2.status_code == 400 and r3.status_code == 400
 
 
 def test_send_password_reset_email(client):
@@ -122,14 +145,9 @@ def test_send_password_reset_email(client):
     Tests sending a password reset email to test@example.com
     As long as a success response was returned the email is assumed to have been sent (that's the best we can do)
     """
-    r0 = client.post('/api/user/', json={
+    client.post('/api/user/', json={
         'email': 'test@example.com',
         'username': 'test',
-        'password': 'test',
-    })
-    r1 = client.post('/api/user/', json={
-        'email': 'test2@example.com',
-        'username': 'test2',
         'password': 'test',
     })
     r2 = client.post('/api/user/initiate_password_reset/', json={
@@ -138,7 +156,7 @@ def test_send_password_reset_email(client):
     r3 = client.post('/api/user/initiate_password_reset/', json={
         'email': 'test2@example.com'
     })
-    assert r2.status_code == 204 and r3.status_code == 204
+    assert r2.status_code == 204 and r3.status_code == 400
 
 
 def test_reset_password(client):
@@ -147,13 +165,13 @@ def test_reset_password(client):
         'username': 'test',
         'password': 'test',
     })
+    user = get_user_by_id(1)
 
-    reset_token = generate_confirmation_token('test@example.com')
-
-    bad_reset = client.post('/api/user/reset_password/' + reset_token[:-1] + 'A',
+    bad_reset = client.post('/api/user/reset_password/' + 'reset_token',
                             json={'password': 'W password'})
     assert bad_reset.status_code == 400
 
+    reset_token = user.generate_password_reset_token()
     reset_password = client.post('/api/user/reset_password/' + reset_token,
                                  json={'password': 'W password'})
     assert reset_password.status_code == 204
@@ -162,6 +180,16 @@ def test_reset_password(client):
     login_response = client.post(
         '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
     assert login_response.status_code == 201
+
+    reset_token2 = user.generate_password_reset_token(0)
+    reset_password2 = client.post('/api/user/reset_password/' + reset_token2,
+                                 json={'password': 'bad password'})
+    assert reset_password2.status_code == 400
+
+    user_credentials2 = base64.b64encode("test:bad password".encode()).decode('utf-8')
+    login_response2 = client.post(
+        '/api/token/', headers={"Authorization": f"Basic {user_credentials2}"})
+    assert login_response2.status_code == 401
 
 
 def test_login_user(client):
@@ -222,11 +250,132 @@ def test_delete_user(client):
     bearer_token = json.loads(login_response.get_data()).get("session_token")
     assert bearer_token is not None
 
-    delete_res = client.delete(
-        '/api/user/', headers={"Authorization": f"Bearer {bearer_token}"})
+    delete_res = client.delete('/api/user/', json={
+            'password': 'test',
+        }, headers={"Authorization": f"Bearer {bearer_token}"})
     assert delete_res.status_code == 204
     assert (get_user_by_email("text@example.com") is None and get_user_by_username("test") is None
             and get_user_by_id(1) is None)
+
+
+def test_delete_user_2(init_client):
+    client, tokens = init_client
+    init_test_data(client, tokens)
+    assert (get_user_by_email("test1@example.app") is not None and get_user_by_username("user1") is not None and
+            get_user_by_id(1) is not None)
+
+    # having user make happiness entry
+
+    happiness_create_response0 = client.post('/api/happiness/', json={
+        'value': 2,
+        'comment': 'not great day',
+        'timestamp': '2024-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_create_response0.status_code == 201
+
+    # creating a big group
+
+    client.post('/api/group/', json={'name': 'test'}, headers=auth_header(tokens[0]))
+
+    invite_users = client.put('/api/group/1', json={
+        'invite_users': ['user2', 'user3']
+    }, headers=auth_header(tokens[0]))
+    assert invite_users.status_code == 200
+    assert len(invite_users.json['invited_users']) == len(get_group_by_id(1).invited_users) == 2
+    assert invite_in_group_json_model('user2', invite_users.json, get_group_by_id(1))
+    assert invite_in_group_json_model('user3', invite_users.json, get_group_by_id(1))
+    assert not group_in_user_modal(1, get_user_by_id(2))
+    assert invite_in_user_modal(1, get_user_by_id(2))
+
+    unauthorized_edit = client.put('/api/group/1', json={'name': 'sus'},
+                                   headers=auth_header(tokens[1]))
+    assert unauthorized_edit.status_code == 403
+
+    bad_accept_invite = client.post('/api/group/accept_invite/5', headers=auth_header(tokens[1]))
+    assert bad_accept_invite.status_code == 404
+
+    accept_invite = client.post('/api/group/accept_invite/1', headers=auth_header(tokens[1]))
+    assert accept_invite.status_code == 204
+    get_group = client.get('/api/group/1', headers=auth_header(tokens[1]))
+    assert user_in_group_json_model('user2', get_group.json, get_group_by_id(1))
+    assert group_in_user_modal(1, get_user_by_id(2))
+
+    # deleting random member of group
+
+    assert (get_user_by_email("test3@example.app") is not None and get_user_by_username("user3") is not None
+            and get_user_by_id(3) is not None)
+
+    delete_res = client.delete(
+        '/api/user/', json={
+            'password': 'test',
+        }, headers={"Authorization": f"Bearer {tokens[2]}"})
+    assert delete_res.status_code == 204
+    assert (get_user_by_email("test3@example.app") is None and get_user_by_username("user3") is None
+            and get_user_by_id(3) is None)
+
+    # deleting creator of group
+
+    delete_res = client.delete(
+        '/api/user/', json={
+            'password': 'test',
+        }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert delete_res.status_code == 204
+    assert (get_user_by_email("test1@example.app") is None and get_user_by_username("user1") is None
+                and get_user_by_id(1) is None)
+
+    # dealing with a different user, who makes entries and has their own group
+
+    assert (get_user_by_email("test2@example.app") is not None and get_user_by_username("user2") is not None and
+            get_user_by_id(2) is not None)
+
+    count_group11 = client.get('/api/user/count/', query_string={
+    }, headers=auth_header(tokens[1]))
+    assert count_group11.status_code == 200
+    assert count_group11.json.get("groups") == 1
+
+    group_create = client.post('/api/group/', json={'name': 'test2'}, headers=auth_header(tokens[1]))
+    assert group_create.status_code == 201
+
+    count_group11 = client.get('/api/user/count/', query_string={
+    }, headers=auth_header(tokens[1]))
+    assert count_group11.status_code == 200
+    assert count_group11.json.get("groups") == 2
+    assert count_group11.json.get("entries") == 0
+
+    #count numb of happiness entries of user 2 in the database (before making happiness entry)
+
+    happiness_records = db.session.query(Happiness).filter_by(user_id=2).all()
+    assert len(happiness_records) == 0
+
+    happiness_create_response0 = client.post('/api/happiness/', json={
+        'value': 3,
+        'comment': 'not great day',
+        'timestamp': '2024-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[1]}"})
+    assert happiness_create_response0.status_code == 201
+
+    count_group12 = client.get('/api/user/count/', query_string={
+    }, headers=auth_header(tokens[1]))
+    assert count_group12.status_code == 200
+    assert count_group12.json.get("entries") == 1
+
+    # count numb of happiness entries of user 2 in the database (after making happiness entry)
+
+    happiness_records2 = db.session.query(Happiness).filter_by(user_id=2).all()
+    assert len(happiness_records2) == 1
+
+    delete_res = client.delete(
+        '/api/user/', json={
+            'password': 'test',
+        }, headers={"Authorization": f"Bearer {tokens[1]}"})
+    assert delete_res.status_code == 204
+    assert (get_user_by_email("test2@example.app") is None and get_user_by_username("user2") is None
+            and get_user_by_id(2) is None)
+
+    # count numb of happiness entries of user 2 in the database (after deleting account)
+
+    happiness_records3 = db.session.query(Happiness).filter_by(user_id=2).all()
+    assert len(happiness_records3) == 0
 
 
 def test_add_user_setting(client):
@@ -394,47 +543,37 @@ def test_change_email(client):
 
 def test_change_password(client):
     username = "Hello"
-    client, bearer_token = register_and_login_demo_user(
-        client, uname_and_password=username)
+    client, bearer_token = register_and_login_demo_user(client, uname_and_password=username)
     new_password = "Password"
     password_change_res1 = client.put('/api/user/info/',
-                                      headers={
-                                          "Authorization": f"Bearer {bearer_token}",
-                                          "Password-Key": get_user_by_username(username).derive_pwd_key("Hello")
-                                      }, json={
-            "data_type": "password",
-            "data": new_password
-        })
+                                      headers={"Authorization": f"Bearer {bearer_token}"},
+                                      json={
+                                          "data_type": "password",
+                                          "data": username,
+                                          "data2": new_password
+                                      })
     assert password_change_res1.status_code == 200
-    user_credentials = base64.b64encode(
-        (f"{username}:{new_password}".encode())).decode('utf-8')
-    login_res = client.post(
-        '/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
+
+    user_credentials = base64.b64encode((f"{username}:{new_password}".encode())).decode('utf-8')
+    login_res = client.post('/api/token/', headers={"Authorization": f"Basic {user_credentials}"})
     assert login_res.status_code == 201
 
-
-@pytest.mark.skip(reason="group invites have not been merged")
+    
 def test_get_user_by_id(client):
-    create_user_res = client.post('/api/user/', json={
-        'email': 'test@example.com',
-        'username': 'test',
-        'password': 'test',
-    })
-    assert create_user_res.status_code == 201
-    client, bearer_token = register_and_login_demo_user(
-        client, uname_and_password="user2")
+    client, bearer_token = register_and_login_demo_user(client, uname_and_password="test")
+    client, bearer_token2 = register_and_login_demo_user(client, uname_and_password="user2")
 
     make_group_res = client.post('/api/group/',
                                  json={"name": "Epic group of awesome happiness"},
                                  headers={
-                                     "Authorization": f"Bearer {bearer_token}"},
+                                     "Authorization": f"Bearer {bearer_token2}"},
                                  )
     add_member_res = client.put('/api/group/1',
                                 json={"invite_users": ["test"]},
                                 headers={
-                                    "Authorization": f"Bearer {bearer_token}"},
+                                    "Authorization": f"Bearer {bearer_token2}"},
                                 )
-    user1_accept_res = client.post('/api/user/accept_invite/1', headers={
+    user1_accept_res = client.post('/api/group/accept_invite/1', headers={
         "Authorization": f"Bearer {bearer_token}"})
     assert make_group_res.status_code == 201
     assert add_member_res.status_code == 200
@@ -442,7 +581,7 @@ def test_get_user_by_id(client):
 
     # Try to get user1's information
     get_user_by_id_res = client.get(
-        "/api/user/1", headers={"Authorization": f"Bearer {bearer_token}"})
+        "/api/user/1", headers={"Authorization": f"Bearer {bearer_token2}"})
     # Check that the request went through
     assert get_user_by_id_res.status_code == 200
 
@@ -450,7 +589,6 @@ def test_get_user_by_id(client):
     body_res = json.loads(get_user_by_id_res.get_data())
     assert body_res.get("id") == 1
     assert body_res.get("username") == "test"
-    # assert body_res.get("profile_picture") == "default"
 
 
 def test_invalid_get_user_by_id(client):
@@ -512,3 +650,106 @@ def register_and_login_demo_user(client, email=None, uname_and_password=None):
     bearer_token = json.loads(login_response.get_data()).get("session_token")
     assert bearer_token is not None
     return client, bearer_token
+
+def init_test_data(client, tokens):
+    client.post('/api/happiness/', json={
+        'value': 4,
+        'comment': 'great day',
+        'timestamp': '2023-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 9,
+        'comment': 'bad day',
+        'timestamp': '2023-01-12'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 3,
+        'comment': 'very happy',
+        'timestamp': '2023-01-13'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 6.5,
+        'comment': 'hmmm',
+        'timestamp': '2023-01-14'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 7.5,
+        'comment': 'oopsies',
+        'timestamp': '2023-01-16'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 9.5,
+        'comment': 'happiest',
+        'timestamp': '2023-01-29'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+    client.post('/api/happiness/', json={
+        'value': 3,
+        'comment': 'no',
+        'timestamp': '2023-01-15'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+
+
+def test_user_count(init_client):
+    client, tokens = init_client
+    init_test_data(client, tokens)
+
+    count_group1 = client.get('/api/user/count/', query_string={
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert count_group1.status_code == 200
+    assert count_group1.json.get("groups") == 0
+
+    group_create = client.post('/api/group/', json={'name': 'test'}, headers=auth_header(tokens[0]))
+    assert group_create.status_code == 201
+
+    count_group11 = client.get('/api/user/count/', query_string={
+    }, headers=auth_header(tokens[0]))
+    assert count_group11.status_code == 200
+    assert count_group11.json.get("groups") == 1
+
+    count_group2 = client.get('/api/user/count/', query_string={
+    }, headers=auth_header(tokens[1]))
+    assert count_group2.status_code == 200
+    assert count_group2.json.get("groups") == 0
+
+    happiness_token_0 = client.get('api/user/count/', query_string={
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_token_0.status_code == 200
+    assert happiness_token_0.json.get("entries") == 7
+
+    happiness_create_response0 = client.post('/api/happiness/', json={
+        'value': 2,
+        'comment': 'not great day',
+        'timestamp': '2024-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_create_response0.status_code == 201
+
+    happiness_token_01 = client.get('api/user/count/', query_string={
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_token_01.status_code == 200
+    assert happiness_token_01.json.get("entries") == 8
+
+    happiness_token_1 = client.get('api/user/count/', query_string={
+    }, headers={"Authorization": f"Bearer {tokens[1]}"})
+    assert happiness_token_1.status_code == 200
+    assert happiness_token_1.json.get("entries") == 0
+
+    happiness_create_response1 = client.post('/api/happiness/', json={
+        'value': 2.5,
+        'comment': 'not great day',
+        'timestamp': '2024-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[1]}"})
+    assert happiness_create_response1.status_code == 201
+
+    happiness_token_11 = client.get('api/user/count/', query_string={
+    }, headers={"Authorization": f"Bearer {tokens[1]}"})
+    assert happiness_token_11.status_code == 200
+    assert happiness_token_11.json.get("entries") == 1
+
+
+

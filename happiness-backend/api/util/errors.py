@@ -4,7 +4,7 @@ from werkzeug.http import HTTP_STATUS_CODES
 errors = Blueprint('errors', __name__)
 
 
-def failure_response(message, code):
+def failure_response(message: str, code: int):
     return abort(code, message)
 
 

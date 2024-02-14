@@ -1,15 +1,16 @@
 from datetime import datetime
 
 from apifairy import authenticate, body, arguments, response, other_responses
-from flask import Blueprint, request, current_app
+from flask import Blueprint, current_app
 
 from api.app import db
+from api.authentication.auth import token_current_user
 from api.dao import happiness_dao, users_dao
+from api.dao.happiness_dao import get_happiness_by_id_or_date
 from api.dao.users_dao import get_user_by_id
 from api.models.models import Happiness, Comment
 from api.models.schema import HappinessSchema, HappinessEditSchema, HappinessGetTimeSchema, \
-    HappinessGetCountSchema, \
-    HappinessGetQuery, CommentSchema, HappinessGetBySchema
+    HappinessGetCountSchema, CommentSchema, DateIdGetSchema, HappinessMultiFilterSchema, CommentEditSchema, NumberSchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
 
@@ -20,7 +21,7 @@ happiness = Blueprint('happiness', __name__)
 @authenticate(token_auth)
 @body(HappinessSchema)
 @response(HappinessSchema, 201)
-@other_responses({400: "Date already exists or malformed input."})
+@other_responses({400: "Malformed input."})
 def create_happiness(req):
     """
     Create Happiness Entry
@@ -31,28 +32,23 @@ def create_happiness(req):
     If the user has already submitted a happiness entry for the specified day, the entry will be overwritten. \n
     Returns: Happiness entry with the given information.
     """
-    current_user = token_auth.current_user()
-    today = datetime.strftime(datetime.today(), "%Y-%m-%d")
+    current_user = token_current_user()
+    today = datetime.today().date()
     value, comment, timestamp = req.get("value"), req.get("comment"), req.get("timestamp", today)
 
-    # validate timestamp format
-    try:
-        timestamp = datetime.strptime(timestamp, "%Y-%m-%d")
-    except ValueError:
-        return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)
-
-    # check if date already exists
-    potential_happiness = happiness_dao.get_happiness_by_date(current_user.id, timestamp)
-    if potential_happiness:
-        potential_happiness.comment = comment
-        potential_happiness.value = value
+    # overwrite entry if date already exists
+    happiness_obj = happiness_dao.get_happiness_by_date(current_user.id, timestamp)
+    if happiness_obj:
+        happiness_obj.comment = comment
+        happiness_obj.value = value
         db.session.commit()
-        return potential_happiness
+        return happiness_obj
 
     # validate happiness value
     if not (value * 2).is_integer() or value < 0 or value > 10:
         return failure_response("Invalid happiness value.", 400)
 
+    # create new entry
     happiness = Happiness(user_id=current_user.id, value=value, comment=comment, timestamp=timestamp)
     db.session.add(happiness)
     db.session.commit()
@@ -61,7 +57,7 @@ def create_happiness(req):
 
 @happiness.put('/')
 @authenticate(token_auth)
-@arguments(HappinessGetBySchema)
+@arguments(DateIdGetSchema)
 @body(HappinessEditSchema)
 @response(HappinessSchema)
 @other_responses({403: "Not Allowed.", 404: "Happiness Not Found.", 400: "Insufficient Info."})
@@ -74,24 +70,16 @@ def edit_happiness(args, req):
     Requires: ID must be valid, either value or comment sent. Date in YYYY-MM-DD format. \n
     Returns: Happiness entry with updated information.
     """
-    id, date = args.get("id"), args.get("date")
-    user_id = token_auth.current_user().id
-    if id is not None:
-        query_data = happiness_dao.get_happiness_by_id(id)
-    elif date is not None:
-        try:  # validate timestamp format
-            date = datetime.strptime(date, "%Y-%m-%d")
-        except ValueError:
-            return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)
-        query_data = happiness_dao.get_happiness_by_date(user_id, date)
-    else:
-        return failure_response('Insufficient Information', 400)
-
+    query_data = get_happiness_by_id_or_date(args)
     if query_data:
-        if query_data.user_id != user_id:
+        if query_data.user_id != token_current_user().id:
             return failure_response("Not Allowed.", 403)
+
         value, comment = req.get("value"), req.get("comment")
         if value != query_data.value and value is not None:
+            # validate happiness value
+            if not (value * 2).is_integer() or value < 0 or value > 10:
+                return failure_response("Invalid happiness value.", 400)
             query_data.value = value
         if comment:
             query_data.comment = comment
@@ -101,7 +89,7 @@ def edit_happiness(args, req):
 
 
 @happiness.delete('/')
-@arguments(HappinessGetBySchema)
+@arguments(DateIdGetSchema)
 @authenticate(token_auth)
 @other_responses({403: "Not Allowed.", 404: "Happiness Not Found.", 400: "Insufficient Info."})
 def delete_happiness(args):
@@ -110,21 +98,9 @@ def delete_happiness(args):
     Deletes the happiness entry corresponding to a specific ID or date (in YYYY-MM-DD format). \n
     Requires: Happiness entry must have been created by the current user.
     """
-    id, date = args.get("id"), args.get("date")
-    user_id = token_auth.current_user().id
-    if id is not None:
-        query_data = happiness_dao.get_happiness_by_id(id)
-    elif date is not None:
-        try:  # validate timestamp format
-            date = datetime.strptime(date, "%Y-%m-%d")
-        except ValueError:
-            return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)
-        query_data = happiness_dao.get_happiness_by_date(user_id, date)
-    else:
-        return failure_response('Insufficient Information', 400)
-
+    query_data = get_happiness_by_id_or_date(args)
     if query_data:
-        if query_data.user_id != user_id:
+        if query_data.user_id != token_current_user().id:
             return failure_response("Not Allowed.", 403)
         db.session.delete(query_data)
         db.session.commit()
@@ -136,29 +112,22 @@ def delete_happiness(args):
 @authenticate(token_auth)
 @arguments(HappinessGetTimeSchema)
 @response(HappinessSchema(many=True))
-@other_responses({403: "Not Allowed.", 400: "Malformed Date."})
-def get_happiness_time(req):
+@other_responses({403: "Not Allowed."})
+def get_happiness_date_range(req):
     """
-    Get Happiness by Time Range
+    Get Happiness by Date Range
     Gets the happiness of values of a given user between a specified start and end date (inclusive).
-    User must share a group with the user they are viewing. \n
+    End date defaults to today. User must share a group with the user they are viewing. \n
     Requires: Start date is provided and comes before the end date.
-    Dates must be given in the YYY-MM-DD format. \n
+    Dates must be given in the YYYY-MM-DD format. \n
     Returns: List of all happiness entries between start and end date in sequential order
     """
-    user_id = token_auth.current_user().id
-    today = datetime.strftime(datetime.today(), "%Y-%m-%d")
+    user_id = token_current_user().id
+    today = datetime.today().date()
     start, end, id = req.get("start"), req.get("end", today), req.get("id", user_id)
 
-    # validate timestamp format
-    try:
-        stfor = datetime.strptime(start, "%Y-%m-%d")
-        enfor = datetime.strptime(end, "%Y-%m-%d")
-    except ValueError:
-        return failure_response("Timestamp must be given in the YYYY-MM-DD format.", 400)
-
-    if user_id == id or token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(id)):
-        return happiness_dao.get_happiness_by_timestamp(id, stfor, enfor)
+    if user_id == id or token_current_user().has_mutual_group(users_dao.get_user_by_id(id)):
+        return happiness_dao.get_happiness_by_date_range([id], start, end)
     return failure_response("Not Allowed.", 403)
 
 
@@ -170,15 +139,15 @@ def get_happiness_time(req):
 def get_paginated_happiness(req):
     """
     Get Happiness by Count
-    Gets a specified number of happiness values in reverse order.
-    User must share a group with the user they are viewing. \n
+    Gets the specified number of happiness values in reverse chronological order.
+    Requires: User must share a group with the user they are viewing. \n
     Paginated based on page number and happiness entries per page. Defaults to page=1 and count=10. \n
-    Returns: Specified number of happiness entries in reverse order.
+    Returns: Specified happiness entries in reverse order.
     """
-    user_id = token_auth.current_user().id
+    user_id = token_current_user().id
     page, count, id = req.get("page", 1), req.get("count", 10), req.get("id", user_id)
-    if user_id == id or token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(id)):
-        return happiness_dao.get_happiness_by_count(id, page, count)
+    if user_id == id or token_current_user().has_mutual_group(users_dao.get_user_by_id(id)):
+        return happiness_dao.get_happiness_by_count([id], page, count)
     return failure_response("Not Allowed.", 403)
 
 
@@ -195,10 +164,10 @@ def create_comment(req, id):
     Requires: ID must be valid, comment text must be non-empty \n
     Returns: Comment created with the given information.
     """
-    user_id = token_auth.current_user().id
+    user_id = token_current_user().id
     happiness_obj = happiness_dao.get_happiness_by_id(id)
     if happiness_obj:
-        if token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(happiness_obj.user_id)):
+        if token_current_user().has_mutual_group(users_dao.get_user_by_id(happiness_obj.user_id)):
             comment = Comment(happiness_id=id, user_id=user_id, text=req.get("text"))
             db.session.add(comment)
             db.session.commit()
@@ -215,44 +184,65 @@ def get_comments(id):
     """
     Get Discussion Comments
     Gets all the discussion comments for a happiness entry. \n
-    User must share a group with the user who created the happiness entry. \n
-    Returns: List of discussion comments, only including the comments where
-    the commenter shares a group with the current user
+    Requires: User must share a group with the user who created the happiness entry. \n
+    Returns: List of discussion comments in ascending timestamp order, only including the
+    comments where the commenter shares a group with the current user
     """
     happiness_obj = happiness_dao.get_happiness_by_id(id)
     if happiness_obj:
-        if token_auth.current_user().has_mutual_group(get_user_by_id(happiness_obj.user_id)):
+        if token_current_user().has_mutual_group(get_user_by_id(happiness_obj.user_id)):
             # only show comments if the commenter shares a group with the current user
             filtered = []
             for comment in happiness_obj.discussion_comments:
-                if token_auth.current_user().has_mutual_group(get_user_by_id(comment.user_id)):
+                if token_current_user().has_mutual_group(get_user_by_id(comment.user_id)):
                     filtered.append(comment)
             return filtered
         return failure_response("Not Allowed.", 403)
     return failure_response("Happiness Not Found.", 404)
 
 
-@happiness.get('/search')
+@happiness.put('/comments/<int:id>')
 @authenticate(token_auth)
-@body(HappinessGetQuery)
-@response(HappinessSchema(many=True))
-@other_responses({403: "Not Allowed."})
-def search_happiness(req):
+@body(CommentEditSchema)
+@response(CommentSchema)
+@other_responses({404: 'Invalid Comment', 403: 'Not Allowed'})
+def edit_comment(req, id):
     """
-    Search Happiness
-    Gets paginated data for happiness entries related by their journal entries to a specific query.
-    Count, id, and page are optional, and will default to 10, current logged-in user's id, and 1 respectively.
+    Edit Discussion Comment
+    Updates the text of a happiness discussion comment. \n
+    Requires: User must be the author of the post they are editing.
+    """
+    comment_obj = happiness_dao.get_comment_by_id(id)
+    if not comment_obj:
+        return failure_response('Comment Not Found', 404)
+    if comment_obj.user_id != token_current_user().id:
+        return failure_response('Not Allowed', 403)
 
-    Returns: Happiness entries related to the user's query
+    comment_obj.text = req.get("data")
+    db.session.commit()
+
+    return comment_obj
+
+
+@happiness.delete('/comments/<int:id>')
+@authenticate(token_auth)
+@other_responses({404: 'Invalid Comment', 403: 'Not Allowed'})
+def delete_comment(id):
     """
-    user_id = token_auth.current_user().id
-    my_user_obj = users_dao.get_user_by_id(user_id)
-    page, count, target_user_id, query = req.get("page", 1), req.get("count", 10), \
-        req.get("id", user_id), req.get("query")
-    if user_id == target_user_id or my_user_obj.has_mutual_group(users_dao.get_user_by_id(target_user_id)):
-        query_data = happiness_dao.get_paginated_happiness_by_query(target_user_id, query, page, count)
-        return query_data
-    return failure_response("Not Allowed.", 403)
+    Delete Discussion Comment
+    Deletes a happiness discussion comment. \n
+    Requires: User must be the author of the post they are deleting.
+    """
+    comment_obj = happiness_dao.get_comment_by_id(id)
+    if not comment_obj:
+        return failure_response('Comment Not Found', 404)
+    if comment_obj.user_id != token_auth.current_user().id:
+        return failure_response('Not Allowed', 403)
+
+    db.session.delete(comment_obj)
+    db.session.commit()
+
+    return '', 204
 
 
 @happiness.get('/export')
@@ -262,19 +252,54 @@ def export_happiness():
     Export Happiness
     Exports a user's happiness, emailing the user with a CSV file attached, containing their comment, value, and timestamp.
     """
-    current_user = token_auth.current_user()
+    current_user = token_current_user()
     current_app.job_queue.enqueue("jobs.jobs.export_happiness", current_user.id)
     return "Happiness entries exported"
 
 
-@happiness.post('/import')
-def import_happiness():
-    happiness_objs = []
-    for entry in request.json:
-        happiness_objs.append(
-            Happiness(user_id=entry['user_id'], value=entry['value'], comment=entry.get('comment'),
-                      timestamp=datetime.strptime(entry['timestamp'], "%Y-%m-%d")))
-    db.session.add_all(happiness_objs)
-    db.session.commit()
+@happiness.get('/search')
+@authenticate(token_auth)
+@arguments(HappinessMultiFilterSchema)
+@response(HappinessSchema(many=True))
+def multi_filter_search_happiness(req):
+    """
+    Search Happiness
+    Gets all happiness objects for a user that match the given constraints in the arguments including
+    Date filter: entries are between [start] and [end] dates (inclusive)
+    Value filter: entries are between [low] value and [high] value (inclusive)
+    Text filter: entries contain [text]
+    Each of these filters are optional to apply, but if no filters are applied, then the empty list is returned.
+    Is paginated
+    """
+    user_id = req.get("user_id", token_auth.current_user().id)
+    start, end = req.get("start"), req.get("end")
+    low, high = req.get("low"), req.get("high")
+    text = req.get("text")
+    page, count = req.get("page", 1), req.get("count", 10)
+    if not (user_id == token_auth.current_user().id or
+            token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
+        return failure_response("Not Allowed.", 403)
+    return happiness_dao.get_happiness_by_filter(user_id, page, count, start, end, low, high, text)
 
-    return str(len(happiness_objs)) + ' happiness entries imported'
+
+@happiness.get('/search/count')
+@authenticate(token_auth)
+@arguments(HappinessMultiFilterSchema)
+@response(NumberSchema)
+def count_multi_filter_search_happiness(req):
+    """
+    Count Searched Happiness
+    Returns the number of happiness objects that match the filter of a given search request
+    Date filter: entries are between [start] and [end] dates (inclusive)
+    Value filter: entries are between [low] value and [high] value (inclusive)
+    Text filter: entries contain [text]
+    Each of these filters are optional to apply, but if no filters are applied, then 0 is returned 
+    """
+    user_id = req.get("user_id", token_auth.current_user().id)
+    start, end = req.get("start"), req.get("end")
+    low, high = req.get("low"), req.get("high")
+    text = req.get("text")
+    if not (user_id == token_auth.current_user().id or
+            token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
+        return failure_response("Not Allowed.", 403)
+    return {"number": happiness_dao.get_num_happiness_by_filter(user_id, start, end, low, high, text)}
