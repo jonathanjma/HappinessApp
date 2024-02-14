@@ -220,6 +220,7 @@ def accept_group_invite(group_id):
     group = get_group_by_id(group_id)
     if group is not None and group in token_current_user().invites:
         group.add_users([token_current_user()])
+        db.session.commit()
         return '', 204
     return failure_response('Group Invite Not Found', 404)
 
@@ -237,5 +238,6 @@ def reject_group_invite(group_id):
     group = get_group_by_id(group_id)
     if group is not None and group in token_current_user().invites:
         group.remove_users([token_current_user().username])
+        db.session.commit()
         return '', 204
     return failure_response('Group Invite Not Found', 404)
