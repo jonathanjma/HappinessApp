@@ -113,11 +113,7 @@ def edit_group(req, group_id):
     if new_name is not None and new_name != cur_group.name:
         cur_group.name = new_name
     if add_users is not None:
-        cur_group.invite_users(add_users)
-        for username in add_users:
-            user = users_dao.get_user_by_username(username)
-            threading.Thread(target=email_methods.send_group_invite_email,
-                             args=(user,)).start()
+        cur_group.invite_users(add_users, send_emails=True, group=cur_group)
     if remove_users is not None:
         cur_group.remove_users(remove_users)
 
