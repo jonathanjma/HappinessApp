@@ -246,3 +246,7 @@ class CountSchema(ma.Schema):
 
 class AmountSchema(ma.Schema):
     user_id = ma.Int()
+
+
+class UserDeleteSchema(ma.Schema):
+    password = ma.Str(required=True)

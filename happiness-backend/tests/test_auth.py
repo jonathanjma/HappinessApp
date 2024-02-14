@@ -4,12 +4,16 @@ import string
 
 import pytest
 from flask import json
+from sqlalchemy.sql.functions import current_user
 
 from api import create_app
 from api.app import db
+from api.dao.groups_dao import get_group_by_id
 from api.dao.users_dao import *
+from api.models.models import Happiness
 from config import TestConfig
-from tests.test_groups import auth_header
+from tests.test_groups import auth_header, invite_in_group_json_model, group_in_user_modal, invite_in_user_modal, \
+    user_in_group_json_model
 
 
 @pytest.fixture
@@ -246,11 +250,132 @@ def test_delete_user(client):
     bearer_token = json.loads(login_response.get_data()).get("session_token")
     assert bearer_token is not None
 
-    delete_res = client.delete(
-        '/api/user/', headers={"Authorization": f"Bearer {bearer_token}"})
+    delete_res = client.delete('/api/user/', json={
+            'password': 'test',
+        }, headers={"Authorization": f"Bearer {bearer_token}"})
     assert delete_res.status_code == 204
     assert (get_user_by_email("text@example.com") is None and get_user_by_username("test") is None
             and get_user_by_id(1) is None)
+
+
+def test_delete_user_2(init_client):
+    client, tokens = init_client
+    init_test_data(client, tokens)
+    assert (get_user_by_email("test1@example.app") is not None and get_user_by_username("user1") is not None and
+            get_user_by_id(1) is not None)
+
+    # having user make happiness entry
+
+    happiness_create_response0 = client.post('/api/happiness/', json={
+        'value': 2,
+        'comment': 'not great day',
+        'timestamp': '2024-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert happiness_create_response0.status_code == 201
+
+    # creating a big group
+
+    client.post('/api/group/', json={'name': 'test'}, headers=auth_header(tokens[0]))
+
+    invite_users = client.put('/api/group/1', json={
+        'invite_users': ['user2', 'user3']
+    }, headers=auth_header(tokens[0]))
+    assert invite_users.status_code == 200
+    assert len(invite_users.json['invited_users']) == len(get_group_by_id(1).invited_users) == 2
+    assert invite_in_group_json_model('user2', invite_users.json, get_group_by_id(1))
+    assert invite_in_group_json_model('user3', invite_users.json, get_group_by_id(1))
+    assert not group_in_user_modal(1, get_user_by_id(2))
+    assert invite_in_user_modal(1, get_user_by_id(2))
+
+    unauthorized_edit = client.put('/api/group/1', json={'name': 'sus'},
+                                   headers=auth_header(tokens[1]))
+    assert unauthorized_edit.status_code == 403
+
+    bad_accept_invite = client.post('/api/group/accept_invite/5', headers=auth_header(tokens[1]))
+    assert bad_accept_invite.status_code == 404
+
+    accept_invite = client.post('/api/group/accept_invite/1', headers=auth_header(tokens[1]))
+    assert accept_invite.status_code == 204
+    get_group = client.get('/api/group/1', headers=auth_header(tokens[1]))
+    assert user_in_group_json_model('user2', get_group.json, get_group_by_id(1))
+    assert group_in_user_modal(1, get_user_by_id(2))
+
+    # deleting random member of group
+
+    assert (get_user_by_email("test3@example.app") is not None and get_user_by_username("user3") is not None
+            and get_user_by_id(3) is not None)
+
+    delete_res = client.delete(
+        '/api/user/', json={
+            'password': 'test',
+        }, headers={"Authorization": f"Bearer {tokens[2]}"})
+    assert delete_res.status_code == 204
+    assert (get_user_by_email("test3@example.app") is None and get_user_by_username("user3") is None
+            and get_user_by_id(3) is None)
+
+    # deleting creator of group
+
+    delete_res = client.delete(
+        '/api/user/', json={
+            'password': 'test',
+        }, headers={"Authorization": f"Bearer {tokens[0]}"})
+    assert delete_res.status_code == 204
+    assert (get_user_by_email("test1@example.app") is None and get_user_by_username("user1") is None
+                and get_user_by_id(1) is None)
+
+    # dealing with a different user, who makes entries and has their own group
+
+    assert (get_user_by_email("test2@example.app") is not None and get_user_by_username("user2") is not None and
+            get_user_by_id(2) is not None)
+
+    count_group11 = client.get('/api/user/count/', query_string={
+    }, headers=auth_header(tokens[1]))
+    assert count_group11.status_code == 200
+    assert count_group11.json.get("groups") == 1
+
+    group_create = client.post('/api/group/', json={'name': 'test2'}, headers=auth_header(tokens[1]))
+    assert group_create.status_code == 201
+
+    count_group11 = client.get('/api/user/count/', query_string={
+    }, headers=auth_header(tokens[1]))
+    assert count_group11.status_code == 200
+    assert count_group11.json.get("groups") == 2
+    assert count_group11.json.get("entries") == 0
+
+    #count numb of happiness entries of user 2 in the database (before making happiness entry)
+
+    happiness_records = db.session.query(Happiness).filter_by(user_id=2).all()
+    assert len(happiness_records) == 0
+
+    happiness_create_response0 = client.post('/api/happiness/', json={
+        'value': 3,
+        'comment': 'not great day',
+        'timestamp': '2024-01-11'
+    }, headers={"Authorization": f"Bearer {tokens[1]}"})
+    assert happiness_create_response0.status_code == 201
+
+    count_group12 = client.get('/api/user/count/', query_string={
+    }, headers=auth_header(tokens[1]))
+    assert count_group12.status_code == 200
+    assert count_group12.json.get("entries") == 1
+
+    # count numb of happiness entries of user 2 in the database (after making happiness entry)
+
+    happiness_records2 = db.session.query(Happiness).filter_by(user_id=2).all()
+    assert len(happiness_records2) == 1
+
+    delete_res = client.delete(
+        '/api/user/', json={
+            'password': 'test',
+        }, headers={"Authorization": f"Bearer {tokens[1]}"})
+    assert delete_res.status_code == 204
+    assert (get_user_by_email("test2@example.app") is None and get_user_by_username("user2") is None
+            and get_user_by_id(2) is None)
+
+    # count numb of happiness entries of user 2 in the database (after deleting account)
+
+    happiness_records3 = db.session.query(Happiness).filter_by(user_id=2).all()
+    assert len(happiness_records3) == 0
 
 
 def test_add_user_setting(client):
