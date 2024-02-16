@@ -351,7 +351,7 @@ def profile_stats(req):
     if not (user_id == token_current_user().id or
             token_current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
         return failure_response("Not Allowed.", 403)
-    num_groups = token_current_user().groups.count()
+    num_groups = users_dao.get_user_by_id(user_id).groups.count()
     return {"entries": happiness_dao.get_num_of_entries(user_id, low=0, high=10), "groups": num_groups}
 
 
