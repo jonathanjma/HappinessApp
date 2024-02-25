@@ -4,8 +4,9 @@ Looks like you forgot to submit your happiness for the following date(s):
 
 {{dates}}
 
-Try to submit your happiness when you can.
-If you're having trouble remembering, try to work it into your daily routine.
+Try to submit your happiness when you can. If you're having trouble remembering, try to work it into your daily routine.
+To submit your happiness, navigate to the following link:
+https://www.happinessapp.me/
 
 Hope you're doing ok,
 
