@@ -1,6 +1,6 @@
 Dear {{user.username}},
 
-Looks like you forgot to submit your happiness for the following date(s):
+Looks like you forgot to submit your happiness for the following date(s): {{dates}}
 
 {{dates}}
 
