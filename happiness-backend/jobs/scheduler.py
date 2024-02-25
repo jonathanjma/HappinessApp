@@ -15,7 +15,7 @@ https://apscheduler.readthedocs.io/en/3.x/modules/triggers/interval.html
 """
 
 scheduler_color = Fore.CYAN
-RUN_SCHEDULER = False  # TODO change to true, for testing only!!!
+RUN_SCHEDULER = True
 
 
 # Run scheduler on separate thread in main server to avoid Heroku fees
