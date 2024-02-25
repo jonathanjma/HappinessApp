@@ -15,7 +15,7 @@ https://apscheduler.readthedocs.io/en/3.x/modules/triggers/interval.html
 """
 
 scheduler_color = Fore.CYAN
-RUN_SCHEDULER = True
+RUN_SCHEDULER = False  # Dev server should not have a schedule as to not queue additional jobs
 
 
 # Run scheduler on separate thread in main server to avoid Heroku fees
