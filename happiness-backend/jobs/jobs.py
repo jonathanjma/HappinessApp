@@ -133,13 +133,16 @@ def queue_send_notification_emails():
     Adds all notification email requests to the redis queue
     A user will be a part of a notification email request if they satisfy the following conditions:
     Has a setting with the key "notify"
-    The value of the setting is a 24-hour time with hours and minutes in UTC.
+    The value of the setting is a 24-hour time with hours and minutes, MUST BE IN UTC
     It includes the user's timezone with a space after
-    See https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568
+    This timezone is used to make sure that they are notified based on if they are missing entries in their timezone
+    For list of valid timezones see https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568
+
+    The UTC time they provided is used for the actual notification time
 
     They have less than 6 Happiness entries from yesterday to 1 week before today
     """
-    current_time = str(datetime.now().time().strftime("%H:%M"))
+    current_time = str(datetime.utcnow().time().strftime("%H:%M"))
 
     to_notify = Setting.query.filter(Setting.value.startswith(str(current_time)), Setting.key == "notify",
                                      Setting.enabled.is_(True)).all()
