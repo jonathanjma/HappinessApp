@@ -9,30 +9,53 @@ Happiness App is being developed using React for the frontend and Flask + SQLAlc
 
 ## Status
 
-Happiness App is currently under development. We have released a minimum viable product for closed beta testing. 
-Right now we are working on the full product. 
+Happiness App 2.0 has been released (see screenshots below)! New features include:
+- Completely redesigned user interface with new sidebar that enables quick happiness entries
+- Scrollable calendar and search bar to make it easy to access old entries
+- Ability to create and edit entries from any date
+- Ability to comment on other people's entries
+- Reads system to see new entries that were created since you last used the app
+- Private (end-to-end encrypted) entries for entering information that you want to keep private
+- Group invite system
+- Reminder emails
+(and many more!)
 
-We have onboarded designers [Liam Du](https://www.linkedin.com/in/liam-du/) and [Dennis Quizhpi](https://www.linkedin.com/in/dennis-quizhpi/) and they are working on creating the designs for the Happiness App 2.0 update.
-This will include a complete redesign of the app, and new features such as commenting on happiness entries, profile picture support, searching and filtering for happiness entries, and completely private journaling using open source end-to-end encryption. 
+Thank you to our designers [Dennis Quizhpi](https://www.linkedin.com/in/dennis-quizhpi/), 
+[Jennifer Ai](https://www.linkedin.com/in/jenniferaiii/), and [Joy Alemu](https://www.linkedin.com/in/joy-alemu-180488211/)
+who worked hard to make this update possible!
 
+Future plans: 
+- Support for mobile devices
+
+(Updated March 2024)
 
 ## Backend
 
 To learn more about the backend, click [here](happiness-backend/README.md).
 
-## MVP Demo Images
+## Frontend
+
+To learn more about the frontend, click [here](https://github.com/jonathanjma/happiness-app-frontend).
+
+## Screenshots
+
+Entries Page:
+![](/imgs/entries.png)
+
+Entries with comments:
+![](/imgs/entries_comments.png)
+
+Private Entries Page:
+![](/imgs/private_entries.png)
 
 User Profile Page:
 ![](/imgs/profile.png)
 
 User Statistics Page:
-![](/imgs/stats.png)
+![](/imgs/statistics.png)
 
-User History Page:
-![](/imgs/history_month.png)
+Group Feed Page:
+![](/imgs/groups_feed.png)
 
 Group Table Page:
-![](/imgs/group_table.png)
-
-Group Statistics Page:
-![](/imgs/group_statistics.png)
+![](/imgs/groups_table.png)
