@@ -8,6 +8,8 @@ from api.models.models import Happiness, User
 db_discord_map = {}
 
 def process_webhooks(user: User, happiness: Happiness, on_edit=False):
+    if current_app.config["TESTING"]: return
+
     if get_group_by_id(1) in user.groups: # suite group
         send_webhook(user, happiness, current_app.config["AST_WEBHOOK_URL"], on_edit)
 
