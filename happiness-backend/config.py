@@ -41,6 +41,8 @@ class Config:
     # Scheduled jobs
     REDISCLOUD_URL = os.environ.get("REDISCLOUD_URL")
 
+    AST_WEBHOOK_URL = os.environ.get("AST_WEBHOOK_URL")
+
 
 class TestConfig:
     TESTING = True

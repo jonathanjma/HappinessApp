@@ -13,6 +13,7 @@ from api.models.schema import HappinessSchema, HappinessEditSchema, HappinessGet
     HappinessGetCountSchema, CommentSchema, DateIdGetSchema, HappinessMultiFilterSchema, CommentEditSchema, NumberSchema
 from api.routes.token import token_auth
 from api.util.errors import failure_response
+from api.util.webhook import process_webhooks
 
 happiness = Blueprint('happiness', __name__)
 
@@ -52,6 +53,9 @@ def create_happiness(req):
     happiness = Happiness(user_id=current_user.id, value=value, comment=comment, timestamp=timestamp)
     db.session.add(happiness)
     db.session.commit()
+
+    process_webhooks(current_user, happiness)
+
     return happiness
 
 
