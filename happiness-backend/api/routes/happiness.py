@@ -43,6 +43,7 @@ def create_happiness(req):
         happiness_obj.comment = comment
         happiness_obj.value = value
         db.session.commit()
+        process_webhooks(current_user, happiness_obj, True)
         return happiness_obj
 
     # validate happiness value
@@ -88,6 +89,7 @@ def edit_happiness(args, req):
         if comment:
             query_data.comment = comment
         db.session.commit()
+        process_webhooks(token_current_user(), query_data, True)
         return query_data
     return failure_response("Happiness Not Found.", 404)
 
