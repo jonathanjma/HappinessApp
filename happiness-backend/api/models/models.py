@@ -242,7 +242,7 @@ class Group(BaseModel):
                 self.invited_users.append(user)
                 if send_emails and group:
                     threading.Thread(target=email_methods.send_group_invite_email,
-                                     args=(user,group)).start()
+                                     args=(user, group)).start()
 
     def add_users(self, users_to_add: list[User]):
         """
@@ -293,6 +293,15 @@ class Happiness(BaseModel):
         self.value = kwargs.get("value")
         self.comment = kwargs.get("comment")
         self.timestamp = kwargs.get("timestamp")
+
+    @staticmethod
+    def clean_old_reads():
+        """Remove entries from readers_happiness that are more than 1 week old."""
+        one_week_ago = datetime.utcnow() - timedelta(weeks=1)
+        db.session.execute(
+            delete(readers_happiness).where(readers_happiness.c.timestamp < one_week_ago)
+        )
+        db.session.commit()
 
 
 class Comment(BaseModel):
@@ -346,7 +355,7 @@ class Token(BaseModel):
     __tablename__ = "token"
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id = mapped_column(Integer, ForeignKey("user.id"))
-    session_token = mapped_column(String, nullable=False, unique=True) # stored using hashing
+    session_token = mapped_column(String, nullable=False, unique=True)  # stored using hashing
     session_expiration = mapped_column(DateTime, nullable=False)
 
     @staticmethod
