@@ -11,7 +11,7 @@ from rq import Queue
 
 from api import create_app
 from api.dao import happiness_dao, users_dao
-from api.models.models import Token, Setting
+from api.models.models import Token, Setting, Happiness
 from api.util.email_methods import send_email_helper
 
 """
@@ -49,6 +49,13 @@ def clean_tokens():
     Deletes all expired tokens
     """
     Token.clean()
+
+
+def clean_reads():
+    """
+    Deletes all reads older than 1 week
+    """
+    Happiness.clean_old_reads()
 
 
 def export_happiness(user_id):
