@@ -14,22 +14,15 @@ def process_webhooks(user: User, happiness: Happiness, on_edit=False):
         send_webhook(user, happiness, current_app.config["AST_WEBHOOK_URL"], on_edit)
 
 def send_webhook(user: User, happiness: Happiness, url: str, on_edit: bool):
+    # 2048 char limit for description
+    description = (f"**Score** \n{str(happiness.value)}" +
+                   f"\n\n**Comment**\n{happiness.comment[:2048]}") if happiness.comment else ""
     payload = {
-        "content": None,
         "embeds": [
             {
                 "title": happiness.timestamp.strftime('%m/%d') + " Happiness Entry",
+                "description": description,
                 "color": int("ecc665", 16),
-                "fields": [
-                    {
-                        "name": "Score",
-                        "value": str(happiness.value)
-                    },
-                    {
-                        "name": "Comment",
-                        "value": happiness.comment
-                    }
-                ],
                 "author": {
                     "name": "@" + user.username,
                     "url": "https://www.happinessapp.me/profile/" + str(user.id),
@@ -46,7 +39,9 @@ def send_webhook(user: User, happiness: Happiness, url: str, on_edit: bool):
             "avatar_url": "https://github.com/jonathanjma/HappinessApp/blob/main/imgs/icon.png?raw=true",
         }
         res = requests.post(url + '?wait=True', json=payload)
+        print(f"webhook post sent: {res.status_code}, {res.reason}")
         db_discord_map[happiness.id] = res.json()["id"]
     # for (recent) entry edits: look up discord msg id and send updated entry
     elif happiness.id in db_discord_map.keys():
-        requests.patch(f'{url}/messages/{db_discord_map[happiness.id]}', json=payload)
+        res = requests.patch(f'{url}/messages/{db_discord_map[happiness.id]}', json=payload)
+        print(f"webhook edit sent: {res.status_code}, {res.reason}")
