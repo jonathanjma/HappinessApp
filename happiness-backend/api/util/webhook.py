@@ -12,6 +12,8 @@ def process_webhooks(user: User, happiness: Happiness, on_edit=False):
 
     if get_group_by_id(51) in user.groups: # suite group
         send_webhook(user, happiness, current_app.config["AST_WEBHOOK_URL"], on_edit)
+    if get_group_by_id(9) in user.groups: # HS friends group
+        send_webhook(user, happiness, current_app.config["BOIS_WEBHOOK_URL"], on_edit)
 
 def send_webhook(user: User, happiness: Happiness, url: str, on_edit: bool):
     # 2048 char limit for description
