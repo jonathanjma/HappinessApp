@@ -1,11 +1,13 @@
 import requests
 from flask import current_app
+from collections import defaultdict
 
 from api.dao.groups_dao import get_group_by_id
 from api.models.models import Happiness, User
 
 # temporary table for recently created entries
-db_discord_map = {}
+# (use lists for vales since 1 happiness entry can be sent to multiple webhooks)
+db_discord_map = defaultdict(list)
 
 def process_webhooks(user: User, happiness: Happiness, on_edit=False):
     if current_app.config["TESTING"]: return
@@ -42,8 +44,9 @@ def send_webhook(user: User, happiness: Happiness, url: str, on_edit: bool):
         }
         res = requests.post(url + '?wait=True', json=payload)
         print(f"webhook post sent: {res.status_code}, {res.reason}")
-        db_discord_map[happiness.id] = res.json()["id"]
+        db_discord_map[happiness.id].append(res.json()["id"])
     # for (recent) entry edits: look up discord msg id and send updated entry
     elif happiness.id in db_discord_map.keys():
-        res = requests.patch(f'{url}/messages/{db_discord_map[happiness.id]}', json=payload)
-        print(f"webhook edit sent: {res.status_code}, {res.reason}")
+        for msg_id in db_discord_map[happiness.id]:
+            res = requests.patch(f'{url}/messages/{msg_id}', json=payload)
+            print(f"webhook edit sent: {res.status_code}, {res.reason}")
