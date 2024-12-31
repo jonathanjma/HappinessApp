@@ -3,10 +3,13 @@ DAO (Data Access Object) file
 
 Helper file containing functions for accessing data in our database
 """
-from sqlalchemy import select
+from datetime import datetime
+from typing import List
+
+from sqlalchemy import select, func
 
 from api.app import db
-from api.models.models import User, Token
+from api.models.models import User, Token, Happiness
 
 
 def get_user_by_id(user_id: int) -> User:
@@ -39,3 +42,19 @@ def get_token(token: str) -> Token:
     Return a user object from the database given a session token
     """
     return db.session.execute(select(Token).where(Token.session_token == token)).scalar()
+
+def get_active_users() -> List[User]:
+    """
+    Returns a list of users with >= 20 happiness entries since 1/1/2024 in descending order
+    """
+    start_date = datetime(2024, 1, 1)
+    active_users = (
+        db.session.query(User)
+        .join(Happiness)
+        .filter(Happiness.timestamp >= start_date)
+        .group_by(User.id)
+        .having(func.count(Happiness.id) >= 20)
+        .order_by(func.count(Happiness.id).desc())
+        .all()
+    )
+    return active_users

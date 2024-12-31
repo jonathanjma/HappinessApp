@@ -1,0 +1,9 @@
+Hi {{ user.username }},
+
+Just wanted to let you know that your 2024 Happiness App Wrapped is now available! So if you used the app this year and wanted some fun insights into your scores, you can visit https://www.happinessapp.me/wrapped. And while you are there, don't forget to click the share button to share your stats with your friends!
+
+Thanks for using Happiness App this year!
+
+Sincerely,
+
+Happiness App

@@ -62,7 +62,6 @@ def send_nudge_email(email, user):
     """
     Sends an email inviting a non-registered user to create an account.
     """
-    print(email, user)
     with my_app.app_context():
         send_email_helper("You've Been Invited to Join Happiness App!",
                           sender="noreply@happinessapp.org",
@@ -70,3 +69,10 @@ def send_nudge_email(email, user):
                           text_body=render_template('nudge_user.txt', user=user, email=email),
                           html_body=render_template('nudge_user.html', user=user, email=email))
 
+def send_wrapped_email(user):
+    with my_app.app_context():
+        send_email_helper("Happiness App Wrapped 2024 Now Available!",
+                          sender="noreply@happinessapp.org",
+                          recipients=[user.email],
+                          text_body=render_template('wrapped_notif.txt', user=user),
+                          html_body=render_template('wrapped_notif.html', user=user))

@@ -368,3 +368,14 @@ def nudge_user(req):
                          args=(req.get("email"), token_current_user())).start()
         return "", 204
     return failure_response("User already exists.", 400)
+
+# @user.post('/send_wrapped')
+# @authenticate(token_auth)
+# def wrapped():
+#     """
+#     Send Wrapped Email
+#     Send an email to all active users notifying them about Happiness App Wrapped
+#     """
+#     for active_user in users_dao.get_active_users():
+#         threading.Thread(target=email_methods.send_wrapped_email, args=(active_user,)).start()
+#     return "", 204
