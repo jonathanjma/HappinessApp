@@ -49,3 +49,25 @@ def send_webhook(user: User, happiness: Happiness, url: str, on_edit: bool):
     elif happiness.id in db_discord_map.keys():
         res = requests.patch(f'{url}/messages/{db_discord_map[happiness.id][url]}', json=payload)
         print(f"webhook edit sent: {res.status_code}, {res.reason}")
+
+"""
+for wrapped:
+{
+  "content": "@everyone",
+  "embeds": [
+    {
+      "title": "Happiness App Wrapped 2024 Now Available!",
+      "description": "Hi everyone, \n\nJust wanted to make an announcement that the 2024 Happiness App Wrapped is now available! So if you used the app this year and wanted some fun insights into your scores, click the link above or visit https://www.happinessapp.me/wrapped. And while you are there, don't forget to click the share button to share your stats with your friends! \n\nThanks for using Happiness App this year!",
+      "url": "https://www.happinessapp.me/wrapped",
+      "color": 15517285,
+      "author": {
+        "name": "Happiness App",
+        "url": "https://www.happinessapp.me",
+        "icon_url": "https://raw.githubusercontent.com/jonathanjma/HappinessApp/refs/heads/main/imgs/icon.png"
+      }
+    }
+  ],
+  "username": "Happiness Bot",
+  "avatar_url": "https://github.com/jonathanjma/HappinessApp/blob/main/imgs/icon.png?raw=true"
+}
+"""

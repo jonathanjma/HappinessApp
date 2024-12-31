@@ -377,5 +377,6 @@ def nudge_user(req):
 #     Send an email to all active users notifying them about Happiness App Wrapped
 #     """
 #     for active_user in users_dao.get_active_users():
+#         print(active_user.username)
 #         threading.Thread(target=email_methods.send_wrapped_email, args=(active_user,)).start()
 #     return "", 204
