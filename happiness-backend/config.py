@@ -18,6 +18,7 @@ class Config:
 
     # Security measures
     SECRET_KEY = os.environ.get("SECRET_KEY")
+    ENCRYPT_SALT = os.environ.get("ENCRYPT_SALT")
 
     # Email sending
     MAIL_SERVER = "smtp.gmail.com"
@@ -33,16 +34,17 @@ class Config:
     AWS_BUCKET_NAME = os.environ.get("AWS_BUCKET_NAME")
     AWS_REGION = os.environ.get("AWS_REGION")
 
-    ENCRYPT_SALT = os.environ.get("ENCRYPT_SALT")
-
     # Happiness export
     UPLOAD_FOLDER = "./export/"
 
     # Scheduled jobs
     REDISCLOUD_URL = os.environ.get("REDISCLOUD_URL")
 
+    # Discord webhooks
     AST_WEBHOOK_URL = os.environ.get("AST_WEBHOOK_URL")
     BOIS_WEBHOOK_URL = os.environ.get("BOIS_WEBHOOK_URL")
+
+    WRAPPED_DATA_URL = os.environ.get("WRAPPED_DATA_URL")
 
 class TestConfig:
     TESTING = True

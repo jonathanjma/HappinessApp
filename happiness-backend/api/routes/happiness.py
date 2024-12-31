@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import requests
 from apifairy import authenticate, body, arguments, response, other_responses
 from flask import Blueprint, current_app
 
@@ -309,3 +310,15 @@ def count_multi_filter_search_happiness(req):
             token_auth.current_user().has_mutual_group(users_dao.get_user_by_id(user_id))):
         return failure_response("Not Allowed.", 403)
     return {"number": happiness_dao.get_num_happiness_by_filter(user_id, start, end, low, high, text)}
+
+@happiness.get('/wrapped')
+@authenticate(token_auth)
+@other_responses({400: "Not Allowed."})
+def get_wrapped():
+    """
+    Get Happiness App Wrapped Data
+    """
+    all_wrapped_data = requests.get(current_app.config["WRAPPED_DATA_URL"]).json()
+    if str(token_current_user().id) in all_wrapped_data.keys():
+        return all_wrapped_data[str(token_auth.current_user().id)]
+    return failure_response("Not Allowed.", 400)

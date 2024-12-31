@@ -144,7 +144,7 @@ def get_filter_by_params(user_id: int, start: datetime, end: datetime, low: floa
         query = query.where(Happiness.value >= low, Happiness.value <= high)
         has_filtered = True
     if text is not None:
-        query = query.where(Happiness.comment.like(f"%{text}%"))
+        query = query.where(Happiness.comment.ilike(f"%{text}%"))
         has_filtered = True
     return query, has_filtered
 
