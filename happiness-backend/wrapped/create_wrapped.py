@@ -170,7 +170,7 @@ def execute_queries(cursor: psycopg2._psycopg.cursor, user_id, entry_count, pct,
                       'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once',
                       'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most',
                       'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very',
-                      'can', 'will', 'just','should'
+                      'can', 'will', 'just', 'should', 'went', 'got'
                 )
             )
         SELECT word, COUNT(*) AS count

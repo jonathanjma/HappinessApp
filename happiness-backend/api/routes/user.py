@@ -16,7 +16,7 @@ from api.dao import users_dao, happiness_dao
 from api.models.models import User, Setting, Happiness, Journal
 from api.models.schema import UserSchema, CreateUserSchema, SettingsSchema, SettingInfoSchema, \
     UserInfoSchema, EmailSchema, SimpleUserSchema, EmptySchema, PasswordResetSchema, \
-    FileUploadSchema, AmountSchema, CountSchema, UserDeleteSchema
+    FileUploadSchema, AmountSchema, CountSchema, UserDeleteSchema, JournalEditSchema
 from api.routes.token import token_auth
 from api.util import email_methods
 from api.util.errors import failure_response
@@ -368,6 +368,42 @@ def nudge_user(req):
                          args=(req.get("email"), token_current_user())).start()
         return "", 204
     return failure_response("User already exists.", 400)
+
+# @user.post('/s3_upload')
+# @authenticate(token_auth)
+# @response(JournalEditSchema)
+# @body(FileUploadSchema, location='form')
+# @other_responses({400: "Invalid request"})
+# def upload_s3(req):
+#     """
+#     Upload File to S3
+#     """
+#     data = req["file"].read()
+#     # Check that data exists
+#     if not data:
+#         return failure_response("Invalid request", 400)
+#     # Check that data is under 10 megabytes
+#     if len(data) > 10000000:
+#         return failure_response("Invalid request", 400)
+#
+#     # Connect to boto3
+#     boto_kwargs = {
+#         "aws_access_key_id": current_app.config["AWS_ACCESS"],
+#         "aws_secret_access_key": current_app.config["AWS_SECRET"],
+#         "region_name": current_app.config["AWS_REGION"]
+#     }
+#     s3 = boto3.Session(**boto_kwargs).client("s3")
+#
+#     # Create unique file name and upload image to AWS:
+#     file_name = req["file"].filename
+#     s3.put_object(
+#         Bucket=current_app.config["AWS_BUCKET_NAME"], Body=data, Key=file_name, ACL="public-read")
+#
+#     # Construct image URL and mutate user object to reflect new profile image URL:
+#     file_url = (f"https://{current_app.config['AWS_BUCKET_NAME']}.s3." +
+#                f"{current_app.config['AWS_REGION']}.amazonaws.com/{file_name}")
+#     return {"data" : file_url}
+
 
 # @user.post('/send_wrapped')
 # @authenticate(token_auth)
