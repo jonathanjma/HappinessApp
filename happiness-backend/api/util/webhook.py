@@ -1,13 +1,29 @@
+import json
+import os
+
 import requests
+from filelock import FileLock
 from flask import current_app
-from collections import defaultdict
 
 from api.dao.groups_dao import get_group_by_id
 from api.models.models import Happiness, User
 
 # temporary table for recently created entries
 # (use dict for vales since 1 happiness entry can be sent to multiple webhooks)
-db_discord_map = defaultdict(dict)
+# (store in file since we have multiple web workers...)
+DISCORD_MAP_FILE = "discord_map.json"
+LOCK_FILE = "discord_map.json.lock"
+
+def read_discord_map():
+    if not os.path.exists(DISCORD_MAP_FILE): return {}
+    with FileLock(LOCK_FILE):
+        with open(DISCORD_MAP_FILE, 'r') as f:
+            return json.load(f)
+
+def write_discord_map(discord_map):
+    with FileLock(LOCK_FILE):
+        with open(DISCORD_MAP_FILE, 'w') as f:
+            json.dump(discord_map, f)
 
 def process_webhooks(user: User, happiness: Happiness, on_edit=False):
     if current_app.config["TESTING"]: return
@@ -20,7 +36,7 @@ def process_webhooks(user: User, happiness: Happiness, on_edit=False):
 def send_webhook(user: User, happiness: Happiness, url: str, on_edit: bool):
     # 2048 char limit for description
     description = (f"**Score** \n{str(happiness.value)}" +
-                   f"\n\n**Comment**\n{happiness.comment[:2048]}") if happiness.comment else ""
+                   (f"\n\n**Comment**\n{happiness.comment[:2048]}" if happiness.comment else ""))
     payload = {
         "embeds": [
             {
@@ -36,6 +52,8 @@ def send_webhook(user: User, happiness: Happiness, url: str, on_edit: bool):
         ]
     }
     # for new entries: add bot info, send entry, store discord msg id
+    discord_map = read_discord_map()
+    h_id = str(happiness.id)
     if not on_edit:
         payload = {
             **payload,
@@ -43,12 +61,12 @@ def send_webhook(user: User, happiness: Happiness, url: str, on_edit: bool):
             "avatar_url": "https://github.com/jonathanjma/HappinessApp/blob/main/imgs/icon.png?raw=true",
         }
         res = requests.post(url + '?wait=True', json=payload)
-        print(f"webhook post sent: {res.status_code}, {res.reason}")
-        db_discord_map[happiness.id][url] = res.json()["id"]
+        if h_id not in discord_map: discord_map[h_id] = {}
+        discord_map[h_id][url] = res.json()["id"]
+        write_discord_map(discord_map)
     # for (recent) entry edits: look up discord msg id and send updated entry
-    elif happiness.id in db_discord_map.keys():
-        res = requests.patch(f'{url}/messages/{db_discord_map[happiness.id][url]}', json=payload)
-        print(f"webhook edit sent: {res.status_code}, {res.reason}")
+    elif h_id in discord_map.keys():
+        res = requests.patch(f'{url}/messages/{discord_map[h_id][url]}', json=payload)
 
 """
 for wrapped:
