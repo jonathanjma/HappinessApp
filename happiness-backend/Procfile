@@ -1,2 +1,2 @@
-web: flask db upgrade; gunicorn happiness_backend:app --preload
+web: flask db upgrade; gunicorn -k uvicorn.workers.UvicornWorker happiness_backend:app --bind 0.0.0.0:$PORT --log-file -
 worker: rq worker -u $REDISCLOUD_URL happiness-backend-jobs

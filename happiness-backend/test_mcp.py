@@ -11,9 +11,11 @@ import asyncio
 from datetime import date, timedelta
 from api.app import create_app
 from api.routes.mcp_server import create_mcp_server
+from api.util.db_session import init_session_factory
 
 # Initialize MCP server at module level for mcp dev command
 app = create_app()
+init_session_factory(app)
 mcp = create_mcp_server(app)
 
 
@@ -81,7 +83,7 @@ async def test_mcp():
         print("\n" + "=" * 60)
         print("✗ Tests failed")
         print("=" * 60)
-        
+
         return False
 
 

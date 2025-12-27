@@ -2,7 +2,6 @@
 MCP (Model Context Protocol) server for Happiness App.
 Exposes read-only tools for LLMs to query user happiness data.
 """
-from api.app import create_app as _create_flask_app
 from datetime import datetime, timedelta
 from typing import Optional
 from statistics import mean, median
@@ -11,6 +10,7 @@ from mcp.server.fastmcp import FastMCP
 from flask import Flask
 
 from api.dao import happiness_dao
+from api.util.db_session import session_scope
 
 # TODO: Replace with proper authentication
 MCP_USER_ID = 3  # Hardcoded user ID for MCP queries
@@ -28,6 +28,7 @@ def create_mcp_server(flask_app: Flask) -> FastMCP:
     """
     mcp = FastMCP(
         name="HappinessApp",
+        streamable_http_path="/mcp",
         instructions=(
             "This server provides tools to query a user's happiness data. "
             "Happiness entries include a value (0-10), optional comment text, and a timestamp. "
@@ -48,39 +49,39 @@ def create_mcp_server(flask_app: Flask) -> FastMCP:
         Returns:
             Dictionary with list of happiness entries and summary statistics
         """
-        with flask_app.app_context():
-            try:
-                start_date = datetime.strptime(start, "%Y-%m-%d").date()
-                end_date = datetime.strptime(end, "%Y-%m-%d").date()
-            except ValueError as e:
-                return {"error": f"Invalid date format. Use YYYY-MM-DD. {str(e)}"}
+        try:
+            start_date = datetime.strptime(start, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end, "%Y-%m-%d").date()
+        except ValueError as e:
+            return {"error": f"Invalid date format. Use YYYY-MM-DD. {str(e)}"}
 
-            if start_date > end_date:
-                return {"error": "Start date must be before or equal to end date"}
+        if start_date > end_date:
+            return {"error": "Start date must be before or equal to end date"}
 
+        with session_scope() as session:
             entries = happiness_dao.get_happiness_by_date_range(
-                [MCP_USER_ID], start_date, end_date
+                [MCP_USER_ID], start_date, end_date, session=session
             )
 
-            result = {
-                "entries": [
-                    {
-                        "date": entry.timestamp.strftime("%Y-%m-%d"),
-                        "value": entry.value,
-                        "comment": entry.comment or ""
-                    }
-                    for entry in entries
-                ],
-                "count": len(entries)
-            }
+        result = {
+            "entries": [
+                {
+                    "date": entry.timestamp.strftime("%Y-%m-%d"),
+                    "value": entry.value,
+                    "comment": entry.comment or ""
+                }
+                for entry in entries
+            ],
+            "count": len(entries)
+        }
 
-            if entries:
-                values = [e.value for e in entries]
-                result["average"] = round(mean(values), 2)
-                result["min"] = min(values)
-                result["max"] = max(values)
+        if entries:
+            values = [e.value for e in entries]
+            result["average"] = round(mean(values), 2)
+            result["min"] = min(values)
+            result["max"] = max(values)
 
-            return result
+        return result
 
     @mcp.tool()
     def happiness_search(
@@ -105,26 +106,25 @@ def create_mcp_server(flask_app: Flask) -> FastMCP:
         Returns:
             Dictionary with matching happiness entries
         """
-        with flask_app.app_context():
-            # Parse dates if provided
-            start_date = None
-            end_date = None
-            if start:
-                try:
-                    start_date = datetime.strptime(start, "%Y-%m-%d").date()
-                except ValueError as e:
-                    return {"error": f"Invalid start date format. Use YYYY-MM-DD. {str(e)}"}
-            if end:
-                try:
-                    end_date = datetime.strptime(end, "%Y-%m-%d").date()
-                except ValueError as e:
-                    return {"error": f"Invalid end date format. Use YYYY-MM-DD. {str(e)}"}
+        # Parse dates if provided
+        start_date = None
+        end_date = None
+        if start:
+            try:
+                start_date = datetime.strptime(start, "%Y-%m-%d").date()
+            except ValueError as e:
+                return {"error": f"Invalid start date format. Use YYYY-MM-DD. {str(e)}"}
+        if end:
+            try:
+                end_date = datetime.strptime(end, "%Y-%m-%d").date()
+            except ValueError as e:
+                return {"error": f"Invalid end date format. Use YYYY-MM-DD. {str(e)}"}
 
-            # Validate at least one filter is provided
-            if not any([text, start_date, end_date, low is not None, high is not None]):
-                return {"error": "At least one filter parameter must be provided"}
+        # Validate at least one filter is provided
+        if not any([text, start_date, end_date, low is not None, high is not None]):
+            return {"error": "At least one filter parameter must be provided"}
 
-            # Query using DAO
+        with session_scope() as session:
             entries = happiness_dao.get_happiness_by_filter(
                 user_id=MCP_USER_ID,
                 page=1,
@@ -133,21 +133,22 @@ def create_mcp_server(flask_app: Flask) -> FastMCP:
                 end=end_date,
                 low=low,
                 high=high,
-                text=text
+                text=text,
+                session=session,
             )
 
-            return {
-                "entries": [
-                    {
-                        "date": entry.timestamp.strftime("%Y-%m-%d"),
-                        "value": entry.value,
-                        "comment": entry.comment or ""
-                    }
-                    for entry in entries
-                ],
-                "count": len(entries),
-                "limit": limit
-            }
+        return {
+            "entries": [
+                {
+                    "date": entry.timestamp.strftime("%Y-%m-%d"),
+                    "value": entry.value,
+                    "comment": entry.comment or ""
+                }
+                for entry in entries
+            ],
+            "count": len(entries),
+            "limit": limit
+        }
 
     # @mcp.tool()
     # def happiness_weekly_summary(reference_date: Optional[str] = None) -> dict:
@@ -350,22 +351,15 @@ def create_mcp_asgi_app(flask_app: Flask):
     """
     Create an ASGI application for the MCP server.
 
-    NOTE: This function creates a Starlette ASGI app that requires lifespan
-    event handling. The standard a2wsgi adapter does NOT properly handle
-    ASGI lifespan events, which causes FastMCP to fail with:
-    "RuntimeError: Task group is not initialized. Make sure to use run()."
-
-    RECOMMENDED SOLUTION: Run the MCP server separately using:
-        uvicorn api.routes.mcp_server:standalone_app --port 5002
-
-    Or use the stdio transport for MCP clients:
-        python -m mcp dev test_mcp.py
+    NOTE: The returned app requires ASGI lifespan handling (FastMCP uses Starlette lifespan
+    to initialize its internal task group). This works correctly when served by uvicorn
+    or when mounted into another ASGI app.
 
     Args:
         flask_app: The Flask application instance
 
     Returns:
-        ASGI application (Starlette app) - requires proper lifespan handling
+        ASGI application (Starlette app)
     """
     mcp = create_mcp_server(flask_app)
     return mcp.streamable_http_app()
