@@ -4,3 +4,4 @@ app.db
 .idea
 venv
 discord_map**
+*.sql
