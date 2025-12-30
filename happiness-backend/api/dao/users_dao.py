@@ -45,9 +45,9 @@ def get_token(token: str) -> Token:
 
 def get_active_users() -> List[User]:
     """
-    Returns a list of users with >= 20 happiness entries since 1/1/2024 in descending order
+    Returns a list of users with >= 20 happiness entries since 1/1/2025 in descending order
     """
-    start_date = datetime(2024, 1, 1)
+    start_date = datetime(2025, 1, 1)
     active_users = (
         db.session.query(User)
         .join(Happiness)
