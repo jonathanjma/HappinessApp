@@ -8,8 +8,9 @@ INPUTS:
 
 TASKS:
 1) Themes of the year: Using all_entries, extract the top 3 words or short phrases that best describe the user's year overall.
-Each item must be less than 4 words, written in past tense, and be an incomplete sentence (no subject).
-Use specific events, situations, or behaviors, not adjectives or abstract traits.
+Each item must be less than 4 words, written in present tense, only use verbs ending in 'ing', and be an incomplete sentence (no subject).
+Please capitalize the first word of each item.
+Use specific events, situations, or behaviors seen across multiple entries, avoiding adjectives or abstract traits.
 Output as a list of strings.
 
 2) Strangest / craziest entry: Identify the single most unusual, unexpected, or absurd entry in all_entries.
@@ -50,7 +51,8 @@ INPUTS:
 
 TASK:
 List the top 3 words or short phrases that best describe what made the user feel sad, for entries_0_4, and happy, for entries_8_10.
-Each item must be less than 4 words, written in past tense, and be an incomplete sentence (no subject).
+Each item must be less than 4 words, written in present tense, only use verbs ending in 'ing', and be an incomplete sentence (no subject).
+Please capitalize the first word of each item.
 Base each item on specific events, situations, or emotions from the entry.
 Keep each item less than 4 words.
 Avoid generic words or phrases.

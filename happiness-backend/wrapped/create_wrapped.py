@@ -1,32 +1,27 @@
 """
-ideas:
-how many entries and top x% of users by entries
-how many words
-average score value
+wrapped data:
+
+how many entries you wrote 
+top x% of users by entries
+how many words you wrote
 longest streak of consecutive days with entries
+average score value
+most common score value
 
+3 phrases which describe your year
+3 things which made you sad
+3 things which made you happy
 
-min and max score value, include description
-largest score difference between 2 consecutive days
-months with the highest and lowest average score value
-weeks with the highest and lowest average score value
+highest and lowest day with short summary
 
-AI component:
-3 words/phrases which describe the year
-things which made you sad vs happy (using 0-4 vs 8-10 days)
-strangest or craziest entry
-overthinking entry
-most down bad entry
+largest score difference between 2 consecutive days with short summary
 
-short summary of highest and lowest day
-short summary of highest and lowest week
-short summary of highest and lowest month
-short summary of largest score swing between 2 consecutive days
+highest and lowest month with short summary
+highest and lowest week with short summary
 
-
-top person who appears
-top place which appears
-
+craziest entry summary
+overthinking entry summary
+most down bad entry summary
 """
 
 import json
@@ -100,7 +95,8 @@ def _extract_first_json_object(text: str) -> dict:
 
 
 def run_gemini_json(name: str, prompt: str) -> dict:
-    print(f'executing Gemini analysis for {name} at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}...')
+    print(
+        f'executing Gemini analysis for {name} at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}...')
     try:
         client = genai.Client(api_key=gemini_api_key)
         response = client.models.generate_content(
@@ -132,6 +128,20 @@ def execute_queries(cursor: psycopg2._psycopg.cursor, user_id, entry_count, pct,
         WHERE user_id = (%s) AND timestamp >= %s;
     ''', (user_id, f'{current_year}-01-01'))
     results['average_score'] = cursor.fetchone()[0]
+
+    # get mode score value
+    cursor.execute('''
+        SELECT value, COUNT(*)
+        FROM happiness
+        WHERE user_id = (%s) AND timestamp >= %s
+        GROUP BY value
+        ORDER BY COUNT(*) DESC;
+    ''', (user_id, f'{current_year}-01-01'))
+    value_counts = cursor.fetchone()
+    results['mode_score'] = {
+        'score': value_counts[0],
+        'count': value_counts[1]
+    }
 
     # get longest streak of consecutive days with entries
     cursor.execute('''
@@ -295,8 +305,12 @@ def execute_queries(cursor: psycopg2._psycopg.cursor, user_id, entry_count, pct,
         WHERE user_id = (%s) AND timestamp >= %s
         ORDER BY timestamp ASC
     ''', (user_id, f'{current_year}-01-01'))
+    all_entries_data = cursor.fetchall()
     all_entries = "\n\n".join(
-        [f"{datetime.strftime(entry[0], '%Y-%m-%d')}: {entry[1]}" for entry in cursor.fetchall()])
+        [f"{datetime.strftime(entry[0], '%Y-%m-%d')}: {entry[1]}" for entry in all_entries_data])
+
+    results['total_words'] = len(
+        " ".join([entry[1] for entry in all_entries_data]).split(" "))
 
     # AI analysis (Gemini)
     print('executing Gemini analysis...')
@@ -321,8 +335,8 @@ def execute_queries(cursor: psycopg2._psycopg.cursor, user_id, entry_count, pct,
     results['month_highest']['ai_summary'] = month_summaries['highest_month_summary']
     results['month_lowest']['ai_summary'] = month_summaries['lowest_month_summary']
 
-    results['largest_diff']['ai_summary'] = run_gemini_json('largest_swing_summary',
-                                                            build_largest_swing_prompt(largest_diff_comment))
+    results['largest_diff']['ai_summary'] = run_gemini_json(
+        'largest_swing_summary', build_largest_swing_prompt(largest_diff_comment))['largest_swing_summary']
 
     all_results[user_id] = results
 
@@ -344,7 +358,7 @@ cursor.execute('''
 active_users = cursor.fetchall()
 
 for i, (user_id, entry_count) in enumerate(active_users):
-    if entry_count > 20 and user_id == 3:
+    if entry_count > 20:
         print('processing ' + users_dict[user_id])
         execute_queries(cursor, user_id, entry_count, (i+1) /
                         len(active_users), users_dict[user_id])

@@ -311,6 +311,7 @@ def count_multi_filter_search_happiness(req):
         return failure_response("Not Allowed.", 403)
     return {"number": happiness_dao.get_num_happiness_by_filter(user_id, start, end, low, high, text)}
 
+
 @happiness.get('/wrapped')
 @authenticate(token_auth)
 @other_responses({400: "Not Allowed."})
