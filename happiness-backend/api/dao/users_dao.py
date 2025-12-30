@@ -10,6 +10,7 @@ from sqlalchemy import select, func
 
 from api.app import db
 from api.models.models import User, Token, Happiness
+from config import Config
 
 
 def get_user_by_id(user_id: int) -> User:
@@ -43,11 +44,12 @@ def get_token(token: str) -> Token:
     """
     return db.session.execute(select(Token).where(Token.session_token == token)).scalar()
 
+
 def get_active_users() -> List[User]:
     """
-    Returns a list of users with >= 20 happiness entries since 1/1/2025 in descending order
+    Returns a list of users with >= 20 happiness entries since 1/1/{WRAPPED_YEAR} in descending order
     """
-    start_date = datetime(2025, 1, 1)
+    start_date = datetime(Config.WRAPPED_YEAR, 1, 1)
     active_users = (
         db.session.query(User)
         .join(Happiness)

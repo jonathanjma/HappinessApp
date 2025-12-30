@@ -74,13 +74,13 @@ for wrapped:
   "content": "@everyone",
   "embeds": [
     {
-      "title": "Happiness App Wrapped 2024 Now Available!",
-      "description": "Hi everyone, \n\nJust wanted to make an announcement that the 2024 Happiness App Wrapped is now available! So if you used the app this year and wanted some fun insights into your scores, click the link above or visit https://www.happinessapp.me/wrapped. And while you are there, don't forget to click the share button to share your stats with your friends! \n\nThanks for using Happiness App this year!",
-      "url": "https://www.happinessapp.me/wrapped",
+      "title": "Happiness App Wrapped 2025 Now Available!",
+      "description": "Hi everyone, \n\nJust wanted to make an announcement that the 2025 Happiness App Wrapped is now available! So if you used the app this year and wanted some fun insights into your scores, click the link above or visit https://www.happinessapp.me/wrapped. And while you are there, don't forget to click the share button to share your stats with your friends! \n\nThanks for using Happiness App this year!",
+      "url": "https://www.happinessapp.me/wrapped?source=discord",
       "color": 15517285,
       "author": {
         "name": "Happiness App",
-        "url": "https://www.happinessapp.me",
+        "url": "https://www.happinessapp.me?source=discord",
         "icon_url": "https://raw.githubusercontent.com/jonathanjma/HappinessApp/refs/heads/main/imgs/icon.png"
       }
     }

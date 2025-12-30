@@ -1,6 +1,8 @@
 from flask import render_template
 from flask_mail import Message, Mail
 
+from config import Config
+
 global my_app
 global mail
 
@@ -43,7 +45,8 @@ def send_password_reset_email(user):
         send_email_helper('Happiness App Password Reset',
                           sender="noreply@happinessapp.org",
                           recipients=[user.email],
-                          text_body=render_template('reset_password.txt', user=user, token=token),
+                          text_body=render_template(
+                              'reset_password.txt', user=user, token=token),
                           html_body=render_template('reset_password.html', user=user, token=token))
 
 
@@ -55,8 +58,10 @@ def send_group_invite_email(user, group):
         send_email_helper('Happiness App Group Invite',
                           sender="noreply@happinessapp.org",
                           recipients=[user.email],
-                          text_body=render_template('group_invite.txt', user=user, group=group),
+                          text_body=render_template(
+                              'group_invite.txt', user=user, group=group),
                           html_body=render_template('group_invite.html', user=user, group=group))
+
 
 def send_nudge_email(email, user):
     """
@@ -66,13 +71,17 @@ def send_nudge_email(email, user):
         send_email_helper("You've Been Invited to Join Happiness App!",
                           sender="noreply@happinessapp.org",
                           recipients=[email],
-                          text_body=render_template('nudge_user.txt', user=user, email=email),
+                          text_body=render_template(
+                              'nudge_user.txt', user=user, email=email),
                           html_body=render_template('nudge_user.html', user=user, email=email))
+
 
 def send_wrapped_email(user):
     with my_app.app_context():
-        send_email_helper("Happiness App Wrapped 2024 Now Available!",
+        wrapped_year = Config.WRAPPED_YEAR
+        send_email_helper(f"Happiness App Wrapped {wrapped_year} Now Available!",
                           sender="noreply@happinessapp.org",
                           recipients=[user.email],
-                          text_body=render_template('wrapped_notif.txt', user=user),
-                          html_body=render_template('wrapped_notif.html', user=user))
+                          text_body=render_template(
+                              'wrapped_notif.txt', user=user, wrapped_year=wrapped_year),
+                          html_body=render_template('wrapped_notif.html', user=user, wrapped_year=wrapped_year))

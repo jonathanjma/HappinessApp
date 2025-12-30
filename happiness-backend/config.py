@@ -9,7 +9,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', '').replace(
         'postgres://', 'postgresql://') or \
-                              'sqlite:///' + os.path.join(basedir, 'app.db')
+        'sqlite:///' + os.path.join(basedir, 'app.db')
 
     # API documentation
     APIFAIRY_TITLE = 'Happiness App API'
@@ -45,6 +45,8 @@ class Config:
     BOIS_WEBHOOK_URL = os.environ.get("BOIS_WEBHOOK_URL")
 
     WRAPPED_DATA_URL = os.environ.get("WRAPPED_DATA_URL")
+    WRAPPED_YEAR = 2025
+
 
 class TestConfig:
     TESTING = True
