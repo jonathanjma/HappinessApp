@@ -48,6 +48,10 @@ class Config:
     WRAPPED_YEAR = 2025
 
 
+    # MCP OAuth
+    OAUTH_BASE_URL = os.environ.get("OAUTH_BASE_URL", "http://localhost:5001")
+
+
 class TestConfig:
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///'

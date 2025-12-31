@@ -5,15 +5,104 @@ Exposes read-only tools for LLMs to query user happiness data.
 from datetime import datetime, timedelta
 from typing import Optional
 from statistics import mean, median
+import hashlib
+from contextvars import ContextVar
 
 from mcp.server.fastmcp import FastMCP
 from flask import Flask
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from sqlalchemy import select
 
 from api.dao import happiness_dao
+from api.models.models import Token
 from api.util.db_session import session_scope
 
-# TODO: Replace with proper authentication
-MCP_USER_ID = 3  # Hardcoded user ID for MCP queries
+# Context variable to store user_id for the current request
+_current_user_id: ContextVar[Optional[int]] = ContextVar(
+    'current_user_id', default=None)
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    """Middleware to validate Bearer tokens for MCP requests only.
+
+    Only applies to /mcp endpoint. All other paths (Flask routes, OAuth endpoints)
+    pass through without authentication.
+    """
+
+    def __init__(self, app, oauth_base_url: str):
+        super().__init__(app)
+        self.oauth_base_url = oauth_base_url
+
+    async def dispatch(self, request: Request, call_next):
+        """Validate token and extract user_id for /mcp requests only."""
+        # Only apply authentication to /mcp endpoint
+        # Let all other requests (Flask routes, OAuth endpoints) pass through
+        if not request.url.path.startswith('/mcp'):
+            return await call_next(request)
+
+        # Get authorization header
+        auth_header = request.headers.get('authorization')
+
+        # Validate token and get user_id
+        user_id = get_user_from_token(auth_header)
+
+        if not user_id:
+            # Return 401 with WWW-Authenticate header to trigger OAuth flow
+            return JSONResponse(
+                status_code=401,
+                content={"error": "unauthorized",
+                         "message": "Valid Bearer token required"},
+                headers={
+                    "WWW-Authenticate": f'Bearer realm="HappinessApp MCP", resource_metadata_uri="{self.oauth_base_url}/.well-known/oauth-protected-resource"'
+                }
+            )
+
+        # Store user_id in request state for tools to access
+        request.state.user_id = user_id
+
+        # Also store in context variable for easy access in tools
+        _current_user_id.set(user_id)
+
+        # Continue processing
+        response = await call_next(request)
+
+        # Clean up context variable after request
+        _current_user_id.set(None)
+
+        return response
+
+
+def get_user_from_token(authorization_header: Optional[str]) -> Optional[int]:
+    """
+    Extract and validate user from Bearer token.
+    Returns user_id if valid, None otherwise.
+
+    Uses session_scope instead of Flask db.session since this runs in ASGI context.
+    """
+    if not authorization_header:
+        return None
+
+    # Parse Bearer token
+    parts = authorization_header.split()
+    if len(parts) != 2 or parts[0].lower() != 'bearer':
+        return None
+
+    session_token = parts[1]
+
+    # Validate token using session_scope (works in ASGI context)
+    token_hash = hashlib.sha256(session_token.encode()).hexdigest()
+
+    with session_scope() as session:
+        token = session.execute(
+            select(Token).where(Token.session_token == token_hash)
+        ).scalar()
+
+        if token and token.verify():
+            return token.user_id
+
+    return None
 
 
 def create_mcp_server(flask_app: Flask) -> FastMCP:
@@ -58,9 +147,14 @@ def create_mcp_server(flask_app: Flask) -> FastMCP:
         if start_date > end_date:
             return {"error": "Start date must be before or equal to end date"}
 
+        # Get user_id from context variable (set by middleware)
+        user_id = _current_user_id.get()
+        if not user_id:
+            return {"error": "Authentication required"}
+
         with session_scope() as session:
             entries = happiness_dao.get_happiness_by_date_range(
-                [MCP_USER_ID], start_date, end_date, session=session
+                [user_id], start_date, end_date, session=session
             )
 
         result = {
@@ -124,9 +218,14 @@ def create_mcp_server(flask_app: Flask) -> FastMCP:
         if not any([text, start_date, end_date, low is not None, high is not None]):
             return {"error": "At least one filter parameter must be provided"}
 
+        # Get user_id from context variable (set by middleware)
+        user_id = _current_user_id.get()
+        if not user_id:
+            return {"error": "Authentication required"}
+
         with session_scope() as session:
             entries = happiness_dao.get_happiness_by_filter(
-                user_id=MCP_USER_ID,
+                user_id=user_id,
                 page=1,
                 per_page=limit,
                 start=start_date,
@@ -349,7 +448,7 @@ def create_mcp_server(flask_app: Flask) -> FastMCP:
 
 def create_mcp_asgi_app(flask_app: Flask):
     """
-    Create an ASGI application for the MCP server.
+    Create an ASGI application for the MCP server with authentication middleware.
 
     NOTE: The returned app requires ASGI lifespan handling (FastMCP uses Starlette lifespan
     to initialize its internal task group). This works correctly when served by uvicorn
@@ -359,7 +458,13 @@ def create_mcp_asgi_app(flask_app: Flask):
         flask_app: The Flask application instance
 
     Returns:
-        ASGI application (Starlette app)
+        ASGI application (Starlette app) with authentication middleware
     """
     mcp = create_mcp_server(flask_app)
-    return mcp.streamable_http_app()
+    asgi_app = mcp.streamable_http_app()
+
+    # Add authentication middleware
+    oauth_base_url = flask_app.config['OAUTH_BASE_URL']
+    asgi_app.add_middleware(AuthMiddleware, oauth_base_url=oauth_base_url)
+
+    return asgi_app
