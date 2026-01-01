@@ -19,7 +19,65 @@ auth_codes = {}
 
 def get_oauth_base_url():
     """Get OAuth base URL from config."""
-    return current_app.config.get('OAUTH_BASE_URL', 'http://localhost:5000')
+    return current_app.config.get('OAUTH_BASE_URL', 'http://localhost:5001')
+
+
+def exchange_authorization_code_for_session_token(
+    *,
+    code: str,
+    code_verifier: str | None,
+) -> tuple[str, int]:
+    """
+    Shared helper to exchange an OAuth authorization code for a session token.
+
+    Used by:
+    - /api/mcp/oauth/token (standard OAuth token endpoint)
+    - /api/discord/link/callback (Discord bot linking flow)
+    """
+    # Validate authorization code
+    if not code or code not in auth_codes:
+        raise ValueError("invalid_grant")
+
+    auth_data = auth_codes[code]
+
+    # Check expiration
+    if datetime.utcnow() > auth_data['expires']:
+        del auth_codes[code]
+        raise ValueError("invalid_grant: authorization_code_expired")
+
+    # Verify PKCE if code_challenge was provided
+    if auth_data.get('code_challenge'):
+        if not code_verifier:
+            raise ValueError("invalid_request: code_verifier_required")
+
+        # Verify code challenge
+        if auth_data['code_challenge_method'] == 'S256':
+            import base64
+            computed_challenge = base64.urlsafe_b64encode(
+                hashlib.sha256(code_verifier.encode()).digest()
+            ).rstrip(b'=').decode()
+        else:
+            computed_challenge = code_verifier
+
+        if computed_challenge != auth_data['code_challenge']:
+            raise ValueError("invalid_grant: invalid_code_verifier")
+
+    # Get user and create session token (reuse existing token system!)
+    from api.dao.users_dao import get_user_by_id
+    user = get_user_by_id(auth_data['user_id'])
+
+    if not user:
+        raise ValueError("invalid_grant")
+
+    # Create token using existing system
+    token_obj, session_token = user.create_token()
+    db.session.add(token_obj)
+    db.session.commit()
+
+    # Clean up authorization code
+    del auth_codes[code]
+
+    return session_token, 86400  # 24 hours
 
 
 def oauth_authorization_server():
@@ -222,54 +280,23 @@ def token():
     if grant_type != 'authorization_code':
         return jsonify({"error": "unsupported_grant_type"}), 400
 
-    # Validate authorization code
-    if not code or code not in auth_codes:
+    try:
+        session_token, expires_in = exchange_authorization_code_for_session_token(
+            code=code,
+            code_verifier=code_verifier,
+        )
+    except ValueError as e:
+        # Normalize to OAuth-ish errors; keep descriptions minimal.
+        msg = str(e)
+        if msg.startswith("invalid_request"):
+            return jsonify({"error": "invalid_request"}), 400
         return jsonify({"error": "invalid_grant"}), 400
-
-    auth_data = auth_codes[code]
-
-    # Check expiration
-    if datetime.utcnow() > auth_data['expires']:
-        del auth_codes[code]
-        return jsonify({"error": "invalid_grant", "error_description": "Authorization code expired"}), 400
-
-    # Verify PKCE if code_challenge was provided
-    if auth_data.get('code_challenge'):
-        if not code_verifier:
-            return jsonify({"error": "invalid_request", "error_description": "code_verifier required"}), 400
-
-        # Verify code challenge
-        if auth_data['code_challenge_method'] == 'S256':
-            import base64
-            computed_challenge = base64.urlsafe_b64encode(
-                hashlib.sha256(code_verifier.encode()).digest()
-            ).rstrip(b'=').decode()
-        else:
-            computed_challenge = code_verifier
-
-        if computed_challenge != auth_data['code_challenge']:
-            return jsonify({"error": "invalid_grant", "error_description": "Invalid code_verifier"}), 400
-
-    # Get user and create session token (reuse existing token system!)
-    from api.dao.users_dao import get_user_by_id
-    user = get_user_by_id(auth_data['user_id'])
-
-    if not user:
-        return jsonify({"error": "invalid_grant"}), 400
-
-    # Create token using existing system
-    token_obj, session_token = user.create_token()
-    db.session.add(token_obj)
-    db.session.commit()
-
-    # Clean up authorization code
-    del auth_codes[code]
 
     # Return access token (this is your session token!)
     return jsonify({
         "access_token": session_token,
         "token_type": "Bearer",
-        "expires_in": 86400  # 24 hours
+        "expires_in": expires_in
     })
 
 

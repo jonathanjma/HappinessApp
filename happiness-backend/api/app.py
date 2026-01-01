@@ -52,6 +52,8 @@ def create_app(config=Config):
     app.register_blueprint(reads, url_prefix='/api/reads')
     from api.routes.mcp_oauth import mcp_oauth
     app.register_blueprint(mcp_oauth, url_prefix='/api/mcp/oauth')
+    from api.routes.discord_link import discord_link
+    app.register_blueprint(discord_link, url_prefix='/api/discord/link')
     from api.util.errors import errors
     app.register_blueprint(errors)
 

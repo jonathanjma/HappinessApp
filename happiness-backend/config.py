@@ -47,9 +47,12 @@ class Config:
     WRAPPED_DATA_URL = os.environ.get("WRAPPED_DATA_URL")
     WRAPPED_YEAR = 2025
 
-
     # MCP OAuth
     OAUTH_BASE_URL = os.environ.get("OAUTH_BASE_URL", "http://localhost:5001")
+
+    # Discord bot linking (bot -> backend shared secret)
+    # If unset, /api/discord/link/start and /api/discord/link/poll will not enforce auth (dev-only).
+    DISCORD_BOT_LINK_SECRET = os.environ.get("DISCORD_BOT_LINK_SECRET")
 
 
 class TestConfig:
