@@ -2,18 +2,19 @@
 OAuth endpoints for MCP server authentication.
 Maps MCP OAuth flow to existing session token system.
 """
-from flask import Blueprint, jsonify, request, redirect, render_template_string, current_app
+from flask import Blueprint, jsonify, request, redirect, current_app
 from api.authentication.auth import basic_auth, token_auth
 from api.app import db
 from api.models.models import Token
 import hashlib
 import secrets
 from datetime import datetime, timedelta
+from urllib.parse import urlparse, urlencode
 
 mcp_oauth = Blueprint('mcp_oauth', __name__)
 
 # In-memory store for authorization codes (for production, use Redis or database)
-# Format: {code: {'user_id': int, 'expires': datetime, 'code_challenge': str, 'code_challenge_method': str}}
+# Format: {code: {'user_id': int, 'expires': datetime, 'code_challenge': str, 'code_challenge_method': str, 'redirect_uri': str, 'client_id': str}}
 auth_codes = {}
 
 
@@ -22,10 +23,16 @@ def get_oauth_base_url():
     return current_app.config.get('OAUTH_BASE_URL', 'http://localhost:5001')
 
 
+def get_frontend_url():
+    """Get frontend URL from config."""
+    return current_app.config.get('FRONTEND_URL', 'http://localhost:5173')
+
+
 def exchange_authorization_code_for_session_token(
     *,
     code: str,
     code_verifier: str | None,
+    redirect_uri: str | None = None,
 ) -> tuple[str, int]:
     """
     Shared helper to exchange an OAuth authorization code for a session token.
@@ -44,6 +51,10 @@ def exchange_authorization_code_for_session_token(
     if datetime.utcnow() > auth_data['expires']:
         del auth_codes[code]
         raise ValueError("invalid_grant: authorization_code_expired")
+
+    # SECURITY: Verify redirect_uri matches (if provided)
+    if redirect_uri and auth_data.get('redirect_uri') != redirect_uri:
+        raise ValueError("invalid_grant: redirect_uri_mismatch")
 
     # Verify PKCE if code_challenge was provided
     if auth_data.get('code_challenge'):
@@ -120,7 +131,7 @@ def oauth_protected_resource():
 def authorize():
     """
     OAuth authorization endpoint.
-    Shows login page to user and generates authorization code.
+    Redirects to frontend React component for login.
 
     This is where users authorize MCP access to their data.
     """
@@ -139,77 +150,23 @@ def authorize():
     if not client_id or not redirect_uri:
         return jsonify({"error": "invalid_request"}), 400
 
-    # Show login form
-    login_page = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Authorize Happiness App MCP</title>
-        <style>
-            body { 
-                font-family: Arial, sans-serif; 
-                max-width: 400px; 
-                margin: 50px auto; 
-                padding: 20px;
-                background: #f5f5f5;
-            }
-            .container {
-                background: white;
-                padding: 30px;
-                border-radius: 8px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            }
-            h1 { color: #333; font-size: 24px; margin-bottom: 20px; }
-            p { color: #666; margin-bottom: 20px; }
-            input { 
-                width: 100%; 
-                padding: 10px; 
-                margin: 10px 0; 
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                box-sizing: border-box;
-            }
-            button { 
-                width: 100%; 
-                padding: 12px; 
-                background: #4CAF50; 
-                color: white; 
-                border: none; 
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 16px;
-            }
-            button:hover { background: #45a049; }
-            .error { color: red; margin-top: 10px; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>Authorize MCP Access</h1>
-            <p>Sign in to allow Claude (or other MCP client) to access your Happiness App data.</p>
-            <form method="POST">
-                <input type="text" name="username" placeholder="Username or Email" required>
-                <input type="password" name="password" placeholder="Password" required>
-                <input type="hidden" name="client_id" value="{{ client_id }}">
-                <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
-                <input type="hidden" name="state" value="{{ state }}">
-                <input type="hidden" name="code_challenge" value="{{ code_challenge }}">
-                <input type="hidden" name="code_challenge_method" value="{{ code_challenge_method }}">
-                <button type="submit">Authorize</button>
-            </form>
-        </div>
-    </body>
-    </html>
-    """
+    # Build frontend URL with OAuth parameters
+    frontend_url = get_frontend_url()
+    params = {
+        'client_id': client_id,
+        'redirect_uri': redirect_uri,
+        'response_type': response_type,
+    }
+    if state:
+        params['state'] = state
+    if code_challenge:
+        params['code_challenge'] = code_challenge
+    if code_challenge_method:
+        params['code_challenge_method'] = code_challenge_method
 
-    return render_template_string(
-        login_page,
-        client_id=client_id,
-        redirect_uri=redirect_uri,
-        state=state or '',
-        code_challenge=code_challenge or '',
-        code_challenge_method=code_challenge_method
-    )
+    frontend_oauth_url = f"{frontend_url}/oauth/authorize?{urlencode(params)}"
+
+    return redirect(frontend_oauth_url)
 
 
 @mcp_oauth.route('/authorize', methods=['POST'])
@@ -219,13 +176,14 @@ def authorize_post():
     """
     from api.dao.users_dao import get_user_by_username, get_user_by_email
 
-    username = request.form.get('username')
-    password = request.form.get('password')
-    client_id = request.form.get('client_id')
-    redirect_uri = request.form.get('redirect_uri')
-    state = request.form.get('state')
-    code_challenge = request.form.get('code_challenge')
-    code_challenge_method = request.form.get('code_challenge_method', 'plain')
+    data = request.json or {}
+    username = data.get('username')
+    password = data.get('password')
+    client_id = data.get('client_id')
+    redirect_uri = data.get('redirect_uri')
+    state = data.get('state')
+    code_challenge = data.get('code_challenge')
+    code_challenge_method = data.get('code_challenge_method', 'plain')
 
     # Verify user credentials (reuse existing verification logic)
     user = get_user_by_email(username)
@@ -237,21 +195,24 @@ def authorize_post():
     # Generate authorization code
     auth_code = secrets.token_urlsafe(32)
 
-    # Store authorization code with user info
+    # Store authorization code with user info (including redirect_uri for validation)
     auth_codes[auth_code] = {
         'user_id': user.id,
         'expires': datetime.utcnow() + timedelta(minutes=10),
         'code_challenge': code_challenge,
         'code_challenge_method': code_challenge_method,
-        'client_id': client_id
+        'client_id': client_id,
+        # SECURITY: Store redirect_uri to validate in token endpoint
+        'redirect_uri': redirect_uri
     }
 
-    # Redirect back to client with authorization code
+    # Build redirect URL with authorization code
     redirect_url = f"{redirect_uri}?code={auth_code}"
     if state:
         redirect_url += f"&state={state}"
 
-    return redirect(redirect_url)
+    # Return JSON for React frontend
+    return jsonify({"redirect_url": redirect_url})
 
 
 @mcp_oauth.route('/token', methods=['POST'])
@@ -280,10 +241,17 @@ def token():
     if grant_type != 'authorization_code':
         return jsonify({"error": "unsupported_grant_type"}), 400
 
+    # SECURITY: Validate redirect_uri matches the one used in authorization request
+    if code and code in auth_codes:
+        stored_redirect_uri = auth_codes[code].get('redirect_uri')
+        if redirect_uri and redirect_uri != stored_redirect_uri:
+            return jsonify({"error": "invalid_grant", "error_description": "redirect_uri mismatch"}), 400
+
     try:
         session_token, expires_in = exchange_authorization_code_for_session_token(
             code=code,
             code_verifier=code_verifier,
+            redirect_uri=redirect_uri,  # Pass for validation
         )
     except ValueError as e:
         # Normalize to OAuth-ish errors; keep descriptions minimal.

@@ -25,7 +25,7 @@ import time
 import urllib.parse
 from typing import Any, Dict, Optional
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, request, redirect
 from itsdangerous import BadSignature, BadTimeSignature, URLSafeTimedSerializer
 
 discord_link = Blueprint("discord_link", __name__)
@@ -72,6 +72,10 @@ def _serializer() -> URLSafeTimedSerializer:
 
 def _oauth_base_url() -> str:
     return str(current_app.config.get("OAUTH_BASE_URL", "")).rstrip("/")
+
+
+def _frontend_url() -> str:
+    return str(current_app.config.get("FRONTEND_URL", "http://localhost:5173")).rstrip("/")
 
 
 def _require_bot_secret() -> Optional[Any]:
@@ -185,9 +189,13 @@ def link_callback():
     try:
         from api.routes.mcp_oauth import exchange_authorization_code_for_session_token
 
+        # Get the callback URL that was used in the authorization request
+        callback_url = f"{_oauth_base_url()}/api/discord/link/callback"
+
         access_token, expires_in = exchange_authorization_code_for_session_token(
             code=code,
             code_verifier=str(session.get("code_verifier") or ""),
+            redirect_uri=callback_url,  # Pass redirect_uri for validation
         )
     except Exception:
         # Keep message generic to avoid leaking info
@@ -198,13 +206,9 @@ def link_callback():
     session["token_expires_at"] = _now_s() + int(expires_in)
     session["expires_at"] = _now_s() + 600  # keep around briefly for bot poll
 
-    return (
-        "<html><body><h2>✅ Linked successfully</h2>"
-        "<p>You can now return to Discord. This page can be closed.</p>"
-        "</body></html>",
-        200,
-        {"Content-Type": "text/html; charset=utf-8"},
-    )
+    # Redirect to frontend instead of rendering HTML
+    frontend_url = _frontend_url()
+    return redirect(frontend_url)
 
 
 @discord_link.route("/poll", methods=["GET"])
