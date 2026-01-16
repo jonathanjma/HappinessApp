@@ -1,6 +1,5 @@
 """
 OAuth endpoints for MCP server authentication.
-Maps MCP OAuth flow to existing session token system.
 """
 from flask import Blueprint, redirect, current_app
 from apifairy import arguments, body, response, other_responses
