@@ -3,13 +3,11 @@ OAuth endpoints for MCP server authentication.
 Maps MCP OAuth flow to existing session token system.
 """
 from flask import Blueprint, jsonify, request, redirect, current_app
-from api.authentication.auth import basic_auth, token_auth
 from api.app import db
-from api.models.models import Token
 import hashlib
 import secrets
 from datetime import datetime, timedelta
-from urllib.parse import urlparse, urlencode
+from urllib.parse import urlencode
 
 mcp_oauth = Blueprint('mcp_oauth', __name__)
 
@@ -184,6 +182,10 @@ def authorize_post():
     state = data.get('state')
     code_challenge = data.get('code_challenge')
     code_challenge_method = data.get('code_challenge_method', 'plain')
+
+    # Validate required fields
+    if not username or not password:
+        return jsonify({"error": "invalid_credentials"}), 401
 
     # Verify user credentials (reuse existing verification logic)
     user = get_user_by_email(username)
