@@ -2,12 +2,12 @@
 Discord linking endpoints for the Happiness App MCP OAuth flow.
 
 High-level flow:
-1) Bot calls POST /api/discord/link/start (authenticated with a shared secret).
+1) Bot calls POST /api/discord/link (authenticated with a shared secret).
 2) Backend returns a link URL to /api/mcp/oauth/authorize with redirect_uri pointing to
-   /api/discord/link/callback and PKCE parameters.
+   /api/discord/callback and PKCE parameters.
 3) User clicks link, logs in, backend receives OAuth code at /callback and exchanges it
    for a session token.
-4) Bot polls GET /api/discord/link/poll (authenticated) to fetch the token once.
+4) Bot polls GET /api/discord/poll (authenticated) to fetch the token once.
 """
 
 import base64
@@ -55,7 +55,7 @@ def _serializer() -> URLSafeTimedSerializer:
     return URLSafeTimedSerializer(secret_key=secret, salt="discord-link-state-v1")
 
 
-@discord_link.post("/start")
+@discord_link.post("/link")
 @body(StartLinkSchema)
 @arguments(BotSecretSchema, location='headers')
 @response(StartLinkResponseSchema)
@@ -85,7 +85,7 @@ def start_link(link_data, headers):
     client_id = secrets.token_urlsafe(16)
 
     base_url = current_app.config['OAUTH_BASE_URL']
-    callback_url = f"{base_url}/api/discord/link/callback"
+    callback_url = f"{base_url}/api/discord/callback"
 
     state = _serializer().dumps(
         {"link_id": link_id, "discord_user_id": str(discord_user_id)})
@@ -157,7 +157,7 @@ def link_callback(callback_params):
 
     try:
         # Get the callback URL that was used in the authorization request
-        callback_url = f"{current_app.config['OAUTH_BASE_URL']}/api/discord/link/callback"
+        callback_url = f"{current_app.config['OAUTH_BASE_URL']}/api/discord/callback"
 
         access_token, expires_in = exchange_authorization_code_for_session_token(
             code=code,
