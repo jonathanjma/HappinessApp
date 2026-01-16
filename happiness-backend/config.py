@@ -52,7 +52,7 @@ class Config:
     FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 
     # Discord bot shared secret
-    DISCORD_BOT_LINK_SECRET = os.environ.get("DISCORD_BOT_LINK_SECRET")
+    DISCORD_BOT_SECRET = os.environ.get("DISCORD_BOT_SECRET")
 
 
 class TestConfig:

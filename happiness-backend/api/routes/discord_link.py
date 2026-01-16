@@ -1,9 +1,6 @@
 """
 Discord linking endpoints for the Happiness App MCP OAuth flow.
 
-Goal: allow a Discord bot to link a Discord user to a Happiness App user *without*
-running a web server on the bot and without any copy/paste codes.
-
 High-level flow:
 1) Bot calls POST /api/discord/link/start (authenticated with a shared secret).
 2) Backend returns a link URL to /api/mcp/oauth/authorize with redirect_uri pointing to
@@ -11,54 +8,42 @@ High-level flow:
 3) User clicks link, logs in, backend receives OAuth code at /callback and exchanges it
    for a session token.
 4) Bot polls GET /api/discord/link/poll (authenticated) to fetch the token once.
-
-Storage:
-- In-memory link sessions (dev-friendly). For production, use Redis or DB.
 """
-
-from __future__ import annotations
 
 import base64
 import hashlib
 import secrets
 import time
 import urllib.parse
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
-from flask import Blueprint, current_app, jsonify, request, redirect
+from flask import Blueprint, current_app, redirect
+from apifairy import arguments, body, response, other_responses
+from api.models.schema import (
+    StartLinkSchema,
+    StartLinkResponseSchema,
+    LinkCallbackSchema,
+    PollLinkSchema,
+    PollLinkResponseSchema,
+    BotSecretSchema,
+)
+from api.routes.mcp_oauth import exchange_authorization_code_for_session_token
+from api.util.errors import failure_response
 from itsdangerous import BadSignature, BadTimeSignature, URLSafeTimedSerializer
 
-discord_link = Blueprint("discord_link", __name__)
+discord_link = Blueprint("DiscordLink", __name__)
 
 
 # In-memory link session store.
 # Keyed by link_id. Values are LinkSession dicts.
-_link_sessions: Dict[str, Dict[str, Any]] = {}
-
-
-def _now_s() -> int:
-    return int(time.time())
+link_sessions: Dict[str, Dict[str, Any]] = {}
 
 
 def _cleanup_expired_sessions() -> None:
-    now = _now_s()
-    expired_keys = [k for k, v in _link_sessions.items() if int(
-        v.get("expires_at", 0)) <= now]
+    expired_keys = [k for k, v in link_sessions.items() if int(
+        v.get("expires_at", 0)) <= int(time.time())]
     for k in expired_keys:
-        _link_sessions.pop(k, None)
-
-
-def _b64url_no_pad(data: bytes) -> str:
-    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
-
-
-def _pkce_verifier() -> str:
-    # RFC 7636: code_verifier length 43..128 characters.
-    return secrets.token_urlsafe(64)[:128]
-
-
-def _pkce_challenge_s256(verifier: str) -> str:
-    return _b64url_no_pad(hashlib.sha256(verifier.encode("utf-8")).digest())
+        link_sessions.pop(k, None)
 
 
 def _serializer() -> URLSafeTimedSerializer:
@@ -70,58 +55,36 @@ def _serializer() -> URLSafeTimedSerializer:
     return URLSafeTimedSerializer(secret_key=secret, salt="discord-link-state-v1")
 
 
-def _oauth_base_url() -> str:
-    return str(current_app.config.get("OAUTH_BASE_URL", "")).rstrip("/")
-
-
-def _frontend_url() -> str:
-    return str(current_app.config.get("FRONTEND_URL", "http://localhost:5173")).rstrip("/")
-
-
-def _require_bot_secret() -> Optional[Any]:
+@discord_link.post("/start")
+@body(StartLinkSchema)
+@arguments(BotSecretSchema, location='headers')
+@response(StartLinkResponseSchema)
+def start_link(link_data, headers):
     """
-    Enforce bot-to-backend authentication for link start/poll.
+    Start Discord Link Session
+    Creates a new Discord linking session and returns a URL for the user to authorize.
 
-    If DISCORD_BOT_LINK_SECRET is not set, allow requests (dev convenience).
-    """
-    expected = current_app.config.get("DISCORD_BOT_LINK_SECRET")
-    if not expected:
-        return None
-    provided = request.headers.get("X-Bot-Secret", "")
-    if not secrets.compare_digest(str(expected), str(provided)):
-        return jsonify({"error": "unauthorized"}), 401
-    return None
-
-
-@discord_link.route("/start", methods=["POST"])
-def start_link():
-    """
-    Bot calls this endpoint to start a link session and get a browser URL.
+    This endpoint is called by the Discord bot to initiate the OAuth linking flow.
+    It returns a temporary URL that the Discord user can visit to complete the authorization. 
+    The link session expires after 10 minutes.
     """
     _cleanup_expired_sessions()
 
-    auth_resp = _require_bot_secret()
-    if auth_resp is not None:
-        return auth_resp
-
-    body = request.get_json(silent=True) or {}
-    discord_user_id = body.get("discord_user_id")
-    if not discord_user_id:
-        return jsonify({"error": "discord_user_id_required"}), 400
-
-    base_url = _oauth_base_url()
-    if not base_url:
-        return jsonify({"error": "OAUTH_BASE_URL_not_configured"}), 500
+    discord_user_id = link_data["discord_user_id"]
 
     # Create link session and PKCE params
     link_id = secrets.token_urlsafe(24)
-    code_verifier = _pkce_verifier()
-    code_challenge = _pkce_challenge_s256(code_verifier)
+    # RFC 7636: code_verifier length 43..128 characters.
+    code_verifier = secrets.token_urlsafe(64)[:128]
+    verifier_hash = hashlib.sha256(code_verifier.encode("utf-8")).digest()
+    code_challenge = base64.urlsafe_b64encode(
+        verifier_hash).rstrip(b"=").decode("ascii")
 
     # OAuth client_id: authorize endpoint doesn't validate it (simple implementation),
     # so we can generate an ephemeral one.
     client_id = secrets.token_urlsafe(16)
 
+    base_url = current_app.config['OAUTH_BASE_URL']
     callback_url = f"{base_url}/api/discord/link/callback"
 
     state = _serializer().dumps(
@@ -138,59 +101,63 @@ def start_link():
     authorize_url = f"{base_url}/api/mcp/oauth/authorize?{urllib.parse.urlencode(authorize_params)}"
 
     # Store pending session for 10 minutes
-    _link_sessions[link_id] = {
+    link_sessions[link_id] = {
         "discord_user_id": str(discord_user_id),
         "code_verifier": code_verifier,
-        "expires_at": _now_s() + 600,
+        "expires_at": int(time.time()) + 600,
         "status": "pending",
     }
 
-    return jsonify(
-        {
-            "link_id": link_id,
-            "link_url": authorize_url,
-            "expires_in": 600,
-        }
-    )
+    return {
+        "link_id": link_id,
+        "link_url": authorize_url,
+        "expires_in": 600,
+    }
 
 
-@discord_link.route("/callback", methods=["GET"])
-def link_callback():
+@discord_link.get("/callback")
+@arguments(LinkCallbackSchema)
+@other_responses({400: "Invalid state, expired session, or linking failed"})
+def link_callback(callback_params):
     """
-    Browser lands here after /api/mcp/oauth/authorize redirects with ?code=...&state=...
+    Discord Link OAuth Callback
+    Handles the OAuth callback after user authorization and completes the linking process.
+
+    This endpoint is called by the browser after the user completes OAuth authorization.
+    It validates the authorization code, exchanges it for a session token, 
+    stores it in the link session, and redirects the user to the frontend.
+    The bot can then poll /poll to retrieve the access token.
+
+    Prerequisites: User must have completed OAuth authorization via the link_url from POST /start
     """
     _cleanup_expired_sessions()
 
-    code = request.args.get("code", "")
-    state = request.args.get("state", "")
-    if not code or not state:
-        return "Missing code/state.", 400
+    code = callback_params["code"]
+    state = callback_params["state"]
 
     try:
         payload = _serializer().loads(state, max_age=600)
     except (BadSignature, BadTimeSignature):
-        return "Invalid or expired state.", 400
+        return failure_response("Invalid or expired state.", 400)
 
-    link_id = str(payload.get("link_id") or "")
+    link_id = payload.get("link_id")
     if not link_id:
-        return "Invalid state payload.", 400
+        return failure_response("Invalid state payload.", 400)
 
-    session = _link_sessions.get(link_id)
+    session = link_sessions.get(link_id)
     if not session:
-        return "Link session expired. Please restart linking from Discord.", 400
+        return failure_response("Link session expired.", 400)
 
-    # Optional: ensure the same discord_user_id we created matches
+    # Ensure the same discord_user_id we created matches
     if str(payload.get("discord_user_id")) != str(session.get("discord_user_id")):
-        return "Link session mismatch.", 400
+        return failure_response("Link session mismatch.", 400)
 
     if session.get("status") != "pending":
-        return "Link session already completed. You can return to Discord.", 200
+        return failure_response("Link session already completed.", 200)
 
     try:
-        from api.routes.mcp_oauth import exchange_authorization_code_for_session_token
-
         # Get the callback URL that was used in the authorization request
-        callback_url = f"{_oauth_base_url()}/api/discord/link/callback"
+        callback_url = f"{current_app.config['OAUTH_BASE_URL']}/api/discord/link/callback"
 
         access_token, expires_in = exchange_authorization_code_for_session_token(
             code=code,
@@ -199,53 +166,53 @@ def link_callback():
         )
     except Exception:
         # Keep message generic to avoid leaking info
-        return "Failed to complete linking. Please try again.", 400
+        return failure_response("Failed to complete linking. Please try again.", 400)
 
     session["status"] = "complete"
     session["access_token"] = access_token
-    session["token_expires_at"] = _now_s() + int(expires_in)
-    session["expires_at"] = _now_s() + 600  # keep around briefly for bot poll
+    session["token_expires_at"] = int(time.time()) + int(expires_in)
+    # keep around briefly for bot poll
+    session["expires_at"] = int(time.time()) + 600
 
-    # Redirect to frontend instead of rendering HTML
-    frontend_url = _frontend_url()
-    return redirect(frontend_url)
+    # Redirect to frontend
+    return redirect(current_app.config['FRONTEND_URL'])
 
 
-@discord_link.route("/poll", methods=["GET"])
-def poll_link():
+@discord_link.get("/poll")
+@arguments(PollLinkSchema)
+@arguments(BotSecretSchema, location='headers')
+@response(PollLinkResponseSchema)
+@other_responses({400: "Link session expired"})
+def poll_link(poll_params, headers):
     """
-    Bot polls for completion; returns token once and deletes the session.
+    Poll Discord Link Status
+    Checks the status of a Discord linking session and returns the access token when complete.
+
+    This endpoint is polled by the Discord bot to check if the user has completed the
+    OAuth authorization. It returns "pending" if authorization is not yet complete,
+    "expired" if the session has expired, or "complete" with the access token if
+    authorization succeeded.
     """
     _cleanup_expired_sessions()
 
-    auth_resp = _require_bot_secret()
-    if auth_resp is not None:
-        return auth_resp
-
-    link_id = request.args.get("link_id", "")
-    if not link_id:
-        return jsonify({"error": "link_id_required"}), 400
-
-    session = _link_sessions.get(link_id)
+    link_id = poll_params["link_id"]
+    session = link_sessions.get(link_id)
     if not session:
-        return jsonify({"status": "expired"}), 404
+        return failure_response("Link session expired.", 400)
 
-    status = session.get("status")
-    if status != "complete":
-        return jsonify({"status": "pending"}), 200
+    if session.get("status") != "complete":
+        return {"status": "pending"}
 
-    access_token = session.get("access_token") or ""
-    token_expires_at = int(session.get("token_expires_at") or 0)
-    expires_in = max(0, token_expires_at - _now_s())
+    access_token = session.get("access_token")
+    token_expires_at = session.get("token_expires_at")
+    expires_in = max(0, token_expires_at - int(time.time()))
 
     # One-time delivery: remove from memory after returning.
-    _link_sessions.pop(link_id, None)
+    link_sessions.pop(link_id, None)
 
-    return jsonify(
-        {
-            "status": "complete",
-            "access_token": access_token,
-            "token_type": "Bearer",
-            "expires_in": expires_in,
-        }
-    )
+    return {
+        "status": "complete",
+        "access_token": access_token,
+        "token_type": "Bearer",
+        "expires_in": expires_in,
+    }

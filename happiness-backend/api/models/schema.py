@@ -1,5 +1,6 @@
 from apifairy.fields import FileField
-from marshmallow import post_dump
+from marshmallow import post_dump, validates, ValidationError
+from flask import current_app
 
 from api.app import ma
 from api.authentication.auth import token_current_user
@@ -185,7 +186,8 @@ class JournalSchema(ma.SQLAlchemySchema):
     def decrypt_entry(self, data, **kwargs):
         try:
             if self.context.get('password_key'):
-                decrypted = token_current_user().decrypt_data(self.context['password_key'], data['data'])
+                decrypted = token_current_user().decrypt_data(
+                    self.context['password_key'], data['data'])
                 data['data'] = decrypted.decode('utf-8')
         except Exception as e:
             print(e)
@@ -326,3 +328,50 @@ class OAuthProtectedResourceSchema(ma.Schema):
     """Schema for OAuth protected resource metadata."""
     resource = ma.Str(required=True)
     authorization_servers = ma.List(ma.Str(), many=True, required=True)
+
+
+# Discord Link Schemas
+class StartLinkSchema(ma.Schema):
+    """Schema for Discord link start request body."""
+    discord_user_id = ma.Str(required=True)
+
+
+class StartLinkResponseSchema(ma.Schema):
+    """Schema for Discord link start response."""
+    link_id = ma.Str(required=True)
+    link_url = ma.Str(required=True)
+    expires_in = ma.Int(required=True)
+
+
+class LinkCallbackSchema(ma.Schema):
+    """Schema for Discord link callback query parameters."""
+    code = ma.Str(required=True)
+    state = ma.Str(required=True)
+
+
+class PollLinkSchema(ma.Schema):
+    """Schema for Discord link poll query parameters."""
+    link_id = ma.Str(required=True)
+
+
+class PollLinkResponseSchema(ma.Schema):
+    """Schema for Discord link poll response."""
+    status = ma.Str(required=True)
+    access_token = ma.Str()
+    token_type = ma.Str()
+    expires_in = ma.Int()
+
+
+class BotSecretSchema(ma.Schema):
+    """Schema for Discord bot secret header authentication."""
+    bot_secret = ma.Str(data_key='X-Bot-Secret', required=False)
+
+    @validates('bot_secret')
+    def validate_bot_secret(self, value):
+        """Validate that the provided bot secret matches the configured secret."""
+        expected_secret = current_app.config.get("DISCORD_BOT_SECRET")
+        if not expected_secret:
+            # If no secret is configured, allow any value (dev convenience)
+            return
+        if not value or not expected_secret == value:
+            raise ValidationError("Invalid bot secret")
