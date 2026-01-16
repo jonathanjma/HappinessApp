@@ -51,8 +51,7 @@ class Config:
     OAUTH_BASE_URL = os.environ.get("OAUTH_BASE_URL", "http://localhost:5001")
     FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 
-    # Discord bot linking (bot -> backend shared secret)
-    # If unset, /api/discord/link/start and /api/discord/link/poll will not enforce auth (dev-only).
+    # Discord bot shared secret
     DISCORD_BOT_LINK_SECRET = os.environ.get("DISCORD_BOT_LINK_SECRET")
 
 
@@ -62,4 +61,6 @@ class TestConfig:
 
     SECRET_KEY = Config.SECRET_KEY
     ENCRYPT_SALT = Config.ENCRYPT_SALT
-    REDISCLOUD_URL = Config.REDISCLOUD_URL
+    REDISCLOUD_URL = "redis://"
+    OAUTH_BASE_URL = ""
+    FRONTEND_URL = ""

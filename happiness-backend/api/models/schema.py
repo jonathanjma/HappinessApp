@@ -249,3 +249,80 @@ class AmountSchema(ma.Schema):
 
 class UserDeleteSchema(ma.Schema):
     password = ma.Str(required=True)
+
+
+# OAuth 2.1 Schemas
+class AuthorizationRequestSchema(ma.Schema):
+    """Schema for OAuth authorization request query parameters."""
+    client_id = ma.Str(required=True)
+    redirect_uri = ma.Str(required=True)
+    response_type = ma.Str(required=True)
+    state = ma.Str()
+    code_challenge = ma.Str()
+    code_challenge_method = ma.Str(load_default='plain')
+
+
+class AuthorizationPostSchema(ma.Schema):
+    """Schema for OAuth authorization POST request body."""
+    username = ma.Str(required=True)
+    password = ma.Str(required=True)
+    client_id = ma.Str(required=True)
+    redirect_uri = ma.Str(required=True)
+    state = ma.Str()
+    code_challenge = ma.Str()
+    code_challenge_method = ma.Str(load_default='plain')
+
+
+class AuthorizationResponseSchema(ma.Schema):
+    """Schema for OAuth authorization POST response."""
+    redirect_url = ma.Str(required=True)
+
+
+class TokenRequestSchema(ma.Schema):
+    """Schema for OAuth token request body (supports both JSON and form data)."""
+    grant_type = ma.Str(required=True)
+    code = ma.Str(required=True)
+    redirect_uri = ma.Str(required=True)
+    code_verifier = ma.Str()
+    client_id = ma.Str()
+
+
+class TokenResponseSchema(ma.Schema):
+    """Schema for OAuth token response."""
+    access_token = ma.Str(required=True)
+    token_type = ma.Str(required=True)
+    expires_in = ma.Int(required=True)
+
+
+class ClientRegistrationSchema(ma.Schema):
+    """Schema for OAuth client registration request."""
+    client_name = ma.Str(load_default='MCP Client')
+    redirect_uris = ma.List(ma.Str(), many=True, load_default=[])
+
+
+class ClientRegistrationResponseSchema(ma.Schema):
+    """Schema for OAuth client registration response."""
+    client_id = ma.Str(required=True)
+    client_name = ma.Str(required=True)
+    redirect_uris = ma.List(ma.Str(), many=True, required=True)
+    token_endpoint_auth_method = ma.Str(required=True)
+
+
+class OAuthAuthorizationServerSchema(ma.Schema):
+    """Schema for OAuth authorization server metadata."""
+    issuer = ma.Str(required=True)
+    authorization_endpoint = ma.Str(required=True)
+    token_endpoint = ma.Str(required=True)
+    registration_endpoint = ma.Str(required=True)
+    grant_types_supported = ma.List(ma.Str(), many=True, required=True)
+    response_types_supported = ma.List(ma.Str(), many=True, required=True)
+    code_challenge_methods_supported = ma.List(
+        ma.Str(), many=True, required=True)
+    token_endpoint_auth_methods_supported = ma.List(
+        ma.Str(), many=True, required=True)
+
+
+class OAuthProtectedResourceSchema(ma.Schema):
+    """Schema for OAuth protected resource metadata."""
+    resource = ma.Str(required=True)
+    authorization_servers = ma.List(ma.Str(), many=True, required=True)
