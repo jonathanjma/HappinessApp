@@ -1,10 +1,19 @@
+from starlette.middleware.wsgi import WSGIMiddleware
+
 from api import create_app
-from api.app import db
-from api.models.models import User, Setting, Happiness
+from api.util.db_session import init_session_factory
+from api.routes.mcp_server import create_mcp_asgi_app
 
-app = create_app()
+# Create Flask app (which is WSGI)
+flask_app = create_app()
 
+# Initialize global SQLAlchemy session factory for MCP tools
+init_session_factory(flask_app)
 
-@app.shell_context_processor
-def make_shell_context():
-    return {'db': db, 'User': User, 'Setting': Setting, 'Happiness': Happiness}
+# Create MCP server (which is ASGI)
+app = create_mcp_asgi_app(flask_app)
+
+# Mount Flask in the ASGI server 
+# MCP: served at "/mcp"
+# Flask app: mounted at "/" (everything else)
+app.mount("/", WSGIMiddleware(flask_app))

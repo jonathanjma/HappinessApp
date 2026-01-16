@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from sqlalchemy import select, desc, Select, func
+from sqlalchemy.orm import Session
 
 from api.app import db
 from api.models.models import Happiness, Comment, User
@@ -45,14 +46,19 @@ def get_all_happiness(user_id: int) -> list[Happiness]:
     return list(db.session.execute(select(Happiness).where(Happiness.user_id == user_id)).scalars())
 
 
-def get_happiness_by_date_range(user_ids: list[int], start: datetime, end: datetime) -> list[Happiness]:
+def get_happiness_by_date_range(
+    user_ids: list[int],
+    start: datetime,
+    end: datetime,
+    session: Session = db.session,
+) -> list[Happiness]:
     """
     Returns all Happiness objects (sorted from oldest to newest) between 2 Datetime objects (inclusive)
     given a list of User IDs.
     """
     db_start = datetime.strftime(start, "%Y-%m-%d 00:00:00.000000")
     db_end = datetime.strftime(end, "%Y-%m-%d 00:00:00.000000")
-    return list(db.session.execute(select(Happiness).where(
+    return list(session.execute(select(Happiness).where(
         Happiness.user_id.in_(user_ids), Happiness.timestamp.between(db_start, db_end)
     ).order_by(Happiness.timestamp.asc())).scalars())
 
@@ -91,8 +97,17 @@ def get_happiness_by_unread(user_id: int, user_ids: list[int]) -> list[Happiness
     ).order_by(Happiness.timestamp.desc(), Happiness.user_id.asc())).scalars())
 
 
-def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datetime, end: datetime,
-                            low: float, high: float, text: str) -> list[Happiness]:
+def get_happiness_by_filter(
+    user_id: int,
+    page: int,
+    per_page: int,
+    start: datetime,
+    end: datetime,
+    low: float,
+    high: float,
+    text: str,
+    session: Session = None,
+) -> list[Happiness]:
     """
     Filters according to the provided arguments. Checks to see what filters to apply. Will not apply the filters if they
     have the value [None]. For example, if start = end = None, then the happiness will not be filtered by timestamp.
@@ -111,12 +126,21 @@ def get_happiness_by_filter(user_id: int, page: int, per_page: int, start: datet
     if not has_filtered:
         return []
 
-    return list(db.paginate(
-        select=query,
-        per_page=per_page,
-        page=page,
-        error_out=False
-    ))
+    # When called from MCP, we use anexplicit SQLAlchemy session so we need to use manual pagination
+    if session is not None:
+        offset = (max(page, 1) - 1) * max(per_page, 1)
+        query = query.limit(per_page).offset(offset)
+        return list(session.execute(query).scalars().all())
+
+    # Default API behavior
+    return list(
+        db.paginate(
+            select=query,
+            per_page=per_page,
+            page=page,
+            error_out=False,
+        )
+    )
 
 
 def get_num_happiness_by_filter(user_id: int, start: datetime, end: datetime,

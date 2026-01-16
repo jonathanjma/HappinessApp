@@ -50,8 +50,23 @@ def create_app(config=Config):
     app.register_blueprint(journal, url_prefix='/api/journal')
     from api.routes.reads import reads
     app.register_blueprint(reads, url_prefix='/api/reads')
+    from api.routes.mcp_oauth import mcp_oauth
+    app.register_blueprint(mcp_oauth, url_prefix='/api/mcp/oauth')
+    from api.routes.discord_link import discord_link
+    app.register_blueprint(discord_link, url_prefix='/api/discord')
     from api.util.errors import errors
     app.register_blueprint(errors)
+
+    # Register well-known OAuth endpoints at root level
+    from api.routes.mcp_oauth import oauth_authorization_server, oauth_protected_resource
+    app.add_url_rule('/.well-known/oauth-authorization-server',
+                     'oauth_authorization_server',
+                     oauth_authorization_server,
+                     methods=['GET'])
+    app.add_url_rule('/.well-known/oauth-protected-resource',
+                     'oauth_protected_resource',
+                     oauth_protected_resource,
+                     methods=['GET'])
 
     @app.route('/')
     @app.route('/api')

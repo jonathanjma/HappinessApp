@@ -47,6 +47,13 @@ class Config:
     WRAPPED_DATA_URL = os.environ.get("WRAPPED_DATA_URL")
     WRAPPED_YEAR = 2025
 
+    # MCP OAuth
+    OAUTH_BASE_URL = os.environ.get("OAUTH_BASE_URL", "http://localhost:5001")
+    FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+
+    # Discord bot shared secret
+    DISCORD_BOT_SECRET = os.environ.get("DISCORD_BOT_SECRET")
+
 
 class TestConfig:
     TESTING = True
@@ -54,4 +61,6 @@ class TestConfig:
 
     SECRET_KEY = Config.SECRET_KEY
     ENCRYPT_SALT = Config.ENCRYPT_SALT
-    REDISCLOUD_URL = Config.REDISCLOUD_URL
+    REDISCLOUD_URL = "redis://"
+    OAUTH_BASE_URL = ""
+    FRONTEND_URL = ""
