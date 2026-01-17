@@ -50,6 +50,7 @@ class Config:
     # MCP OAuth
     OAUTH_BASE_URL = os.environ.get("OAUTH_BASE_URL", "http://localhost:5001")
     FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+    MCP_ALLOWED_HOSTS = os.environ.get("MCP_ALLOWED_HOSTS", "")
 
     # Discord bot shared secret
     DISCORD_BOT_SECRET = os.environ.get("DISCORD_BOT_SECRET")
@@ -64,3 +65,4 @@ class TestConfig:
     REDISCLOUD_URL = "redis://"
     OAUTH_BASE_URL = ""
     FRONTEND_URL = ""
+    MCP_ALLOWED_HOSTS = ""

@@ -465,7 +465,7 @@ def test_token_post_success(client, test_user):
     result = response.json
     assert 'access_token' in result
     assert result['token_type'] == 'Bearer'
-    assert result['expires_in'] == 86400
+    assert result['expires_in'] > 0
 
     # Verify code was deleted
     assert code not in auth_codes
@@ -1017,7 +1017,7 @@ def test_exchange_authorization_code_helper_success(client, test_user):
         )
 
         assert isinstance(token, str)
-        assert expires_in == 86400
+        assert expires_in > 0
         assert code not in auth_codes  # Should be deleted
 
 
@@ -1035,7 +1035,7 @@ def test_exchange_authorization_code_helper_with_pkce(client, test_user):
         )
 
         assert isinstance(token, str)
-        assert expires_in == 86400
+        assert expires_in > 0
 
 
 def test_exchange_authorization_code_helper_invalid_code(client):

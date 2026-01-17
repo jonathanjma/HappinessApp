@@ -34,6 +34,7 @@ import hashlib
 from contextvars import ContextVar
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from flask import Flask
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -265,6 +266,13 @@ def create_mcp_asgi_app(flask_app: Flask):
     Create an ASGI application for the MCP server with authentication middleware.
     """
     mcp = create_mcp_server()
+    allowed_hosts = flask_app.config["MCP_ALLOWED_HOSTS"]
+    if allowed_hosts:
+        mcp.settings.transport_security = TransportSecuritySettings(
+            enable_dns_rebinding_protection=True,
+            allowed_hosts=[allowed_hosts],
+            allowed_origins=[allowed_hosts],
+        )
     asgi_app = mcp.streamable_http_app()
 
     # Add authentication middleware
