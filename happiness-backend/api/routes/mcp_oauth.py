@@ -96,7 +96,7 @@ def exchange_authorization_code_for_session_token(
     # Clean up authorization code
     del auth_codes[code]
 
-    return session_token, 86400  # 24 hours
+    return session_token, 1814400  # 3 weeks
 
 
 @response(OAuthAuthorizationServerSchema)
@@ -295,11 +295,7 @@ def token(token_data):
             redirect_uri=redirect_uri,  # Pass for validation
         )
     except ValueError as e:
-        # Normalize to OAuth-ish errors; keep descriptions minimal.
-        msg = str(e)
-        if msg.startswith("invalid_request"):
-            return failure_response("Invalid request", 400)
-        return failure_response("Invalid grant", 400)
+        return failure_response(str(e), 400)
 
     # Return access token (this is your session token!)
     return {
